@@ -265,11 +265,6 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         pointLight.color = (0.59, 0.653079, 1)
         bpy.context.active_object.parent = defaultLights
         workLights = self.createSkelNode("4_workLights", lightsGroup)
-        # bpy.ops.object.empty_add(radius=0)
-        # workLights = bpy.context.active_object
-        # workLights.name = '4_workLights'
-        # workLights.parent  = lightsGroup
-        # work lights front
         self.createLight('workLightFrontLow', workLights, math.radians(130), 20, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
         workLightFrontHigh1 = self.createLight('workLightFrontHigh', workLights, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-65), 0, math.radians(15)))
         self.createLight('workLightFrontHigh2', workLightFrontHigh1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-65), 0, math.radians(-15)))
@@ -280,19 +275,11 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
 
         # back lights
         backLights = self.createSkelNode("5_backLights", lightsGroup)
-        # bpy.ops.object.empty_add(radius=0)
-        # backLights = bpy.context.active_object
-        # backLights.name = '5_backLights'
-        # backLights.parent  = lightsGroup
         backLightsHigh1 = self.createLight('backLightsHigh', backLights, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, 0))
         self.createLight('backLightsHigh2', backLightsHigh1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, 0))
 
         # turn lights
         turnLights = self.createSkelNode("6_turnLights", lightsGroup)
-        # bpy.ops.object.empty_add(radius=0)
-        # turnLights = bpy.context.active_object
-        # turnLights.name = '6_turnLights'
-        # turnLights.parent  = lightsGroup
         turnLightLeftFront = self.createLight('turnLightLeftFront', turnLights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
         self.createLight('turnLightLeftBack', turnLightLeftFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
         turnLightRightFront = self.createLight('turnLightRightFront', turnLights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
@@ -300,22 +287,10 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
 
         # beacon lights
         beaconLights = self.createSkelNode("7_beaconLights", lightsGroup)
-        # bpy.ops.object.empty_add(radius=0)
-        # beaconLights = bpy.context.active_object
-        # beaconLights.name = '7_beaconLights'
-        # beaconLights.parent  = lightsGroup
         self.createSkelNode("beaconLight1", beaconLights)
-        # bpy.ops.object.empty_add(radius=0)
-        # beaconLight1 = bpy.context.active_object
-        # beaconLight1.name = 'beaconLight1'
-        # beaconLight1.parent  = beaconLights
 
         # reverse lights
         reverseLights = self.createSkelNode("8_reverseLights", lightsGroup)
-        # bpy.ops.object.empty_add(radius=0)
-        # reverseLights = bpy.context.active_object
-        # reverseLights.name = '8_reverseLights'
-        # reverseLights.parent  = lightsGroup
         reverseLight1 = self.createLight('reverseLightHigh', reverseLights, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
         self.createLight('reverseLightHigh2', reverseLight1, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
 
@@ -324,7 +299,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.ops.object.select_grouped(type='PARENT')
         return lightsGroup
 
-        # vehicl
+        # vehicle
     def createLight(self, name, parent, coneAngle, range, dropOff, rgb, translate=(0, 0, 0), rotation=(0, 0, 0), castShadowMap=False):
         bpy.ops.object.light_add(type='SPOT')
         light = bpy.context.object.data

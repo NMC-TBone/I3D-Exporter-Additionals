@@ -56,7 +56,7 @@ class TOOLS_OT_mirrorMaterial(bpy.types.Operator):
             self.report({'INFO'}, "Created material: mirror_mat")
             return {'FINISHED'}
 
-            # TODO: fix issue when export mirror_mat it's missing <Reflectionmap type="planar" refractiveIndex="10" bumpScale="0.1"/> in the .i3d.
+            # TODO: fix issue when export mirror_mat it's missing <Reflectionmap type="planar" refractiveIndex="10" bumpScale="0.1"/> in the .i3d
 
 class TOOLS_OT_removeDuplicateMaterial(bpy.types.Operator):
     bl_idname = "tools.remove_duplicate_material"
