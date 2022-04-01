@@ -1,4 +1,5 @@
 """skeletons.py contains skeleton setup for vehicles, tools and placeables"""
+
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -17,17 +18,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#--------------------------------------------------------------------------------------
+#  Converted/inspired from skeletons script in maya i3d exporter, plugins/Skeletons.py
+#--------------------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------------
-#  Converted/inspired from skeletons script in maya exporter, plugins/Skeletons.py
-#-----------------------------------------------------------------------------------
-
+from fnmatch import translate
 import bpy
 import math
 from io_export_i3d.dcc import dccBlender as dcc
 from io_export_i3d.dcc import I3DRemoveAttributes
 
-# Skeletons Create Button
 class TOOLS_OT_skeletons(bpy.types.Operator):
     bl_label = "Create Button"
     bl_idname = "tools.skeletons_create"
@@ -90,8 +90,6 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createSkelNode("playerLeftFootTarget", characterTargets, True)
         self.createSkelNode("9_mirrors_cabin", cabin)
         self.createSkelNode("10_visuals_cabin", cabin)
-
-        # TODO fix so the attacherJoints appear inside the combine skeleton as well
         attacherJoints = ""
         if isHarvester:
             attacherJoints = self.createVehicleAttacherJoints(True)
@@ -99,7 +97,6 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             attacherJoints = self.createVehicleAttacherJoints(False)
         attacherJoints = bpy.context.active_object
         attacherJoints.parent = vehicle_vis
-
         ai = self.createSkelNode("7_ai", vehicle_vis)
         self.createSkelNode("aiCollisionTrigger_REPLACE_WITH_MESH", ai)
         exhaustParticles = None
@@ -109,37 +106,29 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             exhaustParticles = self.createSkelNode("8_exhaustParticles", vehicle_vis)
         self.createSkelNode("exhaustParticle1", exhaustParticles, True)
         self.createSkelNode("exhaustParticle2", exhaustParticles, True)
-
         if isHarvester:
             self.createSkelNode("movingParts", vehicle_vis)
-
         self.createSkelNode("9_hydraulics", vehicle_vis)
         self.createSkelNode("10_mirrors", vehicle_vis)
         self.createSkelNode("11_configurations", vehicle_vis)
-
         if isHarvester:
             self.createSkelNode("fillVolume", vehicle_vis)
             workAreas = self.createSkelNode("workAreas", vehicle_vis)
-
             workAreaStraw = self.createSkelNode("workAreaStraw", workAreas)
             self.createSkelNode("workAreaStrawStart", workAreaStraw)
             self.createSkelNode("workAreaStrawWidth", workAreaStraw)
             self.createSkelNode("workAreaStrawHeight", workAreaStraw)
-
             workAreaChopper = self.createSkelNode("workAreaChopper", workAreas)
             self.createSkelNode("workAreaChopperStart", workAreaChopper)
             self.createSkelNode("workAreaChopperWidth", workAreaChopper)
             self.createSkelNode("workAreaChopperHeight", workAreaChopper)
-
         self.createSkelNode("12_visuals", vehicle_vis)
         self.createSkelNode("2_skinnedMeshes", vehicle)
         self.createSkelNode("3_collisions", vehicle)
-
         return vehicle
     
     def createBaseTool(self):
-        self.createVehicleComponent("toolName_main_component1", "toolName_main_component1")
-        tool = bpy.context.active_object
+        tool = self.createVehicleComponent("toolName_main_component1", "toolName_main_component1")
         vehicle_vis = self.createSkelNode("1_toolName_root", tool)
         attachable = self.createSkelNode("1_attachable", vehicle_vis)
         self.createSkelNode("attacherJoint", attachable)
@@ -181,7 +170,6 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createSkelNode("player_skin", playerRoot, True)
         self.createSkelNode("player_rightFoot", playerRoot, True, translate=(-0.184, -0.393, -0.514), rotation=(0, 0, math.radians(10)))
         self.createSkelNode("player_leftFoot", playerRoot, True, translate=(0.184, -0.393, -0.514), rotation=(0, 0, math.radians(-10)))
-
         if steeringWheel is not None and steeringWheel is not False:
             self.createSkelNode("playerRightHandTarget", playerRoot, True, translate=(-0.188, -0.022, 0.03), rotation=(math.radians(-10.518), math.radians(51.12), math.radians(-4.708)))
             self.createSkelNode("playerLeftHandTarget", playerRoot, True, translate=(0.189, -0.023, 0.03), rotation=(math.radians(-10.518), math.radians(-51.12), math.radians(-4.708)))
@@ -240,9 +228,11 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.ops.object.select_grouped(type='PARENT')
         return cameraGroup
 
-        # vehicle
+        # ------------------- LIGHTS VEHICLE -------------------
     def createLights(self):
-        lightsGroup = self.createSkelNode("3_lights")
+        bpy.ops.object.empty_add(radius=0)
+        lightsGroup = bpy.context.active_object
+        lightsGroup.name = '3_lights'
         self.createSkelNode("1_sharedLights", lightsGroup)
         self.createSkelNode("2_staticLights", lightsGroup)
         # default lights
@@ -272,28 +262,23 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createLight('workLightBackLow', workLights, math.radians(130), 20, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, 0))
         workLightBackHigh1 = self.createLight('workLightBackHigh', workLights, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, math.radians(-20)))
         self.createLight('workLightBackHigh2', workLightBackHigh1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, math.radians(20)))
-
         # back lights
         backLights = self.createSkelNode("5_backLights", lightsGroup)
         backLightsHigh1 = self.createLight('backLightsHigh', backLights, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, 0))
         self.createLight('backLightsHigh2', backLightsHigh1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, 0))
-
         # turn lights
         turnLights = self.createSkelNode("6_turnLights", lightsGroup)
         turnLightLeftFront = self.createLight('turnLightLeftFront', turnLights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
         self.createLight('turnLightLeftBack', turnLightLeftFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
         turnLightRightFront = self.createLight('turnLightRightFront', turnLights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
         self.createLight('turnLightRightBack', turnLightRightFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
-
         # beacon lights
         beaconLights = self.createSkelNode("7_beaconLights", lightsGroup)
         self.createSkelNode("beaconLight1", beaconLights)
-
         # reverse lights
         reverseLights = self.createSkelNode("8_reverseLights", lightsGroup)
         reverseLight1 = self.createLight('reverseLightHigh', reverseLights, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
         self.createLight('reverseLightHigh2', reverseLight1, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
-
         bpy.ops.object.select_grouped(type='PARENT')
         bpy.ops.object.select_grouped(type='PARENT')
         bpy.ops.object.select_grouped(type='PARENT')
@@ -307,25 +292,19 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         light.spot_blend = dropOff
         light.color = rgb
         light.cutoff_distance = range
-
         if castShadowMap is not None:
             bpy.context.object.data.use_shadow = True
-
         bpy.context.active_object.location = translate
         translate = (0, 0, 0)
         bpy.context.active_object.rotation_euler = rotation
         rotation = (0, 0, 0)
-
         lightTransform = bpy.context.active_object
         lightTransform.parent = parent
-
         lightTransform.name = name
-
         light = lightTransform.name
         dcc.I3DSetAttrBool(light,'I3D_collision',False)
         dcc.I3DSetAttrBool(light,'I3D_static',False)
         dcc.I3DSetAttrFloat(light,'I3D_clipDistance',75)
-
         return lightTransform
     
     # placeable, low
@@ -338,12 +317,10 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         light = bpy.context.active_object
         light.parent = parent
         light.name = name
-
         light = light.name
         dcc.I3DSetAttrBool(light,'I3D_collision',False)
         dcc.I3DSetAttrBool(light,'I3D_static',False)
         dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
-
         return light
 
     # placeable, high
@@ -355,165 +332,61 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         light.color = rgb
         light.cutoff_distance = range
         light.use_shadow = False
-
         light = bpy.context.active_object
         light.parent = parent
         light.name = name
-
         light = light.name
         dcc.I3DSetAttrBool(light,'I3D_collision',False)
         dcc.I3DSetAttrBool(light,'I3D_static',False)
         dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
-
         return light
 
     def createVehicleAttacherJoints(self, isHarvester):
         bpy.ops.object.empty_add(radius=0)
         attacherJointGroup = bpy.context.active_object
         attacherJointGroup.name = '6_attacherJoints'
-
-        bpy.ops.object.empty_add(radius=0)
-        tools = bpy.context.active_object
-        tools.name = '1_tools'
-        tools.parent = attacherJointGroup
-
-        bpy.ops.object.empty_add(radius=0)
-        trailers = bpy.context.active_object
-        trailers.name = '2_trailers'
-        trailers.parent = attacherJointGroup
-
-        bpy.ops.object.empty_add(radius=0)
-        ptos = bpy.context.active_object
-        ptos.name = '3_ptos'
-        ptos.parent = attacherJointGroup
-
-        bpy.ops.object.empty_add(radius=0)
-        connectionHoses = bpy.context.active_object
-        connectionHoses.name = '4_connectionHoses'
-        connectionHoses.parent = attacherJointGroup
-
+        tools = self.createSkelNode("1_tools", attacherJointGroup)
+        trailers = self.createSkelNode("2_trailers", attacherJointGroup)
+        ptos = self.createSkelNode("3_ptos", attacherJointGroup)
+        self.createSkelNode("4_connectionHoses", attacherJointGroup)
         if not isHarvester:
             # attacherjointbackrot
-            bpy.ops.object.empty_add(radius=0, rotation=(math.radians(13), 0, math.radians(-180)))
-            attacherJointBackRot = bpy.context.active_object
-            attacherJointBackRot.name = 'attacherJointBackRot'
-            attacherJointBackRot.parent = tools
-
-            bpy.ops.object.empty_add(radius=0, location=(0, -1, 0), rotation=(math.radians(-13), 0, 0))
-            attacherJointBackRot2 = bpy.context.active_object
-            attacherJointBackRot2.name = 'attacherJointBackRot2'
-            attacherJointBackRot2.parent = attacherJointBackRot
-
-            bpy.ops.object.empty_add(radius=0, rotation=(0, 0, math.radians(-90)))
-            attacherJointBack = bpy.context.active_object
-            attacherJointBack.name = 'attacherJointBack'
-            attacherJointBack.parent = attacherJointBackRot2
-            self.setDisplayHandle(attacherJointBack)
-
+            attacherJointBackRot = self.createSkelNode("attacherJointBackRot", tools, rotation=(math.radians(13), 0, math.radians(-180)))
+            attacherJointBackRot2 = self.createSkelNode("attacherJointBackRot2", attacherJointBackRot, translate=(0, -1, 0), rotation=(math.radians(13), 0, math.radians(-180)))
+            self.createSkelNode("attacherJointBack", attacherJointBackRot2, True, rotation=(0, 0, math.radians(-90)))
             # attacherjointbackbottomarm
-            bpy.ops.object.empty_add(radius=0, rotation=(math.radians(13), 0, math.radians(-180)))
-            attacherJointBackArmBottom = bpy.context.active_object
-            attacherJointBackArmBottom.name = 'attacherJointBackArmBottom'
-            attacherJointBackArmBottom.parent = tools
-
-            bpy.ops.object.empty_add(radius=0)
-            attacherJointBackArmBottomTrans = bpy.context.active_object
-            attacherJointBackArmBottomTrans.name = 'attacherJointBackArmBottomTrans_REPLACE_WITH_MESH'
-            attacherJointBackArmBottomTrans.parent = attacherJointBackArmBottom
-
-            bpy.ops.object.empty_add(radius=0, location=(0, -1, 0))
-            referencePointBackBottom = bpy.context.active_object
-            referencePointBackBottom.name = 'referencePointBackBottom'
-            referencePointBackBottom.parent = attacherJointBackArmBottomTrans
-
+            attacherJointBackArmBottom = self.createSkelNode("attacherJointBackArmBottom", tools, rotation=(math.radians(13), 0, math.radians(-180)))
+            attacherJointBackArmBottomTrans = self.createSkelNode("attacherJointBackArmBottomTrans_REPLACE_WITH_MESH", attacherJointBackArmBottom)
+            self.createSkelNode("referencePointBackBottom", attacherJointBackArmBottomTrans, translate=(0, -1, 0))
             # attacherjointbacktoparm
-            bpy.ops.object.empty_add(radius=0, rotation=(math.radians(67), 0, 0))
-            attacherJointBackArmTop = bpy.context.active_object
-            attacherJointBackArmTop.name = 'attacherJointBackArmTop'
-            attacherJointBackArmTop.parent = tools
-
+            self.createSkelNode("attacherJointBackArmTop", tools, rotation=(math.radians(67), 0, 0))
         # attacherjointfrontrot
-        bpy.ops.object.empty_add(radius=0, rotation=(math.radians(-13), 0, 0))
-        attacherJointFrontRot = bpy.context.active_object
-        attacherJointFrontRot.name = 'attacherJointFrontRot'
-        attacherJointFrontRot.parent = tools
-
-        bpy.ops.object.empty_add(radius=0, location=(0, -1, 0), rotation=(math.radians(13), 0, 0))
-        attacherJointFrontRot2 = bpy.context.active_object
-        attacherJointFrontRot2.name = 'attacherJointFrontRot2'
-        attacherJointFrontRot2.parent = attacherJointFrontRot
-
-        bpy.ops.object.empty_add(radius=0, rotation=(0, 0, math.radians(90)))
-        attacherJointFront = bpy.context.active_object
-        attacherJointFront.name = 'attacherJointFront'
-        attacherJointFront.parent = attacherJointFrontRot2
-        self.setDisplayHandle(attacherJointFront)
-
+        attacherJointFrontRot = self.createSkelNode("attacherJointFrontRot", tools, rotation=(math.radians(-13), 0, 0))
+        attacherJointFrontRot2 = self.createSkelNode("attacherJointFrontRot2", attacherJointFrontRot, translate=(0, -1, 0), rotation=(math.radians(13), 0, 0))
+        self.createSkelNode("attacherJointFront", attacherJointFrontRot2, True, rotation=(0, 0, math.radians(90)))
         # attacherjointfrontbottomarm
-        bpy.ops.object.empty_add(radius=0, rotation=(math.radians(-26), 0, 0))
-        attacherJointFrontArmBottom = bpy.context.active_object
-        attacherJointFrontArmBottom.name = 'attacherJointFrontArmBottom'
-        attacherJointFrontArmBottom.parent = tools
-
-        bpy.ops.object.empty_add(radius=0)
-        attacherJointFrontArmBottomTrans = bpy.context.active_object
-        attacherJointFrontArmBottomTrans.name = 'attacherJointFrontArmBottomTrans_REPLACE_WITH_MESH'
-        attacherJointFrontArmBottomTrans.parent = attacherJointFrontArmBottom
-
-        bpy.ops.object.empty_add(radius=0, location=(0, -1, 0))
-        referencePointFrontBottom = bpy.context.active_object
-        referencePointFrontBottom.name = 'referencePointFrontBottom'
-        referencePointFrontBottom.parent = attacherJointFrontArmBottomTrans
-
+        attacherJointFrontArmBottom = self.createSkelNode("attacherJointFrontArmBottom", tools, rotation=(math.radians(-26), 0, 0))
+        attacherJointFrontArmBottomTrans = self.createSkelNode("attacherJointFrontArmBottomTrans_REPLACE_WITH_MESH", attacherJointFrontArmBottom)
+        self.createSkelNode("referencePointFrontBottom", attacherJointFrontArmBottomTrans, translate=(0, -1, 0))
         # attacherjointfronttoparm
-        bpy.ops.object.empty_add(radius=0, rotation=(math.radians(-40), 0, 0))
-        attacherJointFrontArmTop = bpy.context.active_object
-        attacherJointFrontArmTop.name = 'attacherJointFrontArmTop'
-        attacherJointFrontArmTop.parent = tools
-        self.setDisplayHandle(attacherJointFrontArmTop)
-        
+        self.createSkelNode("attacherJointFrontArmTop", tools, True, rotation=(math.radians(-40), 0, 0))
         # trailer joints
-        bpy.ops.object.empty_add(radius=0, rotation=(0, 0, math.radians(-90)))
-        trailerAttacherJointBack = bpy.context.active_object
-        trailerAttacherJointBack.name = 'trailerAttacherJointBack'
-        trailerAttacherJointBack.parent = trailers
-        self.setDisplayHandle(trailerAttacherJointBack)
-
+        self.createSkelNode("trailerAttacherJointBack", trailers, True, rotation=(0, 0, math.radians(-90)))
         if not isHarvester:
-            bpy.ops.object.empty_add(radius=0, rotation=(0, 0, math.radians(-90)))
-            trailerAttacherJointBackLow = bpy.context.active_object
-            trailerAttacherJointBackLow.name = 'trailerAttacherJointBackLow'
-            trailerAttacherJointBackLow.parent = trailers
-            self.setDisplayHandle(trailerAttacherJointBackLow)
-
+            self.createSkelNode("trailerAttacherJointBackLow", trailers, True, rotation=(0, 0, math.radians(-90)))
         if not isHarvester:
-            bpy.ops.object.empty_add(radius=0, rotation=(0, 0, math.radians(-90)))
-            trailerAttacherJointFront = bpy.context.active_object
-            trailerAttacherJointFront.name = 'trailerAttacherJointFront'
-            trailerAttacherJointFront.parent = trailers
-            self.setDisplayHandle(trailerAttacherJointFront)
-
+            self.createSkelNode("trailerAttacherJointFront", trailers, True, rotation=(0, 0, math.radians(-90)))
         # ptos
         if not isHarvester:
-            bpy.ops.object.empty_add(radius=0, rotation=(0, 0, math.radians(-180)))
-            ptoBack = bpy.context.active_object
-            ptoBack.name = 'ptoBack'
-            ptoBack.parent = ptos
-            self.setDisplayHandle(ptoBack)
-
-        bpy.ops.object.empty_add(radius=0)
-        ptoFront = bpy.context.active_object
-        ptoFront.name = 'ptoFront'
-        ptoFront.parent = ptos
-        self.setDisplayHandle(ptoFront)
-
+            self.createSkelNode("ptoBack", ptos, True, rotation=(0, 0, math.radians(-180)))
+        self.createSkelNode("ptoFront", ptos, True)
         if not isHarvester:
-            bpy.ops.object.empty_add(radius=0)
-            frontloader = bpy.context.active_object
-            frontloader.name = '5_frontloader'
-            frontloader.parent = attacherJointGroup
-            self.setDisplayHandle(frontloader)
-        bpy.ops.object.select_grouped(type='PARENT')
+            self.createSkelNode("5_frontloader", attacherJointGroup, True)
+        if not isHarvester:
+            bpy.ops.object.select_grouped(type='PARENT')
+        else:
+            bpy.ops.object.select_grouped(type='PARENT')
+            bpy.ops.object.select_grouped(type='PARENT')
         return attacherJointGroup
 
     def createTrafficVehicle(self):
@@ -711,12 +584,14 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         I3DRemoveAttributes(plane)
         return plane
 
-    def createVehicleComponent(self, name, dataName, size=(1.0, 1.0, 1.0)):
+    def createVehicleComponent(self, name, dataName, size=(1.0, 1.0, 1.0), translate=(0, 0, 0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
         bpy.context.object.data.name = dataName
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
+        bpy.context.active_object.location = translate
+        translate = (0, 0, 0)
         component = bpy.context.active_object.name
         dcc.I3DSetAttrBool(component,'I3D_dynamic',True)
         dcc.I3DSetAttrBool(component,'I3D_collision',True)
