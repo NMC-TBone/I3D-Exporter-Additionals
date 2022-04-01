@@ -324,7 +324,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.ops.object.select_grouped(type='PARENT')
         return lightsGroup
 
-        # vehicle
+        # vehicl
     def createLight(self, name, parent, coneAngle, range, dropOff, rgb, translate=(0, 0, 0), rotation=(0, 0, 0), castShadowMap=False):
         bpy.ops.object.light_add(type='SPOT')
         light = bpy.context.object.data
