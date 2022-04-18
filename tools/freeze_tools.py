@@ -25,6 +25,7 @@ class TOOLS_OT_freezeTrans(Operator):
     bl_idname = "tools.freeze_trans"
     bl_label = "Freeze Translation"
     bl_description = "Freezes translation of selected object(s)."
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
@@ -35,6 +36,7 @@ class TOOLS_OT_freezeRot(Operator):
     bl_idname = "tools.freeze_rot"
     bl_label = "Freeze Rotation"
     bl_description = "Freezes rotation of selected object(s)."
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
@@ -45,6 +47,7 @@ class TOOLS_OT_freezeScale(Operator):
     bl_idname = "tools.freeze_scale"
     bl_label = "Freeze Scale"
     bl_description = "Freezes scale of selected object(s)."
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -55,6 +58,7 @@ class TOOLS_OT_freezeAll(Operator):
     bl_idname = "tools.freeze_all"
     bl_label = "Freeze All"
     bl_description = "Freezes translation, rotation and scale of selected object(s)."
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)

@@ -26,43 +26,35 @@ from math import radians
 class TOOLS_OT_removeDoubles(Operator):
     bl_idname = "tools.remove_doubles"
     bl_label = "Clean Object(s)"
-    bl_description = "Removes custom split normals, set shade smooth and auto smooth, merges vertices close to eachother."
+    bl_description = "Removes custom split normals, set shade smooth and auto smooth, merge vertices."
+    bl_options = {'UNDO'}
 
     def cleanObjects(self, context):
-        # Base Code from: https://blenderartists.org/t/stuck-making-a-simple-script/1229993/8
-        # Modified by T-Bone
-        SmoothAngle = 45
+        SmoothAngle = 180
         MergeThreshold = .0001
-
-        ctx = bpy.context.copy()
-
         smooth_radians = radians(SmoothAngle)
 
-        for o in bpy.context.scene.objects:
-            if not isinstance(o.data, bpy.types.Mesh):
+        for obj in bpy.context.selected_objects:
+            if not isinstance(obj.data, bpy.types.Mesh):
                 continue
-            ctx['object'] = o
-            ctx['active_object'] = o
-            ctx['selected_objects'] = [o]
-            ctx['selected_editable_objects'] = [o]
-            bpy.ops.mesh.customdata_custom_splitnormals_clear(ctx)
-            bpy.ops.object.shade_smooth(ctx)
-
-            o.data.use_auto_smooth = True
-            o.data.auto_smooth_angle = smooth_radians
-
+            bpy.ops.mesh.customdata_custom_splitnormals_clear()
+            bpy.ops.object.shade_smooth()
+            obj.data.use_auto_smooth = True
+            obj.data.auto_smooth_angle = smooth_radians
             bm = bmesh.new()
-            bm.from_mesh(o.data)
+            bm.from_mesh(obj.data)
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MergeThreshold)
-            bm.to_mesh(o.data)
+            bm.to_mesh(obj.data)
             bm.free()
-            for obj in bpy.context.scene.objects:
-                obj.select_set(obj.type == "MESH")
-                bpy.ops.object.mode_set(mode='EDIT')
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.mesh.tris_convert_to_quads(uvs=True)
-                bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='DESELECT')
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+            bpy.ops.mesh.edges_select_sharp(sharpness=0.872665)
+            bpy.ops.mesh.mark_sharp()
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.tris_convert_to_quads(uvs=True)
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.select_all(action='DESELECT')
             self.report({'INFO'}, "Object(s) cleaned")
 
     def execute(self, context):
@@ -73,6 +65,7 @@ class TOOLS_OT_meshName(Operator):
     bl_idname = "tools.mesh_name"
     bl_label = "Set Mesh Name"
     bl_description = "Take the Object Names --> Mesh Data name"
+    bl_options = {'UNDO'}
 
     def meshName(self, context):
         objects = bpy.data.objects
