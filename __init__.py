@@ -21,14 +21,13 @@ bl_info = {
     "author" : "T-Bone",
     "description" : "Additionals For Giants I3D Exporter",
     "blender" : (3, 0, 0),
-    "version" : (1, 0, 0),
+    "version" : (1, 0, 1),
     "location" : "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
     "warning" : "W.I.P",
     "category" : "Generic"
 }
 
 import bpy
-# from .tools.test import 
 
 class I3DEA_PG_List(bpy.types.PropertyGroup):
     size_dropdown: bpy.props.EnumProperty(
@@ -53,13 +52,64 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
                ('createPlaceable', "Placeable", "Add Placeable Skeleton", 10),
                ('createAnimalHusbandry', "Husbandry", "Add Husbandry Skeleton", 11)],
         default = 'createBaseVehicle')
+    
+    assets_dropdown: bpy.props.EnumProperty(
+        name="Assets List",
+        description="List of assets",
+        items=[('', "Adapters", "Adapters",),
+               ('frontloaderAdapter', "Frontloader Adapter", "Import Frontloader Adapter",),
+               ('telehandlerAdapter', "Telehandler Adapter", "Import Telehandler Adapter",),
+               ('wheelloaderAdapter', "Wheelloader Adapter", "Import Wheelloader Adapter",),
+               ('', "Beacon Lights", "Beacon Lights",),
+               ('beaconLight01', "beaconLight01", "Import beaconLight01",),
+               ('beaconLight02', "beaconLight02", "Import beaconLight02",),
+               ('beaconLight03', "beaconLight03", "Import beaconLight03",),
+               ('beaconLight04', "beaconLight04", "Import beaconLight04",),
+               ('beaconLight05', "beaconLight05", "Import beaconLight05",),
+               ('beaconLight06', "beaconLight06", "Import beaconLight06",),
+               ('beaconLight07', "beaconLight07", "Import beaconLight07",),
+               ('beaconLight08', "beaconLight08", "Import beaconLight08",),
+               ('beaconLight09', "beaconLight09", "Import beaconLight09",),
+               ('beaconLight10', "beaconLight10", "Import beaconLight10",),
+               ('beaconLight11', "beaconLight11", "Import beaconLight11",),
+               ('', "Car Hitches", "Car Hitches",),
+               ('fifthWheel_hitch', "fifthWheel_hitch", "Import fifthWheel_hitch",),
+               ('gooseneck_hitch', "gooseneck_hitch", "Import gooseneck_hitch",),
+               ('', "Hitches", "Hitches",),
+               ('', "Lights", "Lights",),
+               ('', "Lower Link Balls", "Lower Link Balls",),
+               ('lowerLinkBalls', "lowerLinkBalls", "Import lowerLinkBalls",),
+               ('', "Power Take Offs", "Power Take Offs",),
+               ('', "Reflectors", "Reflectors",),
+               ('bigTriangle', "bigTriangle", "Import bigTriangle",),
+               ('redOrangeRectangle_01', "redOrangeRectangle_01", "Import redOrangeRectangle_01",),
+               ('redRectangle_01', "redRectangle_01", "Import redRectangle_01",),
+               ('redRound_01', "redRound_01", "Import redRound_01",),
+               ('redRound_02', "redRound_02", "Import redRound_02",),
+               ('redRound_03', "redRound_03", "Import redRound_03",),
+               ('redRound_04', "redRound_04", "Import redRound_04",),
+               ('redTriangle_01', "redTriangle_01", "Import redTriangle_01",),
+               ('redTriangle_02', "redTriangle_02", "Import redTriangle_02",),
+               ('redRound_02', "redRound_02", "Import redRound_02",),
+               ('', "Skf Lincoln", "Skf Lincoln",),
+               ('skfLincoln', "skfLincoln", "Import skfLincoln",),
+               ('', "Upper Links", "Upper Links",),
+               ('', "Wheel Chocks", "Wheel Chocks",),
+               ('chockSupport', "chockSupport", "Import chockSupport",),
+               ('wheelChock01', "wheelChock01", "Import wheelChock01",),
+               ('wheelChock02', "wheelChock02", "Import Wheel Chock 02",),
+               ('wheelChock03', "Wheel Chock 03", "Import Wheel Chock 03",),
+               ('wheelChock04', "Wheel Chock 04", "Import Wheel Chock 04",),
+               ('wheelChock05', "Wheel Chock 05", "Import Wheel Chock 05",),],
+        default = 'chockSupport')
 
-    UI_meshTools: bpy.props.BoolProperty (name="Mesh-Tools", default=True)
-    UI_uvTools: bpy.props.BoolProperty (name="UV-Tools", default=True )
-    UI_skeletons: bpy.props.BoolProperty (name="Skeletons", default = True )
-    UI_materialTools: bpy.props.BoolProperty (name="Material-Tools", default = True )
+    UI_meshTools: bpy.props.BoolProperty (name="Mesh-Tools", default= False)
+    UI_uvTools: bpy.props.BoolProperty (name="UV-Tools", default= False )
+    UI_skeletons: bpy.props.BoolProperty (name="Skeletons", default = False )
+    UI_materialTools: bpy.props.BoolProperty (name="Material-Tools", default = False )
+    UI_assets: bpy.props.BoolProperty (name="Assets Importer", default = False )
 
-class I3DEA_PT_Panel( bpy.types.Panel ):
+class I3DEA_PT_Panel(bpy.types.Panel):
     """ GUI Panel for the I3D Exporter Additionals visible in the 3D Viewport """
     bl_idname       = "I3DEA_PT_Panel"
     bl_label        = "I3D Exporter Additionals"
@@ -115,8 +165,22 @@ class I3DEA_PT_Panel( bpy.types.Panel ):
             row.operator("tools.mirror_material", text="Add Mirror Material")
             row.operator("tools.remove_duplicate_material", text="Remove Duplicate Materials")
         #-----------------------------------------
+        # "Assets Importer" box
+        box = layout.box()
+        row = box.row()
+        # extend button for "Assets Importer"
+        row.prop(context.scene.i3deapg,"UI_assets", text="Assets Importer", icon='TRIA_DOWN' if context.scene.i3deapg.UI_assets else 'TRIA_RIGHT', icon_only=False, emboss=False)
+        # expanded view
+        if context.scene.i3deapg.UI_assets:
+            row = box.row()
+            # row.menu("I3DEA_MT_asset_category")
+            row.prop(context.scene.i3deapg, "assets_dropdown", text="")
+            row = box.row()
+            # row.prop(context.scene.i3deapg, "assets_dropdown", text="")
+            row.operator("tools.assets", text="Import Asset")
+        #-----------------------------------------
 
-from .tools import (mesh_tools, uv_tools, skeletons, material_tools, freeze_tools,)
+from .tools import (mesh_tools, uv_tools, skeletons, material_tools, freeze_tools, assets_importer,)
 
 classes = [
     I3DEA_PG_List,
@@ -132,6 +196,7 @@ classes = [
     freeze_tools.TOOLS_OT_freezeRot,
     freeze_tools.TOOLS_OT_freezeScale,
     freeze_tools.TOOLS_OT_freezeAll,
+    assets_importer.TOOLS_OT_assets,
 ]
 
 def register():
