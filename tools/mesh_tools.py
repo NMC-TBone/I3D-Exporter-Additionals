@@ -18,6 +18,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from unicodedata import name
 import bmesh
 import bpy
 from bpy.types import Operator
@@ -27,45 +28,47 @@ class TOOLS_OT_removeDoubles(Operator):
     bl_idname = "tools.remove_doubles"
     bl_label = "Clean Object(s)"
     bl_description = "Removes custom split normals, set shade smooth and auto smooth, merge vertices."
-    bl_options = {'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
 
-    def cleanObjects(self, context):
+    def execute(self, context):
         SmoothAngle = 180
         MergeThreshold = .0001
         smooth_radians = radians(SmoothAngle)
+        sel_obj = bpy.context.selected_objects
+        act_obj = bpy.context.active_object
 
-        for obj in bpy.context.selected_objects:
-            if not isinstance(obj.data, bpy.types.Mesh):
-                continue
-            bpy.ops.mesh.customdata_custom_splitnormals_clear()
-            bpy.ops.object.shade_smooth()
-            obj.data.use_auto_smooth = True
-            obj.data.auto_smooth_angle = smooth_radians
-            bm = bmesh.new()
-            bm.from_mesh(obj.data)
-            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MergeThreshold)
-            bm.to_mesh(obj.data)
-            bm.free()
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='DESELECT')
-            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
-            bpy.ops.mesh.edges_select_sharp(sharpness=0.872665)
-            bpy.ops.mesh.mark_sharp()
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.tris_convert_to_quads(uvs=True)
-            bpy.ops.object.mode_set(mode='OBJECT')
+        for obj in sel_obj:
             bpy.ops.object.select_all(action='DESELECT')
-            self.report({'INFO'}, "Object(s) cleaned")
-
-    def execute(self, context):
-        self.cleanObjects(context)
+            obj.select_set(True)
+            if obj.type == 'MESH':
+                bpy.context.view_layer.objects.active = obj
+                bpy.ops.mesh.customdata_custom_splitnormals_clear()
+                bpy.context.object.data.auto_smooth_angle = smooth_radians
+                bpy.context.object.data.use_auto_smooth = True
+                bm = bmesh.new()
+                bm.from_mesh(obj.data)
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MergeThreshold)
+                bm.to_mesh(obj.data)
+                bm.free()
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.select_all(action='DESELECT')
+                bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+                bpy.ops.mesh.edges_select_sharp(sharpness=0.872665)
+                bpy.ops.mesh.mark_sharp()
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.tris_convert_to_quads(uvs=True)
+                bpy.ops.object.mode_set(mode='OBJECT')
+                self.report({'INFO'}, "Object(s) cleaned")
+        for obj in sel_obj:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = act_obj
         return {'FINISHED'}
 
 class TOOLS_OT_meshName(Operator):
     bl_idname = "tools.mesh_name"
     bl_label = "Set Mesh Name"
     bl_description = "Take the Object Names --> Mesh Data name"
-    bl_options = {'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     def meshName(self, context):
         objects = bpy.data.objects
@@ -81,6 +84,7 @@ class TOOLS_OT_getCurveLength(Operator):
     bl_idname = "tools.curve_length"
     bl_label = "Get Curve Length"
     bl_description = "Measure length of the selected curve"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -93,4 +97,16 @@ class TOOLS_OT_getCurveLength(Operator):
         else:
             self.report({'WARNING'}, "Active object is not a curve")
             return{'CANCELLED'}
+        return {'FINISHED'}
+
+class TOOLS_OT_ignore(Operator):
+    bl_idname = "tools.ignore"
+    bl_label = "Suffix _ignore"
+    bl_description = "Add _ignore to all selected objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        objects = bpy.context.selected_objects
+        for (i,o) in enumerate(objects):
+            o.name = "{}_ignore".format(o.name)
         return {'FINISHED'}

@@ -24,6 +24,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
     bl_label = "Generate UVset 2"
     bl_idname = "tools.make_uvset"
     bl_description = "Generate UVset 2 from selected objects."
+    bl_options = {'REGISTER', 'UNDO'}
 
     def four(self):
         selected_obj = bpy.context.selected_objects

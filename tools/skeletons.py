@@ -32,7 +32,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
     bl_label = "Create Button"
     bl_idname = "tools.skeletons_create"
     bl_description = "Creates the selected skeleton from the dropdown menu."
-    bl_options = {'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
     def createSkelNode(self, name, parent, displayHandle=False, translate=(0, 0, 0), rotation=(0, 0, 0)):
         bpy.ops.object.empty_add(radius=0)
         node = bpy.context.active_object
