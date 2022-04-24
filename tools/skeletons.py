@@ -22,11 +22,16 @@
 #  Converted/inspired from skeletons script in maya i3d exporter, plugins/Skeletons.py
 #--------------------------------------------------------------------------------------
 
-from fnmatch import translate
 import bpy
 import math
-from io_export_i3d.dcc import dccBlender as dcc
-from io_export_i3d.dcc import I3DRemoveAttributes
+
+# Check if Giants I3D addon is installed
+giantsI3D = False
+for a in bpy.context.preferences.addons:
+    if a.module == "io_export_i3d":
+        giantsI3D = True
+        from io_export_i3d.dcc import dccBlender as dcc
+        from io_export_i3d.dcc import I3DRemoveAttributes
 
 class TOOLS_OT_skeletons(bpy.types.Operator):
     bl_label = "Create Button"
@@ -128,7 +133,8 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         return vehicle
     
     def createBaseTool(self):
-        tool = self.createVehicleComponent("toolName_main_component1", "toolName_main_component1")
+        self.createVehicleComponent("toolName_main_component1", "toolName_main_component1")
+        tool = bpy.context.active_object
         vehicle_vis = self.createSkelNode("1_toolName_root", tool)
         attachable = self.createSkelNode("1_attachable", vehicle_vis)
         self.createSkelNode("attacherJoint", attachable)
@@ -302,9 +308,10 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         lightTransform.parent = parent
         lightTransform.name = name
         light = lightTransform.name
-        dcc.I3DSetAttrBool(light,'I3D_collision',False)
-        dcc.I3DSetAttrBool(light,'I3D_static',False)
-        dcc.I3DSetAttrFloat(light,'I3D_clipDistance',75)
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(light,'I3D_collision',False)
+            dcc.I3DSetAttrBool(light,'I3D_static',False)
+            dcc.I3DSetAttrFloat(light,'I3D_clipDistance',75)
         return lightTransform
     
     # placeable, low
@@ -318,9 +325,10 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         light.parent = parent
         light.name = name
         light = light.name
-        dcc.I3DSetAttrBool(light,'I3D_collision',False)
-        dcc.I3DSetAttrBool(light,'I3D_static',False)
-        dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(light,'I3D_collision',False)
+            dcc.I3DSetAttrBool(light,'I3D_static',False)
+            dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
         return light
 
     # placeable, high
@@ -336,9 +344,10 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         light.parent = parent
         light.name = name
         light = light.name
-        dcc.I3DSetAttrBool(light,'I3D_collision',False)
-        dcc.I3DSetAttrBool(light,'I3D_static',False)
-        dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(light,'I3D_collision',False)
+            dcc.I3DSetAttrBool(light,'I3D_static',False)
+            dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
         return light
 
     def createVehicleAttacherJoints(self, isHarvester):
@@ -427,7 +436,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createSkelNode("foodPlace3", foodPlaces)
         self.createSkelNode("1_2_storage", animalHusbandry)
         straw = self.createSkelNode("1_3_straw", animalHusbandry)
-        self.createPlane("strawPlane", straw, 5, 5, 0)
+        self.createPlane("strawPlane", straw, (5, 5, 0))
         self.createExactFillRootNode("exactFillRootNodeStraw", straw)
         milktank = self.createSkelNode("1_4_milktank", animalHusbandry)
         self.createTrigger("milktankTrigger", 2097152, milktank)
@@ -446,12 +455,13 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         navRootNode = self.createSkelNode("1_8_navigationRootNode", animalHusbandry)
         self.createPlane("navigationMesh", navRootNode)
         walkingPlane = self.createPlane("walkingPlane", navRootNode)
-        dcc.I3DSetAttrBool(walkingPlane,'I3D_collision',True)
-        dcc.I3DSetAttrBool(walkingPlane,'I3D_static',True)
-        dcc.I3DSetAttrBool(walkingPlane,'I3D_nonRenderable',True)
-        dcc.I3DSetAttrBool(walkingPlane,'I3D_castsShadows',True)
-        dcc.I3DSetAttrBool(walkingPlane,'I3D_receiveShadows',True)
-        dcc.I3DSetAttrFloat(walkingPlane,'I3D_collisionMask',131072)
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(walkingPlane,'I3D_collision',True)
+            dcc.I3DSetAttrBool(walkingPlane,'I3D_static',True)
+            dcc.I3DSetAttrBool(walkingPlane,'I3D_nonRenderable',True)
+            dcc.I3DSetAttrBool(walkingPlane,'I3D_castsShadows',True)
+            dcc.I3DSetAttrBool(walkingPlane,'I3D_receiveShadows',True)
+            dcc.I3DSetAttrFloat(walkingPlane,'I3D_collisionMask',131072)
         fences = self.createSkelNode("1_9_fences", animalHusbandry)
         fence1 = self.createSkelNode("fence1", fences)
         self.createSkelNode("fence1Node1", fence1, True)
@@ -531,14 +541,15 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
-        trigger = trigger.active_object.name
-        dcc.I3DSetAttrBool(trigger,'I3D_collision',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_static',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_trigger',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_nonRenderable',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_castsShadows',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_receiveShadows',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_collisionMask',colMask)
+        trigger = bpy.context.active_object.name
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(trigger,'I3D_collision',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_static',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_trigger',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_nonRenderable',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_castsShadows',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_receiveShadows',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_collisionMask',colMask)
         return trigger
 
     def createTrigger(self, name, colMask, parent, size=(1.0, 1.0, 1.0)):
@@ -547,14 +558,15 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
-        trigger = trigger.active_object.name
-        dcc.I3DSetAttrBool(trigger,'i3D_collision',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_static',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_trigger',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_nonRenderable',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_castsShadows',True)
-        dcc.I3DSetAttrBool(trigger,'I3D_receiveShadows',True)
-        dcc.I3DSetAttrFloat(trigger,'I3D_collisionMask',colMask)
+        trigger = bpy.context.active_object.name
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(trigger,'i3D_collision',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_static',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_trigger',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_nonRenderable',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_castsShadows',True)
+            dcc.I3DSetAttrBool(trigger,'I3D_receiveShadows',True)
+            dcc.I3DSetAttrFloat(trigger,'I3D_collisionMask',colMask)
         return trigger
 
     def createExactFillRootNode(self, name, parent, size=(1.0, 1.0, 1.0)):
@@ -564,14 +576,15 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
         bpy.ops.object.parent_set(type='OBJECT', keep_transform=False)
-        exactFillRootNode = exactFillRootNode.active_object.name
-        dcc.I3DSetAttrBool(exactFillRootNode,'I3D_collision',True)
-        dcc.I3DSetAttrBool(exactFillRootNode,'I3D_static',True)
-        dcc.I3DSetAttrBool(exactFillRootNode,'I3D_trigger',True)
-        dcc.I3DSetAttrBool(exactFillRootNode,'I3D_nonRenderable',True)
-        dcc.I3DSetAttrBool(exactFillRootNode,'I3D_castsShadows',True)
-        dcc.I3DSetAttrBool(exactFillRootNode,'I3D_receiveShadows',True)
-        dcc.I3DSetAttrFloat(exactFillRootNode,'I3D_collisionMask',1073741824)
+        exactFillRootNode = bpy.context.active_object.name
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(exactFillRootNode,'I3D_collision',True)
+            dcc.I3DSetAttrBool(exactFillRootNode,'I3D_static',True)
+            dcc.I3DSetAttrBool(exactFillRootNode,'I3D_trigger',True)
+            dcc.I3DSetAttrBool(exactFillRootNode,'I3D_nonRenderable',True)
+            dcc.I3DSetAttrBool(exactFillRootNode,'I3D_castsShadows',True)
+            dcc.I3DSetAttrBool(exactFillRootNode,'I3D_receiveShadows',True)
+            dcc.I3DSetAttrFloat(exactFillRootNode,'I3D_collisionMask',1073741824)
         return exactFillRootNode
 
     def createPlane(self, name, parent, size=(1.0, 1.0, 1.0)):
@@ -579,9 +592,10 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.context.active_object.name = name
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
-        plane.active_object.parent = parent
-        plane = plane.active_object.name
-        I3DRemoveAttributes(plane)
+        bpy.context.active_object.parent = parent
+        plane = bpy.context.active_object.name
+        if giantsI3D == True:
+            I3DRemoveAttributes(plane)
         return plane
 
     def createVehicleComponent(self, name, dataName, size=(1.0, 1.0, 1.0), translate=(0, 0, 0)):
@@ -593,14 +607,15 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         bpy.context.active_object.location = translate
         translate = (0, 0, 0)
         component = bpy.context.active_object.name
-        dcc.I3DSetAttrBool(component,'I3D_dynamic',True)
-        dcc.I3DSetAttrBool(component,'I3D_collision',True)
-        dcc.I3DSetAttrBool(component,'I3D_compound',True)
-        dcc.I3DSetAttrFloat(component,'I3D_collisionMask',2109442)
-        dcc.I3DSetAttrFloat(component,'I3D_clipDistance',300.0)
-        dcc.I3DSetAttrBool(component,'I3D_castsShadows',True)
-        dcc.I3DSetAttrBool(component,'I3D_receiveShadows',True)
-        dcc.I3DSetAttrBool(component,'I3D_nonRenderable',True)
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(component,'I3D_dynamic',True)
+            dcc.I3DSetAttrBool(component,'I3D_collision',True)
+            dcc.I3DSetAttrBool(component,'I3D_compound',True)
+            dcc.I3DSetAttrFloat(component,'I3D_collisionMask',2109442)
+            dcc.I3DSetAttrFloat(component,'I3D_clipDistance',300.0)
+            dcc.I3DSetAttrBool(component,'I3D_castsShadows',True)
+            dcc.I3DSetAttrBool(component,'I3D_receiveShadows',True)
+            dcc.I3DSetAttrBool(component,'I3D_nonRenderable',True)
 
     def execute(self, context):
         if context.scene.i3deapg.skeletons_dropdown == 'createBaseVehicle':

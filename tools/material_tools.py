@@ -20,15 +20,21 @@
 
 import bpy
 
+giantsI3D = False
+for a in bpy.context.preferences.addons:
+    if a.module == "io_export_i3d":
+        giantsI3D = True
+
 class TOOLS_OT_mirrorMaterial(bpy.types.Operator):
     bl_idname = "tools.mirror_material"
     bl_label = "Add Mirror Material"
     bl_description = "Adds mirror_mat to materials"
 
     def execute(self, context):
-        if context.scene.I3D_UIexportSettings.I3D_shaderFolderLocation == "":
-            self.report({'ERROR'}, "Shader Folder location is not set!")
-            return {'CANCELLED'}
+        if giantsI3D == True:
+            if context.scene.I3D_UIexportSettings.I3D_shaderFolderLocation == "":
+                self.report({'ERROR'}, "Shader Folder location is not set!")
+                return {'CANCELLED'}
         material = bpy.data.materials.get("mirror_mat")
         if material:
             self.report({'ERROR'}, "Mirror Material already created!")
