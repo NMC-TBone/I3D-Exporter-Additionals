@@ -250,9 +250,9 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createLight('frontLightLow', defaultLights, math.radians(80), 20, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, 0))
         self.createLight('highBeamLow', defaultLights, math.radians(70), 30, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
         frontLightHigh = self.createLight('frontLightHigh', defaultLights, math.radians(70), 25, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, math.radians(8)))
-        self.createLight('frontLightHigh1', frontLightHigh, math.radians(70), 25, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, math.radians(-8)))
+        self.createLight('frontLightHigh1', frontLightHigh, math.radians(70), 25, 0.6, (0.85, 0.85, 1), rotation=(0, math.radians(16), 0))
         highBeamHigh = self.createLight('highBeamHigh', defaultLights, math.radians(30), 60, 0.5, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(5)))
-        self.createLight('highBeamHigh2', highBeamHigh, math.radians(30), 60, 0.5, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(5)))
+        self.createLight('highBeamHigh2', highBeamHigh, math.radians(30), 60, 0.5, (0.85, 0.85, 1), rotation=(0, math.radians(10), 0))
         self.createLight('licensePlateLightHigh', defaultLights, 120, 0.5, 2, (1, 1, 1), rotation=(math.radians(90), 0, 0))
         bpy.ops.object.light_add(type='POINT')
         pointLight = bpy.context.object.data
@@ -263,28 +263,28 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         workLights = self.createSkelNode("4_workLights", lightsGroup)
         self.createLight('workLightFrontLow', workLights, math.radians(130), 20, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
         workLightFrontHigh1 = self.createLight('workLightFrontHigh', workLights, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-65), 0, math.radians(15)))
-        self.createLight('workLightFrontHigh2', workLightFrontHigh1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-65), 0, math.radians(-15)))
+        self.createLight('workLightFrontHigh2', workLightFrontHigh1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(0, math.radians(30), 0))
         # work lights back
         self.createLight('workLightBackLow', workLights, math.radians(130), 20, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, 0))
         workLightBackHigh1 = self.createLight('workLightBackHigh', workLights, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, math.radians(-20)))
-        self.createLight('workLightBackHigh2', workLightBackHigh1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, math.radians(20)))
+        self.createLight('workLightBackHigh2', workLightBackHigh1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(5.41377), math.radians(37.1585), math.radians(16.0129)))
         # back lights
         backLights = self.createSkelNode("5_backLights", lightsGroup)
-        backLightsHigh1 = self.createLight('backLightsHigh', backLights, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, 0))
-        self.createLight('backLightsHigh2', backLightsHigh1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, 0))
+        backLightsHigh1 = self.createLight('backLightsHigh', backLights, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, math.radians(-180)))
+        self.createLight('backLightsHigh2', backLightsHigh1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(0, 0, 0))
         # turn lights
         turnLights = self.createSkelNode("6_turnLights", lightsGroup)
         turnLightLeftFront = self.createLight('turnLightLeftFront', turnLights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
-        self.createLight('turnLightLeftBack', turnLightLeftFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
+        self.createLight('turnLightLeftBack', turnLightLeftFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(-30), 0, math.radians(-180)))
         turnLightRightFront = self.createLight('turnLightRightFront', turnLights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
-        self.createLight('turnLightRightBack', turnLightRightFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
+        self.createLight('turnLightRightBack', turnLightRightFront, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(-30), 0, math.radians(-180)))
         # beacon lights
         beaconLights = self.createSkelNode("7_beaconLights", lightsGroup)
         self.createSkelNode("beaconLight1", beaconLights)
         # reverse lights
         reverseLights = self.createSkelNode("8_reverseLights", lightsGroup)
         reverseLight1 = self.createLight('reverseLightHigh', reverseLights, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
-        self.createLight('reverseLightHigh2', reverseLight1, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
+        self.createLight('reverseLightHigh2', reverseLight1, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1))
         bpy.ops.object.select_grouped(type='PARENT')
         bpy.ops.object.select_grouped(type='PARENT')
         bpy.ops.object.select_grouped(type='PARENT')
@@ -298,8 +298,8 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         light.spot_blend = dropOff
         light.color = rgb
         light.cutoff_distance = range
-        if castShadowMap is not None:
-            bpy.context.object.data.use_shadow = True
+        if castShadowMap is False:
+            bpy.context.object.data.use_shadow = False
         bpy.context.active_object.location = translate
         translate = (0, 0, 0)
         bpy.context.active_object.rotation_euler = rotation
@@ -524,6 +524,9 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         collisions = self.createSkelNode("9_collisions", parent)
         self.createCollision("collision", 255, collisions)
         self.createCollision("tipCollision", 524288, collisions)
+        tipColWall = self.createCollision("tipCollisionWall", 524288, collisions)
+        if giantsI3D == True:
+            dcc.I3DSetAttrBool(tipColWall, 'collisionHeight', 4)
         doors = self.createSkelNode("10_doors", parent)
         self.createTrigger("doorTrigger", 3145728, doors)
         lights = self.createSkelNode("11_lights", parent)

@@ -21,10 +21,10 @@ bl_info = {
     "author" : "T-Bone",
     "description" : "Additionals For Giants I3D Exporter",
     "blender" : (3, 0, 0),
-    "version" : (1, 0, 3),
+    "version" : (1, 0, 4),
     "location" : "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
-    "warning" : "W.I.P",
-    "category" : "Generic"
+    "warning" : "",
+    "category" : "Game Engine"
 }
 
 import bpy
