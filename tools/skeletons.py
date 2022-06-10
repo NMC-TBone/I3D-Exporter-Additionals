@@ -25,13 +25,9 @@
 import bpy
 import math
 
-# Check if Giants I3D addon is installed
-giantsI3D = False
-for a in bpy.context.preferences.addons:
-    if a.module == "io_export_i3d":
-        giantsI3D = True
-        from io_export_i3d.dcc import dccBlender as dcc
-        from io_export_i3d.dcc import I3DRemoveAttributes
+from .. import checkI3DexporterType
+
+giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes, mesh = checkI3DexporterType()
 
 class TOOLS_OT_skeletons(bpy.types.Operator):
     bl_label = "Create Button"
@@ -312,6 +308,8 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(light,'I3D_collision',False)
             dcc.I3DSetAttrBool(light,'I3D_static',False)
             dcc.I3DSetAttrFloat(light,'I3D_clipDistance',75)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.clip_distance = 75
         return lightTransform
     
     # placeable, low
@@ -329,6 +327,8 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(light,'I3D_collision',False)
             dcc.I3DSetAttrBool(light,'I3D_static',False)
             dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.clip_distance = clipDistance
         return light
 
     # placeable, high
@@ -348,6 +348,8 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(light,'I3D_collision',False)
             dcc.I3DSetAttrBool(light,'I3D_static',False)
             dcc.I3DSetAttrFloat(light,'I3D_clipDistance',clipDistance)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.clip_distance = clipDistance
         return light
 
     def createVehicleAttacherJoints(self, isHarvester):
@@ -439,15 +441,15 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createPlane("strawPlane", straw, (5, 5, 0))
         self.createExactFillRootNode("exactFillRootNodeStraw", straw)
         milktank = self.createSkelNode("1_4_milktank", animalHusbandry)
-        self.createTrigger("milktankTrigger", 2097152, milktank)
+        self.createTrigger("milktankTrigger", 2097152, "200000", milktank)
         lqiuidManureTank = self.createSkelNode("1_5_lqiuidManureTank", animalHusbandry)
-        self.createTrigger("lqiuidManureTankTrigger", 2097152, lqiuidManureTank)
+        self.createTrigger("lqiuidManureTankTrigger", 2097152, "200000", lqiuidManureTank)
         waterPlaces = self.createSkelNode("6_waterPlaces", animalHusbandry)
         self.createSkelNode("waterPlace1", waterPlaces)
         self.createSkelNode("waterPlace2", waterPlaces)
         self.createSkelNode("waterPlace3", waterPlaces)
         palletAreas = self.createSkelNode("1_7_palletAreas", animalHusbandry)
-        self.createTrigger("palletTrigger", 2097152, palletAreas)
+        self.createTrigger("palletTrigger", 2097152, "200000", palletAreas)
         palletArea1Start = self.createSkelNode("palletArea1Start", palletAreas)
         self.createSkelNode("palletArea1End", palletArea1Start)
         palletArea2Start = self.createSkelNode("palletArea2Start", palletAreas)
@@ -462,6 +464,12 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(walkingPlane,'I3D_castsShadows',True)
             dcc.I3DSetAttrBool(walkingPlane,'I3D_receiveShadows',True)
             dcc.I3DSetAttrFloat(walkingPlane,'I3D_collisionMask',131072)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.rigid_body_type = 'static'
+            bpy.context.object.i3d_attributes.collision_mask = 20000
+            bpy.context.object.data.i3d_attributes.casts_shadows = True
+            bpy.context.object.data.i3d_attributes.receive_shadows = True
+            bpy.context.object.data.i3d_attributes.non_renderable = True
         fences = self.createSkelNode("1_9_fences", animalHusbandry)
         fence1 = self.createSkelNode("fence1", fences)
         self.createSkelNode("fence1Node1", fence1, True)
@@ -469,7 +477,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createSkelNode("fence1Node3", fence1, True)
         self.createSkelNode("fence1Node4", fence1, True)
         self.createSkelNode("1_10_warningStripes", animalHusbandry)
-        self.createTrigger("1_11_loadingTrigger", 3145728, animalHusbandry)
+        self.createTrigger("1_11_loadingTrigger", 3145728, "300000", animalHusbandry)
         self.createPlaceableElements(animalHusbandry)
         return animalHusbandry
 
@@ -518,12 +526,12 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         tipOcclusionUpdateAreas = self.createSkelNode("6_tipOcclusionUpdateAreas", parent)
         tipOcclusionUpdateArea1Start = self.createSkelNode("tipOcclusionUpdateArea1Start", tipOcclusionUpdateAreas, True)
         self.createSkelNode("tipOcclusionUpdateArea1End", tipOcclusionUpdateArea1Start, True, translate=(1, -1, 0))
-        self.createTrigger("7_infoTrigger", 1048576, parent, size=(10, 10, 5))
+        self.createTrigger("7_infoTrigger", 1048576, "100000", parent, size=(10, 10, 5))
         visuals = self.createSkelNode("8_visuals", parent)
         self.createSkelNode("winter", visuals)
         collisions = self.createSkelNode("9_collisions", parent)
-        self.createCollision("collision", 255, collisions)
-        self.createCollision("tipCollision", 524288, collisions)
+        self.createCollision("collision", 255, "ff", collisions)
+        self.createCollision("tipCollision", 524288, "80000", collisions)
         tipColWall = self.createCollision("tipCollisionWall", 524288, collisions)
         if giantsI3D == True:
             dcc.I3DSetAttrBool(tipColWall, 'collisionHeight', 4)
@@ -538,7 +546,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         self.createSkelNode("linkedLights", lights)
         self.createSkelNode("lightSwitch", lights)
 
-    def createCollision(self, name, colMask, parent, size=(1.0, 1.0, 1.0)):
+    def createCollision(self, name, colMask, colMaskStjerne, parent, size=(1.0, 1.0, 1.0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
         bpy.context.object.dimensions = size
@@ -553,9 +561,16 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(trigger,'I3D_castsShadows',True)
             dcc.I3DSetAttrBool(trigger,'I3D_receiveShadows',True)
             dcc.I3DSetAttrBool(trigger,'I3D_collisionMask',colMask)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.rigid_body_type = 'static'
+            bpy.context.object.i3d_attributes.trigger = True
+            bpy.context.object.i3d_attributes.collision_mask = colMaskStjerne
+            bpy.context.object.data.i3d_attributes.casts_shadows = True
+            bpy.context.object.data.i3d_attributes.receive_shadows = True
+            bpy.context.object.data.i3d_attributes.non_renderable = True
         return trigger
 
-    def createTrigger(self, name, colMask, parent, size=(1.0, 1.0, 1.0)):
+    def createTrigger(self, name, colMask, colMaskStjerne, parent, size=(1.0, 1.0, 1.0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
         bpy.context.object.dimensions = size
@@ -570,6 +585,13 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(trigger,'I3D_castsShadows',True)
             dcc.I3DSetAttrBool(trigger,'I3D_receiveShadows',True)
             dcc.I3DSetAttrFloat(trigger,'I3D_collisionMask',colMask)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.rigid_body_type = 'static'
+            bpy.context.object.i3d_attributes.trigger = True
+            bpy.context.object.i3d_attributes.collision_mask = colMaskStjerne
+            bpy.context.object.data.i3d_attributes.casts_shadows = True
+            bpy.context.object.data.i3d_attributes.receive_shadows = True
+            bpy.context.object.data.i3d_attributes.non_renderable = True
         return trigger
 
     def createExactFillRootNode(self, name, parent, size=(1.0, 1.0, 1.0)):
@@ -588,6 +610,13 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(exactFillRootNode,'I3D_castsShadows',True)
             dcc.I3DSetAttrBool(exactFillRootNode,'I3D_receiveShadows',True)
             dcc.I3DSetAttrFloat(exactFillRootNode,'I3D_collisionMask',1073741824)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.rigid_body_type = 'static'
+            bpy.context.object.i3d_attributes.collision_mask = "40000000"
+            bpy.context.object.i3d_attributes.trigger = True
+            bpy.context.object.data.i3d_attributes.casts_shadows = True
+            bpy.context.object.data.i3d_attributes.receive_shadows = True
+            bpy.context.object.data.i3d_attributes.non_renderable = True
         return exactFillRootNode
 
     def createPlane(self, name, parent, size=(1.0, 1.0, 1.0)):
@@ -619,50 +648,17 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrBool(component,'I3D_castsShadows',True)
             dcc.I3DSetAttrBool(component,'I3D_receiveShadows',True)
             dcc.I3DSetAttrBool(component,'I3D_nonRenderable',True)
+        if stjerneI3D == True:
+            bpy.context.object.i3d_attributes.rigid_body_type = 'dynamic'
+            bpy.context.object.i3d_attributes.compound = True
+            bpy.context.object.i3d_attributes.collision_mask = "203002"
+            bpy.context.object.i3d_attributes.clip_distance = 300
+            bpy.context.object.data.i3d_attributes.casts_shadows = True
+            bpy.context.object.data.i3d_attributes.receive_shadows = True
+            bpy.context.object.data.i3d_attributes.non_renderable = True
 
     def execute(self, context):
-        if context.scene.i3deapg.skeletons_dropdown == 'createBaseVehicle':
-            self.createBaseVehicle()
-            self.report({'INFO'}, "Tractor Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createBaseHarvester':
-            self.createBaseHarvester()
-            self.report({'INFO'}, "Combine Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createBaseTool':
-            self.createBaseTool()
-            self.report({'INFO'}, "Tool Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createAttacherJoints':
-            self.createAttacherJoints()
-            self.report({'INFO'}, "Attacher Joints Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createPlayer':
-            self.createPlayer()
-            self.report({'INFO'}, "Player Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createLights':
-            self.createLights()
-            self.report({'INFO'}, "Lights Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createCamerasVehicle':
-            self.createCamerasVehicle()
-            self.report({'INFO'}, "Cameras Tractor Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createCamerasHarvester':
-            self.createCamerasHarvester()
-            self.report({'INFO'}, "Cameras Harvester Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createTrafficVehicle':
-            self.createTrafficVehicle()
-            self.report({'INFO'}, "Traffic Vehicle Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createPlaceable':
-            self.createPlaceable()
-            self.report({'INFO'}, "Placeable Skeleton Added")
-            return {'FINISHED'}
-        if context.scene.i3deapg.skeletons_dropdown == 'createAnimalHusbandry':
-            self.createAnimalHusbandry()
-            self.report({'INFO'}, "Husbandry Skeleton Added")
-            return {'FINISHED'}
+        name = context.scene.i3deapg.skeletons_dropdown
+        getattr(TOOLS_OT_skeletons, name)(self)
+        self.report({'INFO'}, name + " skeleton added")
         return {'FINISHED'}

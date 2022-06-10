@@ -20,10 +20,8 @@
 
 import bpy
 
-giantsI3D = False
-for a in bpy.context.preferences.addons:
-    if a.module == "io_export_i3d":
-        giantsI3D = True
+from .. import checkI3DexporterType
+giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes, mesh = checkI3DexporterType()
 
 class TOOLS_OT_mirrorMaterial(bpy.types.Operator):
     bl_idname = "tools.mirror_material"
@@ -57,8 +55,9 @@ class TOOLS_OT_mirrorMaterial(bpy.types.Operator):
                 for i in range(len(obj.material_slots)):
                     bpy.ops.object.material_slot_remove({'object': obj})
                 obj.data.materials.append(mirror_mat)
-                bpy.context.object.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
-                bpy.context.object.active_material['shadingRate'] = "1x1"
+                if giantsI3D == True:
+                    bpy.context.object.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
+                    bpy.context.object.active_material['shadingRate'] = "1x1"
             self.report({'INFO'}, "Created material: mirror_mat")
             return {'FINISHED'}
 
