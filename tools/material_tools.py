@@ -69,6 +69,7 @@ class TOOLS_OT_removeDuplicateMaterial(bpy.types.Operator):
     bl_description = "Removes all duplicated/not assigned materials"
 
     def execute(self, context):
+        bpy.ops.object.mode_set(mode='OBJECT')
         for ob in bpy.context.scene.objects:
             if not ob.material_slots:
                 continue

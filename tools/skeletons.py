@@ -664,6 +664,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             bpy.context.object.data.i3d_attributes.non_renderable = True
 
     def execute(self, context):
+        bpy.ops.object.mode_set(mode='OBJECT')
         name = context.scene.i3deapg.skeletons_dropdown
         getattr(TOOLS_OT_skeletons, name)(self)
         self.report({'INFO'}, name + " skeleton added")

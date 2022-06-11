@@ -44,6 +44,7 @@ class TOOLS_OT_assets(bpy.types.Operator):
         bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path, name), directory=os.path.join(file_path, inner_path), filename=name, )
 
     def execute(self, context):
+        bpy.ops.object.mode_set(mode='OBJECT')
         name = context.scene.i3deapg.assets_dropdown
         self.get_asset(name)
         self.report({'INFO'}, name + " imported")

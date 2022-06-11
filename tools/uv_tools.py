@@ -27,6 +27,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def four(self):
+        bpy.ops.object.mode_set(mode='OBJECT')
         selected_obj = bpy.context.selected_objects
         for obj in selected_obj:
             if obj.type == 'MESH':
@@ -76,6 +77,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
         bpy.context.area.ui_type = original_type
 
     def sixteen(self):
+        bpy.ops.object.mode_set(mode='OBJECT')
         selected_obj = bpy.context.selected_objects
         for obj in selected_obj:
             if obj.type == 'MESH':

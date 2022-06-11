@@ -38,6 +38,7 @@ class TOOLS_OT_removeDoubles(Operator):
         act_obj = bpy.context.active_object
 
         for obj in sel_obj:
+            bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
             obj.select_set(True)
             if obj.type == 'MESH':
@@ -58,6 +59,7 @@ class TOOLS_OT_removeDoubles(Operator):
                 bpy.ops.mesh.select_all(action='SELECT')
                 bpy.ops.mesh.tris_convert_to_quads(uvs=True)
                 bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.shade_smooth()
                 self.report({'INFO'}, "Object(s) cleaned")
         for obj in sel_obj:
             obj.select_set(True)
