@@ -27,13 +27,14 @@ import math
 
 from .. import checkI3DexporterType
 
-giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes, mesh = checkI3DexporterType()
+giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes = checkI3DexporterType()
 
 class TOOLS_OT_skeletons(bpy.types.Operator):
     bl_label = "Create Button"
     bl_idname = "tools.skeletons_create"
     bl_description = "Creates the selected skeleton from the dropdown menu."
     bl_options = {'REGISTER', 'UNDO'}
+
     def createSkelNode(self, name, parent, displayHandle=False, translate=(0, 0, 0), rotation=(0, 0, 0)):
         bpy.ops.object.empty_add(radius=0)
         node = bpy.context.active_object
@@ -466,7 +467,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
             dcc.I3DSetAttrFloat(walkingPlane,'I3D_collisionMask',131072)
         if stjerneI3D == True:
             bpy.context.object.i3d_attributes.rigid_body_type = 'static'
-            bpy.context.object.i3d_attributes.collision_mask = 20000
+            bpy.context.object.i3d_attributes.collision_mask = "20000"
             bpy.context.object.data.i3d_attributes.casts_shadows = True
             bpy.context.object.data.i3d_attributes.receive_shadows = True
             bpy.context.object.data.i3d_attributes.non_renderable = True
@@ -532,11 +533,11 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
         collisions = self.createSkelNode("9_collisions", parent)
         self.createCollision("collision", 255, "ff", collisions)
         self.createCollision("tipCollision", 524288, "80000", collisions)
-        tipColWall = self.createCollision("tipCollisionWall", 524288, collisions)
+        tipColWall = self.createCollision("tipCollisionWall", 524288, "80000", collisions)
         if giantsI3D == True:
             dcc.I3DSetAttrBool(tipColWall, 'collisionHeight', 4)
         doors = self.createSkelNode("10_doors", parent)
-        self.createTrigger("doorTrigger", 3145728, doors)
+        self.createTrigger("doorTrigger", 3145728, "300000", doors)
         lights = self.createSkelNode("11_lights", parent)
         realLights = self.createSkelNode("realLights", lights)
         realLightsLow = self.createSkelNode("realLightsLow", realLights)
@@ -549,6 +550,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
     def createCollision(self, name, colMask, colMaskStjerne, parent, size=(1.0, 1.0, 1.0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
+        bpy.context.object.data.name = name
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
@@ -573,6 +575,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
     def createTrigger(self, name, colMask, colMaskStjerne, parent, size=(1.0, 1.0, 1.0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
+        bpy.context.object.data.name = name
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
@@ -597,6 +600,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
     def createExactFillRootNode(self, name, parent, size=(1.0, 1.0, 1.0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
+        bpy.context.object.data.name = name
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
@@ -622,6 +626,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
     def createPlane(self, name, parent, size=(1.0, 1.0, 1.0)):
         bpy.ops.mesh.primitive_plane_add()
         bpy.context.active_object.name = name
+        bpy.context.object.data.name = name
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
@@ -633,6 +638,7 @@ class TOOLS_OT_skeletons(bpy.types.Operator):
     def createVehicleComponent(self, name, dataName, size=(1.0, 1.0, 1.0), translate=(0, 0, 0)):
         bpy.ops.mesh.primitive_cube_add()
         bpy.context.active_object.name = name
+        bpy.context.object.data.name = name
         bpy.context.object.data.name = dataName
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)

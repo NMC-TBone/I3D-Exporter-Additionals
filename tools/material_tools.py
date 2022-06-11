@@ -21,7 +21,7 @@
 import bpy
 
 from .. import checkI3DexporterType
-giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes, mesh = checkI3DexporterType()
+giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes = checkI3DexporterType()
 
 class TOOLS_OT_mirrorMaterial(bpy.types.Operator):
     bl_idname = "tools.mirror_material"

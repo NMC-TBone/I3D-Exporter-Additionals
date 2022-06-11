@@ -21,22 +21,20 @@ bl_info = {
     "author" : "T-Bone",
     "description" : "Additionals For Giants I3D Exporter",
     "blender" : (3, 0, 0),
-    "version" : (2, 0, 0),
+    "version" : (2, 0, 1),
     "location" : "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
     "warning" : "",
     "category" : "Game Engine"
 }
 
-from typing import Tuple
 import bpy
 
 # Check if Giants I3D or Stjerne I3D addon is installed
 def checkI3DexporterType():
     giantsI3D = False
-    I3DRemoveAttributes: any
-    dcc: any
+    I3DRemoveAttributes: any = {}
+    dcc: any = {}
     stjerneI3D = False
-    mesh: any
 
     for a in bpy.context.preferences.addons:
         if a.module == "io_export_i3d":
@@ -45,12 +43,8 @@ def checkI3DexporterType():
             from io_export_i3d.dcc import I3DRemoveAttributes
         if a.module == "i3dio":
             stjerneI3D = True
-            from i3dio.ui import mesh
-    return (giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes, mesh)
 
-
-    
-
+    return (giantsI3D, stjerneI3D, dcc, I3DRemoveAttributes)
 
 class I3DEA_PG_List(bpy.types.PropertyGroup):
     size_dropdown: bpy.props.EnumProperty(
@@ -269,10 +263,15 @@ classes = [
 
 def register():
     for cls in classes:
-        bpy.utils.register_class(cls)
+        try:
+            bpy.utils.register_class(cls)
+        except:
+            pass
         bpy.types.Scene.i3deapg = bpy.props.PointerProperty(type=I3DEA_PG_List)
 
 def unregister():
     for cls in classes:
-        bpy.utils.unregister_class(cls)
-        del bpy.types.Scene.i3deapg
+        try:
+            bpy.utils.unregister_class(cls)
+        except:
+            pass
