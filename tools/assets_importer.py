@@ -22,9 +22,10 @@ import bpy
 import os
 from pathlib import Path
 
-class TOOLS_OT_assets(bpy.types.Operator):
+
+class I3DEA_OT_assets(bpy.types.Operator):
     bl_label = "Import Assets"
-    bl_idname = "tools.assets"
+    bl_idname = "i3dea.assets"
     bl_description = "Import Assets"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -35,7 +36,6 @@ class TOOLS_OT_assets(bpy.types.Operator):
     inner_path = 'Object'
     inner_path2 = 'Collection'
 
-    # adapters
     def get_asset(self, name):
         if name == 'rearHitch':
             bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path2, name), directory=os.path.join(file_path, inner_path2), filename=name, )

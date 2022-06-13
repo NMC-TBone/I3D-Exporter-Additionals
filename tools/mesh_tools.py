@@ -21,19 +21,19 @@
 from unicodedata import name
 import bmesh
 import bpy
-from bpy.types import Operator
 from math import radians
 
-class TOOLS_OT_removeDoubles(Operator):
-    bl_idname = "tools.remove_doubles"
+
+class I3DEA_OT_remove_doubles(bpy.types.Operator):
+    bl_idname = "i3dea.remove_doubles"
     bl_label = "Clean Object(s)"
     bl_description = "Removes custom split normals, set shade smooth and auto smooth, merge vertices."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        SmoothAngle = 180
-        MergeThreshold = .0001
-        smooth_radians = radians(SmoothAngle)
+        smooth_angle = 180
+        merge_threshold = .0001
+        smooth_radians = radians(smooth_angle)
         sel_obj = bpy.context.selected_objects
         act_obj = bpy.context.active_object
 
@@ -48,7 +48,7 @@ class TOOLS_OT_removeDoubles(Operator):
                 bpy.context.object.data.use_auto_smooth = True
                 bm = bmesh.new()
                 bm.from_mesh(obj.data)
-                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=MergeThreshold)
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
                 bm.to_mesh(obj.data)
                 bm.free()
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -66,8 +66,9 @@ class TOOLS_OT_removeDoubles(Operator):
         bpy.context.view_layer.objects.active = act_obj
         return {'FINISHED'}
 
-class TOOLS_OT_meshName(Operator):
-    bl_idname = "tools.mesh_name"
+
+class I3DEA_OT_mesh_name(bpy.types.Operator):
+    bl_idname = "i3dea.mesh_name"
     bl_label = "Set Mesh Name"
     bl_description = "Take the Object Names --> Mesh Data name"
     bl_options = {'REGISTER', 'UNDO'}
@@ -75,15 +76,16 @@ class TOOLS_OT_meshName(Operator):
     def meshName(self, context):
         objects = bpy.data.objects
         for obj in objects:
-          if obj.data and obj.data.users == 1:
-            obj.data.name = obj.name
+            if obj.data and obj.data.users == 1:
+                obj.data.name = obj.name
 
     def execute(self, context):
         self.meshName(context)
         return {'FINISHED'}
 
-class TOOLS_OT_getCurveLength(Operator):
-    bl_idname = "tools.curve_length"
+
+class I3DEA_OT_curve_length(bpy.types.Operator):
+    bl_idname = "i3dea.curve_length"
     bl_label = "Get Curve Length"
     bl_description = "Measure length of the selected curve"
     bl_options = {'REGISTER', 'UNDO'}
@@ -94,21 +96,22 @@ class TOOLS_OT_getCurveLength(Operator):
 
     def execute(self, context):
         if bpy.context.active_object.type == "CURVE":
-            curveLength = bpy.context.active_object.data.splines[0].calc_length(resolution = 1024)
-            self.report({'INFO'}, bpy.utils.units.to_string(bpy.context.scene.unit_settings.system, 'LENGTH', curveLength))
+            curve_length = bpy.context.active_object.data.splines[0].calc_length(resolution=1024)
+            self.report({'INFO'}, bpy.utils.units.to_string(bpy.context.scene.unit_settings.system, 'LENGTH', curve_length))
         else:
             self.report({'WARNING'}, "Active object is not a curve")
-            return{'CANCELLED'}
+            return {'CANCELLED'}
         return {'FINISHED'}
 
-class TOOLS_OT_ignore(Operator):
-    bl_idname = "tools.ignore"
+
+class I3DEA_OT_ignore(bpy.types.Operator):
+    bl_idname = "i3dea.ignore"
     bl_label = "Suffix _ignore"
     bl_description = "Add _ignore to all selected objects"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         objects = bpy.context.selected_objects
-        for (i,o) in enumerate(objects):
+        for (i, o) in enumerate(objects):
             o.name = "{}_ignore".format(o.name)
         return {'FINISHED'}

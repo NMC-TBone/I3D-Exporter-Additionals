@@ -20,9 +20,10 @@
 
 import bpy
 
-class TOOLS_OT_uvset(bpy.types.Operator):
+
+class I3DEA_OT_make_uvset(bpy.types.Operator):
     bl_label = "Generate UVset 2"
-    bl_idname = "tools.make_uvset"
+    bl_idname = "i3dea.make_uvset"
     bl_description = "Generate UVset 2 from selected objects."
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -32,7 +33,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
         for obj in selected_obj:
             if obj.type == 'MESH':
                 obj.data.uv_layers[0].name = 'UVset1'
-            if not 'UVset2' in obj.data.uv_layers:
+            if 'UVset2' not in obj.data.uv_layers:
                 obj.data.uv_layers.new(name="UVset2")
 
         # start location X 0.25
@@ -47,7 +48,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
         bpy.ops.uv.select_all(action='SELECT')
         bpy.context.space_data.pivot_point = 'CENTER'
         bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.transform.resize(value=(0.5, 0.5, 0.5))
+        bpy.ops.transform.resize(value=[0.5, 0.5, 0.5])
         bpy.ops.object.editmode_toggle()
         bpy.context.object.name = "trackLink.001"
         bpy.ops.object.duplicate_move()
@@ -82,7 +83,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
         for obj in selected_obj:
             if obj.type == 'MESH':
                 obj.data.uv_layers[0].name = 'UVset1'
-            if not 'UVset2' in obj.data.uv_layers:
+            if 'UVset2' not in obj.data.uv_layers:
                 obj.data.uv_layers.new(name="UVset2")
 
         # start location X 0.125
@@ -97,7 +98,7 @@ class TOOLS_OT_uvset(bpy.types.Operator):
         bpy.ops.uv.select_all(action='SELECT')
         bpy.context.space_data.pivot_point = 'CENTER'
         bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.transform.resize(value=(0.25, 0.25, 0.25))
+        bpy.ops.transform.resize(value=[0.25, 0.25, 0.25])
         bpy.ops.object.editmode_toggle()
         bpy.context.object.name = "trackLink.001"
         bpy.ops.object.duplicate_move()

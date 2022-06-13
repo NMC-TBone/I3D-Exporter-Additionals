@@ -19,10 +19,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from bpy.types import Operator
 
-class TOOLS_OT_freezeTrans(Operator):
-    bl_idname = "tools.freeze_trans"
+
+class I3DEA_OT_freeze_trans(bpy.types.Operator):
+    bl_idname = "i3dea.freeze_trans"
     bl_label = "Freeze Translation"
     bl_description = "Freezes translation of selected object(s)."
     bl_options = {'UNDO'}
@@ -32,8 +32,9 @@ class TOOLS_OT_freezeTrans(Operator):
         self.report({'INFO'}, "Freezed Location")
         return {'FINISHED'}
 
-class TOOLS_OT_freezeRot(Operator):
-    bl_idname = "tools.freeze_rot"
+
+class I3DEA_OT_freeze_rot(bpy.types.Operator):
+    bl_idname = "i3dea.freeze_rot"
     bl_label = "Freeze Rotation"
     bl_description = "Freezes rotation of selected object(s)."
     bl_options = {'UNDO'}
@@ -43,8 +44,9 @@ class TOOLS_OT_freezeRot(Operator):
         self.report({'INFO'}, "Freezed Rotation")
         return {'FINISHED'}
 
-class TOOLS_OT_freezeScale(Operator):
-    bl_idname = "tools.freeze_scale"
+
+class I3DEA_OT_freeze_scale(bpy.types.Operator):
+    bl_idname = "i3dea.freeze_scale"
     bl_label = "Freeze Scale"
     bl_description = "Freezes scale of selected object(s)."
     bl_options = {'UNDO'}
@@ -54,8 +56,9 @@ class TOOLS_OT_freezeScale(Operator):
         self.report({'INFO'}, "Freezed Scale")
         return {'FINISHED'}
 
-class TOOLS_OT_freezeAll(Operator):
-    bl_idname = "tools.freeze_all"
+
+class I3DEA_OT_freeze_all(bpy.types.Operator):
+    bl_idname = "i3dea.freeze_all"
     bl_label = "Freeze All"
     bl_description = "Freezes translation, rotation and scale of selected object(s)."
     bl_options = {'UNDO'}
