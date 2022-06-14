@@ -139,19 +139,42 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
     bl_description = "Setup material setting for multiple materials at once"
 
     def execute(self, context):
-        for obj in bpy.context.selected_objects:
-            for slot in obj.material_slots:
-                if context.scene.i3dea.shader_path == "":
-                    self.report({'ERROR'}, "You have not entered shader file path")
-                    return {'CANCELLED'}
-                if slot.material:
-                    loc = context.scene.i3dea.shader_path
-                    slot.material.i3d_attributes.source = loc
-                    return {'FINISHED'}
+        # for mat in bpy.data.materials:
+        #     loc = context.scene.i3dea.shader_path
+        #     mat.i3d_attributes.source = loc
+        #     print("does it print?")
+        #     return {'FINISHED'}
+
+        # mats = bpy.data.materials
+
+        # for mat in mats:
+        #     mat.blend_method = 'OPAQUE'
+
+        # return {'FINISHED'}
+
+        ob_mat = set(slot.material for o in bpy.context.selected_objects for slot in o.material_slots)
+        for mat in ob_mat:
+            mat.use_backface_culling = True
+            loc = context.scene.i3dea.shader_path
+            mat.i3d_attributes.source = loc
+
+        # s_ob = [obj.name for obj in bpy.context.selected_objects if obj.type == 'MESH']
+        # print(s_ob)
+
+            # for slot in obj.material_slots:
+            #     if context.scene.i3dea.shader_path == "":
+            #         self.report({'ERROR'}, "You have not entered shader file path")
+            #         return {'CANCELLED'}
+            #     if slot.material:
+            #         slot.material.use_backface_culling = True
+            #         loc = context.scene.i3dea.shader_path
+            #         slot.material.i3d_attributes.source = loc
+                    # slot.material.i3d_attributes.source = loc
 
                     # name = context.scene.i3dea.skeletons_dropdown
                     # getattr(I3DEA_OT_skeletons, name)(self)
                     # self.report({'INFO'}, name + " skeleton added")
+        return {'FINISHED'}
 
 
 def register():
