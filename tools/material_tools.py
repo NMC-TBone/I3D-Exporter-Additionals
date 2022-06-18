@@ -124,7 +124,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                 continue
             obj.active_material_index = 0
             for i in range(len(obj.material_slots)):
-                bpy.ops.object.material_slot_remove({'object': obj})
+                bpy.ops.object.material_slot_remove()
             obj.data.materials.append(mat)
 
         if len(bpy.context.selectable_objects) > 0:
@@ -137,16 +137,14 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
     bl_idname = "i3dea.i3dio_material"
     bl_label = "Add material settings (stjerne addon)"
     bl_description = "Setup material setting for multiple materials at once"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         selected_list = []
-        # mat_list = []
 
         for obj in bpy.context.selected_objects:
             if obj.type == "MESH":
                 selected_list.append(obj)
-            # for mat in obj.material_slots:
-            #     mat_list.append(mat)
 
         for loop_obj in selected_list:
             bpy.context.view_layer.objects.active = loop_obj
@@ -157,6 +155,14 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                 material = loop_obj.active_material
                 shader_loc = context.scene.i3dea.shader_path
                 material.i3d_attributes.source = shader_loc
+
+                mask = context.scene.i3dea.mask_map
+                if mask:
+                    material.i3d_attributes.shader_textures[0].source = mask
+                dirt = context.scene.i3dea.dirt_diffuse
+                if dirt:
+                    material.i3d_attributes.shader_textures[1].source = dirt
+
         return {'FINISHED'}
 
 

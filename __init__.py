@@ -171,12 +171,15 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     material_name: bpy.props.StringProperty(name="Material name", description="Write name of the material you want to create", default="material_mat")
     diffuse_box: bpy.props.BoolProperty(name="Add diffuse node", description="If checked it will create a image texture linked to Base Color", default=False)
 
-    shader_path: bpy.props.StringProperty(name="Path to shader location", description="Write name of the material you want to create", subtype='FILE_PATH', default="")
+    shader_path: bpy.props.StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
+    mask_map: bpy.props.StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
+    dirt_diffuse: bpy.props.StringProperty(name="Dirt diffuse", description="Add dirt diffuse texture", subtype='FILE_PATH', default="")
 
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
     UI_uvTools: bpy.props.BoolProperty(name="UV-Tools", default=False)
     UI_skeletons: bpy.props.BoolProperty(name="Skeletons", default=False)
     UI_materialTools: bpy.props.BoolProperty(name="Material-Tools", default=False)
+    UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=True)
     UI_assets: bpy.props.BoolProperty(name="Assets Importer", default=False)
 
 
@@ -190,14 +193,13 @@ class I3DEA_PT_panel(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
+        giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
         layout = self.layout
         # "Mesh-Tools" box
         box = layout.box()
         row = box.row()
         # extend button for
-        row.prop(context.scene.i3dea, "UI_meshTools", text="Mesh-Tools",
-                 icon='TRIA_DOWN' if context.scene.i3dea.UI_meshTools else 'TRIA_RIGHT', icon_only=False,
-                 emboss=False)
+        row.prop(context.scene.i3dea, "UI_meshTools", text="Mesh-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_meshTools else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
         if context.scene.i3dea.UI_meshTools:
             row = box.row()
@@ -205,13 +207,14 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.operator("i3dea.mesh_name", text="Set Mesh Name")
             row = box.row()
             row.operator("i3dea.curve_length", text="Get Curve Length")
-            row.operator("i3dea.ignore", text="Add Suffix _ignore")
+
+            if giants_i3d:
+                row.operator("i3dea.ignore", text="Add Suffix _ignore")
         # "UV-Tools" Box
         box = layout.box()
         row = box.row()
         # expand button for "UV-Tools"
-        row.prop(context.scene.i3dea, "UI_uvTools", text="UV-Tools",
-                 icon='TRIA_DOWN' if context.scene.i3dea.UI_uvTools else 'TRIA_RIGHT', icon_only=False, emboss=False)
+        row.prop(context.scene.i3dea, "UI_uvTools", text="UV-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_uvTools else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
         if context.scene.i3dea.UI_uvTools:
             row = box.row()
@@ -222,9 +225,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
         box = layout.box()
         row = box.row()
         # expand button for "Skeletons"
-        row.prop(context.scene.i3dea, "UI_skeletons", text="Skeletons",
-                 icon='TRIA_DOWN' if context.scene.i3dea.UI_skeletons else 'TRIA_RIGHT', icon_only=False,
-                 emboss=False)
+        row.prop(context.scene.i3dea, "UI_skeletons", text="Skeletons", icon='TRIA_DOWN' if context.scene.i3dea.UI_skeletons else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
         if context.scene.i3dea.UI_skeletons:
             row = box.row()
@@ -235,9 +236,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
         box = layout.box()
         row = box.row()
         # extend button for "Material-Tools"
-        row.prop(context.scene.i3dea, "UI_materialTools", text="Material-Tools",
-                 icon='TRIA_DOWN' if context.scene.i3dea.UI_materialTools else 'TRIA_RIGHT', icon_only=False,
-                 emboss=False)
+        row.prop(context.scene.i3dea, "UI_materialTools", text="Material-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_materialTools else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
         if context.scene.i3dea.UI_materialTools:
             row = box.row()
@@ -247,31 +246,30 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.prop(context.scene.i3dea, "diffuse_box", text="")
             row.prop(context.scene.i3dea, "material_name", text="")
             row.operator("i3dea.setup_material", text="Make Material")
-            giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
             if stjerne_i3d:
                 row = box.row()
-                row.prop(context.scene.i3dea, "shader_path", text="")
-                row.operator("i3dea.i3dio_material", text="Run")
-                # material = bpy.context.active_object.active_material
-
-                # row.prop(material.i3d_attributes, 'source')
-                # if material.i3d_attributes.variations:
-                #     row.prop(material.i3d_attributes, 'variation')
-                # row.operator("i3dea.i3dio_material", text="Add material settings (stjerne addon)")
+                row.prop(context.scene.i3dea, "UI_paths", text="Add paths to material", icon='TRIA_DOWN' if context.scene.i3dea.UI_paths else 'TRIA_RIGHT', icon_only=False, emboss=False)
+                if context.scene.i3dea.UI_paths:
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "shader_path", text="Shader path")
+                    if context.scene.i3dea.shader_path:
+                        row = box.row()
+                        row.prop(context.scene.i3dea, "mask_map", text="Mask texture")
+                        row = box.row()
+                        row.prop(context.scene.i3dea, "dirt_diffuse", text="Dirt texture")
+                    row = box.row()
+                    row.operator("i3dea.i3dio_material", text="Run")
         # -----------------------------------------
         # "Assets Importer" box
         box = layout.box()
         row = box.row()
         # extend button for "Assets Importer"
-        row.prop(context.scene.i3dea, "UI_assets", text="Assets Importer",
-                 icon='TRIA_DOWN' if context.scene.i3dea.UI_assets else 'TRIA_RIGHT', icon_only=False, emboss=False)
+        row.prop(context.scene.i3dea, "UI_assets", text="Assets Importer", icon='TRIA_DOWN' if context.scene.i3dea.UI_assets else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
         if context.scene.i3dea.UI_assets:
             row = box.row()
-            # row.menu("I3DEA_MT_asset_category")
             row.prop(context.scene.i3dea, "assets_dropdown", text="")
             row = box.row()
-            # row.prop(context.scene.i3dea, "assets_dropdown", text="")
             row.operator("i3dea.assets", text="Import Asset")
         # -----------------------------------------
 
@@ -301,16 +299,11 @@ classes = [
 
 def register():
     for cls in classes:
-        try:
-            bpy.utils.register_class(cls)
-        except:
-            pass
-        bpy.types.Scene.i3dea = bpy.props.PointerProperty(type=I3DEA_PG_List)
+        bpy.utils.register_class(cls)
+    bpy.types.Scene.i3dea = bpy.props.PointerProperty(type=I3DEA_PG_List)
 
 
 def unregister():
+    del bpy.types.Scene.i3dea
     for cls in classes:
-        try:
-            bpy.utils.unregister_class(cls)
-        except:
-            pass
+        bpy.utils.unregister_class(cls)
