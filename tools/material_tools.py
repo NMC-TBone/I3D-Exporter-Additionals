@@ -139,41 +139,24 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
     bl_description = "Setup material setting for multiple materials at once"
 
     def execute(self, context):
-        # for mat in bpy.data.materials:
-        #     loc = context.scene.i3dea.shader_path
-        #     mat.i3d_attributes.source = loc
-        #     print("does it print?")
-        #     return {'FINISHED'}
+        selected_list = []
+        # mat_list = []
 
-        # mats = bpy.data.materials
+        for obj in bpy.context.selected_objects:
+            if obj.type == "MESH":
+                selected_list.append(obj)
+            # for mat in obj.material_slots:
+            #     mat_list.append(mat)
 
-        # for mat in mats:
-        #     mat.blend_method = 'OPAQUE'
+        for loop_obj in selected_list:
+            bpy.context.view_layer.objects.active = loop_obj
+            loop_obj.select_set(state=True, view_layer=None)
 
-        # return {'FINISHED'}
-
-        ob_mat = set(slot.material for o in bpy.context.selected_objects for slot in o.material_slots)
-        for mat in ob_mat:
-            mat.use_backface_culling = True
-            loc = context.scene.i3dea.shader_path
-            mat.i3d_attributes.source = loc
-
-        # s_ob = [obj.name for obj in bpy.context.selected_objects if obj.type == 'MESH']
-        # print(s_ob)
-
-            # for slot in obj.material_slots:
-            #     if context.scene.i3dea.shader_path == "":
-            #         self.report({'ERROR'}, "You have not entered shader file path")
-            #         return {'CANCELLED'}
-            #     if slot.material:
-            #         slot.material.use_backface_culling = True
-            #         loc = context.scene.i3dea.shader_path
-            #         slot.material.i3d_attributes.source = loc
-                    # slot.material.i3d_attributes.source = loc
-
-                    # name = context.scene.i3dea.skeletons_dropdown
-                    # getattr(I3DEA_OT_skeletons, name)(self)
-                    # self.report({'INFO'}, name + " skeleton added")
+            for num in range(0, len(loop_obj.material_slots)):
+                loop_obj.active_material_index = num
+                material = loop_obj.active_material
+                shader_loc = context.scene.i3dea.shader_path
+                material.i3d_attributes.source = shader_loc
         return {'FINISHED'}
 
 

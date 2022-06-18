@@ -28,7 +28,16 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def four(self):
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if not bpy.context.active_object:
+            self.report({'ERROR'}, "No selected object!")
+            return {'CANCELLED'}
+        if len(bpy.context.selected_objects) > 0:
+            mode = bpy.context.object.mode
+            for obj in bpy.context.selected_objects:
+                if not obj.type == "MESH":
+                    continue
+                if not mode == 'OBJECT':
+                    bpy.ops.object.mode_set(mode='OBJECT')
         selected_obj = bpy.context.selected_objects
         for obj in selected_obj:
             if obj.type == 'MESH':
@@ -76,9 +85,19 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
         bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
         bpy.ops.object.editmode_toggle()
         bpy.context.area.ui_type = original_type
+        self.report({'INFO'}, "UVset2 2x2 Created")
 
     def sixteen(self):
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if not bpy.context.active_object:
+            self.report({'ERROR'}, "No selected object!")
+            return {'CANCELLED'}
+        if len(bpy.context.selected_objects) > 0:
+            mode = bpy.context.object.mode
+            for obj in bpy.context.selected_objects:
+                if not obj.type == "MESH":
+                    continue
+                if not mode == 'OBJECT':
+                    bpy.ops.object.mode_set(mode='OBJECT')
         selected_obj = bpy.context.selected_objects
         for obj in selected_obj:
             if obj.type == 'MESH':
@@ -228,14 +247,13 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
         bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
         bpy.ops.object.editmode_toggle()
         bpy.context.area.ui_type = original_type
+        self.report({'INFO'}, "UVset2 4x4 Created")
 
     def execute(self, context):
-        if context.scene.i3deapg.size_dropdown == 'four':
+        if context.scene.i3dea.size_dropdown == 'four':
             self.four()
-            self.report({'INFO'}, "UVset2 2x2 Created")
             return {'FINISHED'}
-        if context.scene.i3deapg.size_dropdown == 'sixteen':
+        if context.scene.i3dea.size_dropdown == 'sixteen':
             self.sixteen()
-            self.report({'INFO'}, "UVset2 4x4 Created")
             return {'FINISHED'}
         return {'FINISHED'}
