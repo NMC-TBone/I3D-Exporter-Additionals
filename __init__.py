@@ -252,11 +252,10 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 if context.scene.i3dea.UI_paths:
                     row = box.row()
                     row.prop(context.scene.i3dea, "shader_path", text="Shader path")
-                    if context.scene.i3dea.shader_path:
-                        row = box.row()
-                        row.prop(context.scene.i3dea, "mask_map", text="Mask texture")
-                        row = box.row()
-                        row.prop(context.scene.i3dea, "dirt_diffuse", text="Dirt texture")
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "mask_map", text="Mask texture")
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "dirt_diffuse", text="Dirt texture")
                     row = box.row()
                     row.operator("i3dea.i3dio_material", text="Run")
         # -----------------------------------------
