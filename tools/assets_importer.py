@@ -45,7 +45,7 @@ class I3DEA_OT_assets(bpy.types.Operator):
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
-        name = context.scene.i3deapg.assets_dropdown
+        name = context.scene.i3dea.assets_dropdown
         self.get_asset(name)
         self.report({'INFO'}, name + " imported")
         return {'FINISHED'}
