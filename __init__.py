@@ -174,6 +174,9 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     shader_path: bpy.props.StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
     mask_map: bpy.props.StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
     dirt_diffuse: bpy.props.StringProperty(name="Dirt diffuse", description="Add dirt diffuse texture", subtype='FILE_PATH', default="")
+    shader_box: bpy.props.BoolProperty(name="Set shader path", description="If checked it will add the the path to the shader in material", default=True)
+    mask_map_box: bpy.props.BoolProperty(name="Set mask map path", description="If checked it will add the the path to mask map in material", default=True)
+    dirt_diffuse_box: bpy.props.BoolProperty(name="Set dirt diffuse path", description="If checked it add the the path to dirt diffuse in material", default=True)
 
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
     UI_uvTools: bpy.props.BoolProperty(name="UV-Tools", default=False)
@@ -251,10 +254,13 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 row.prop(context.scene.i3dea, "UI_paths", text="Add paths to material", icon='TRIA_DOWN' if context.scene.i3dea.UI_paths else 'TRIA_RIGHT', icon_only=False, emboss=False)
                 if context.scene.i3dea.UI_paths:
                     row = box.row()
+                    row.prop(context.scene.i3dea, "shader_box", text="")
                     row.prop(context.scene.i3dea, "shader_path", text="Shader path")
                     row = box.row()
+                    row.prop(context.scene.i3dea, "mask_map_box", text="")
                     row.prop(context.scene.i3dea, "mask_map", text="Mask texture")
                     row = box.row()
+                    row.prop(context.scene.i3dea, "dirt_diffuse_box", text="")
                     row.prop(context.scene.i3dea, "dirt_diffuse", text="Dirt texture")
                     row = box.row()
                     row.operator("i3dea.i3dio_material", text="Run")

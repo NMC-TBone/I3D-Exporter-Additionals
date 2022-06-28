@@ -55,7 +55,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
             for obj in bpy.context.selected_objects:
                 obj.active_material_index = 0
                 for i in range(len(obj.material_slots)):
-                    bpy.ops.object.material_slot_remove({'object': obj})
+                    bpy.ops.object.material_slot_remove()
                 obj.data.materials.append(mirror_mat)
                 if giants_i3d:
                     bpy.context.object.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
@@ -154,14 +154,23 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                 loop_obj.active_material_index = num
                 material = loop_obj.active_material
                 shader_loc = context.scene.i3dea.shader_path
-                material.i3d_attributes.source = shader_loc
 
-                mask = context.scene.i3dea.mask_map
-                if mask:
-                    material.i3d_attributes.shader_textures[0].source = mask
-                dirt = context.scene.i3dea.dirt_diffuse
-                if dirt:
-                    material.i3d_attributes.shader_textures[1].source = dirt
+                if bpy.context.scene.i3dea.shader_box:
+                    if shader_loc:
+                        material.i3d_attributes.source = shader_loc
+
+                if not material.i3d_attributes.source:
+                    self.report({'ERROR'}, "Something went wrong with this obj/mat: " + loop_obj.name + ' | ' + loop_obj.active_material.name)
+                    continue
+                else:
+                    if bpy.context.scene.i3dea.mask_map_box:
+                        mask = context.scene.i3dea.mask_map
+                        if mask:
+                            material.i3d_attributes.shader_textures[0].source = mask
+                    if bpy.context.scene.i3dea.dirt_diffuse_box:
+                        dirt = context.scene.i3dea.dirt_diffuse
+                        if dirt:
+                            material.i3d_attributes.shader_textures[1].source = dirt
 
         return {'FINISHED'}
 
