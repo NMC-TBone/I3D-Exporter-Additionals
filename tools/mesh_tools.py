@@ -18,7 +18,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from unicodedata import name
 import bmesh
 import bpy
 from math import radians

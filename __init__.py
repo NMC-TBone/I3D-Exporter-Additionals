@@ -22,7 +22,7 @@ bl_info = {
     "author": "T-Bone",
     "description": "Additionals For Giants I3D Exporter",
     "blender": (3, 0, 0),
-    "version": (2, 0, 4),
+    "version": (2, 0, 5),
     "location": "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
     "warning": "",
     "category": "Game Engine"
@@ -170,6 +170,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
 
     material_name: bpy.props.StringProperty(name="Material name", description="Write name of the material you want to create", default="material_mat")
     diffuse_box: bpy.props.BoolProperty(name="Add diffuse node", description="If checked it will create a image texture linked to Base Color", default=False)
+    alpha_box: bpy.props.BoolProperty(name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False)
 
     shader_path: bpy.props.StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
     mask_map: bpy.props.StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
@@ -178,11 +179,18 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     mask_map_box: bpy.props.BoolProperty(name="Set mask map path", description="If checked it will add the the path to mask map in material", default=True)
     dirt_diffuse_box: bpy.props.BoolProperty(name="Set dirt diffuse path", description="If checked it add the the path to dirt diffuse in material", default=True)
 
+    # Track-Tools
+    custom_text_box: bpy.props.BoolProperty(name="Custom name", description="If checked you will be able to add custom name for the track pieces", default=False)
+    custom_text: bpy.props.StringProperty(name="Custom track name", description="Set custom name", default="trackPiece")
+    add_empty_int: bpy.props.IntProperty(name="Number of empties add: ", description="Place your number", default=1, min=1, max=5)
+
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
-    UI_uvTools: bpy.props.BoolProperty(name="UV-Tools", default=False)
+    UI_track_tools: bpy.props.BoolProperty(name="UV-Tools", default=False)
+    UI_uvset: bpy.props.BoolProperty(name="UVset", default=False)
     UI_skeletons: bpy.props.BoolProperty(name="Skeletons", default=False)
     UI_materialTools: bpy.props.BoolProperty(name="Material-Tools", default=False)
-    UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=True)
+    UI_create_mat: bpy.props.BoolProperty(name="Create material", default=False)
+    UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=False)
     UI_assets: bpy.props.BoolProperty(name="Assets Importer", default=False)
 
 
@@ -193,11 +201,17 @@ class I3DEA_PT_panel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "GIANTS I3D Exporter"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
         layout = self.layout
+        giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
+        if giants_i3d and stjerne_i3d:
+            # "Exporter selection" box
+            layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
+            layout.label(text="Recommend to disable one of them as it can cause some issues")
+            # layout.label(text="Do you want do disable one of them?")
+            # layout.operator("i3dea.addon_disable_giants", text="Giants")
+            # layout.operator("i3dea.addon_disable_stjerne", text="Stjerne")
         # "Mesh-Tools" box
         box = layout.box()
         row = box.row()
@@ -213,16 +227,30 @@ class I3DEA_PT_panel(bpy.types.Panel):
 
             if giants_i3d:
                 row.operator("i3dea.ignore", text="Add Suffix _ignore")
-        # "UV-Tools" Box
+        # "Track-Tools" Box
         box = layout.box()
         row = box.row()
-        # expand button for "UV-Tools"
-        row.prop(context.scene.i3dea, "UI_uvTools", text="UV-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_uvTools else 'TRIA_RIGHT', icon_only=False, emboss=False)
+        # expand button for "Track-Tools"
+        row.prop(context.scene.i3dea, "UI_track_tools", text="Track-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_track_tools else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
-        if context.scene.i3dea.UI_uvTools:
+        if context.scene.i3dea.UI_track_tools:
+            col = box.column()
+            box = col.box()
             row = box.row()
-            row.prop(context.scene.i3dea, "size_dropdown", text="")
-            row.operator("i3dea.make_uvset", text="Create UVset 2")
+            row.prop(context.scene.i3dea, "UI_uvset", text="UVset 2", icon='TRIA_DOWN' if context.scene.i3dea.UI_uvset else 'TRIA_RIGHT', icon_only=False, emboss=False)
+            if context.scene.i3dea.UI_uvset:
+                row = box.row()
+                row.prop(context.scene.i3dea, "custom_text_box", text="Custom Name")
+                if context.scene.i3dea.custom_text_box:
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "custom_text", text="Custom track name")
+                row = box.row()
+                row.prop(context.scene.i3dea, "size_dropdown", text="")
+                row.operator("i3dea.make_uvset", text="Create UVset 2")
+            box = col.box()
+            row = box.row()
+            row.prop(context.scene.i3dea, "add_empty_int", text="")
+            row.operator("i3dea.add_empty", text="Add Empty")
         # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()
@@ -245,11 +273,22 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row = box.row()
             row.operator("i3dea.mirror_material", text="Add Mirror Material")
             row.operator("i3dea.remove_duplicate_material", text="Remove Duplicate Materials")
+            col = box.column()
+            box = col.box()
             row = box.row()
-            row.prop(context.scene.i3dea, "diffuse_box", text="")
-            row.prop(context.scene.i3dea, "material_name", text="")
-            row.operator("i3dea.setup_material", text="Make Material")
+            row.prop(context.scene.i3dea, "UI_create_mat", text="Create a material", icon='TRIA_DOWN' if context.scene.i3dea.UI_create_mat else 'TRIA_RIGHT', icon_only=False, emboss=False)
+            if context.scene.i3dea.UI_create_mat:
+                # row.label(text="Create a material")
+                row = box.row()
+                row.prop(context.scene.i3dea, "diffuse_box", text="Diffuse")
+                if context.scene.i3dea.diffuse_box:
+                    row.prop(context.scene.i3dea, "alpha_box", text="Alpha")
+                row = box.row()
+                row.prop(context.scene.i3dea, "material_name", text="")
+                row = box.row()
+                row.operator("i3dea.setup_material", text="Create " + bpy.context.scene.i3dea.material_name)
             if stjerne_i3d:
+                box = col.box()
                 row = box.row()
                 row.prop(context.scene.i3dea, "UI_paths", text="Add paths to material", icon='TRIA_DOWN' if context.scene.i3dea.UI_paths else 'TRIA_RIGHT', icon_only=False, emboss=False)
                 if context.scene.i3dea.UI_paths:
@@ -279,12 +318,39 @@ class I3DEA_PT_panel(bpy.types.Panel):
         # -----------------------------------------
 
 
-from .tools import (mesh_tools, uv_tools, skeletons, material_tools, freeze_tools, assets_importer, )
+class I3DEA_OT_addon_disable_giants(bpy.types.Operator):
+    bl_idname = "i3dea.addon_disable_giants"
+    bl_label = "Disable Giants Exporter"
+    bl_description = "Disable Giants Exporter"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        bpy.ops.preferences.addon_disable(module='io_export_i3d')
+        self.report({'INFO'}, "Giants I3D Exporter is now disabled")
+        return {'FINISHED'}
+
+
+class I3DEA_OT_addon_disable_stjerne(bpy.types.Operator):
+    bl_idname = "i3dea.addon_disable_stjerne"
+    bl_label = "Disable Stjerne Exporter"
+    bl_description = "Disable Stjerne Exporter"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        bpy.ops.preferences.addon_disable(module='i3dio')
+        self.report({'INFO'}, "Stjerne I3D Exporter is now disabled")
+        return {'FINISHED'}
+
+
+from .tools import (mesh_tools, track_tools, skeletons, material_tools, freeze_tools, assets_importer, )
 
 classes = [
     I3DEA_PG_List,
     I3DEA_PT_panel,
-    uv_tools.I3DEA_OT_make_uvset,
+    I3DEA_OT_addon_disable_giants,
+    I3DEA_OT_addon_disable_stjerne,
+    track_tools.I3DEA_OT_make_uvset,
+    track_tools.I3DEA_OT_add_empty,
     mesh_tools.I3DEA_OT_remove_doubles,
     mesh_tools.I3DEA_OT_mesh_name,
     mesh_tools.I3DEA_OT_curve_length,

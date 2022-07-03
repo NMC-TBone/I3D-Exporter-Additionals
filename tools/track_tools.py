@@ -1,4 +1,4 @@
-"""uv_tools.py includes different tools for uv"""
+"""track_tools.py includes different tools for uv"""
 
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
@@ -27,7 +27,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
     bl_description = "Generate UVset 2 from selected objects."
     bl_options = {'REGISTER', 'UNDO'}
 
-    def four(self):
+    def four(self, context):
         if not bpy.context.active_object:
             self.report({'ERROR'}, "No selected object!")
             return {'CANCELLED'}
@@ -59,7 +59,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
         bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
         bpy.ops.transform.resize(value=[0.5, 0.5, 0.5])
         bpy.ops.object.editmode_toggle()
-        bpy.context.object.name = "trackLink.001"
+        bpy.context.object.name = context.scene.i3dea.custom_text + ".001"
         bpy.ops.object.duplicate_move()
         bpy.context.space_data.cursor_location[0] = 0.75
         bpy.context.space_data.cursor_location[1] = 0.25
@@ -87,7 +87,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
         bpy.context.area.ui_type = original_type
         self.report({'INFO'}, "UVset2 2x2 Created")
 
-    def sixteen(self):
+    def sixteen(self, context):
         if not bpy.context.active_object:
             self.report({'ERROR'}, "No selected object!")
             return {'CANCELLED'}
@@ -119,7 +119,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
         bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
         bpy.ops.transform.resize(value=[0.25, 0.25, 0.25])
         bpy.ops.object.editmode_toggle()
-        bpy.context.object.name = "trackLink.001"
+        bpy.context.object.name = context.scene.i3dea.custom_text + ".001"
         bpy.ops.object.duplicate_move()
         bpy.context.space_data.cursor_location[0] = 0.375
         bpy.context.space_data.cursor_location[1] = 0.125
@@ -251,9 +251,37 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
     def execute(self, context):
         if context.scene.i3dea.size_dropdown == 'four':
-            self.four()
+            self.four(context)
             return {'FINISHED'}
         if context.scene.i3dea.size_dropdown == 'sixteen':
-            self.sixteen()
+            self.sixteen(context)
             return {'FINISHED'}
         return {'FINISHED'}
+
+
+class I3DEA_OT_add_empty(bpy.types.Operator):
+    bl_label = "Create empties"
+    bl_idname = "i3dea.add_empty"
+    bl_description = "Create empties between selected objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        selected_list = [obj for obj in bpy.context.selected_objects if obj.type == 'MESH']
+        for _ in range(context.scene.i3dea.add_empty_int):
+            for loop_obj in selected_list:
+                # print(loop_obj)
+                bpy.ops.object.empty_add(radius=0)
+                empty = bpy.context.active_object
+                empty.name = loop_obj.name + ".001"
+
+                if loop_obj.parent is not None:
+                    empty.parent = loop_obj.parent
+
+        bpy.ops.object.select_all(action='DESELECT')
+        for loop_obj in selected_list:
+            bpy.data.objects[loop_obj.name].select_set(True)
+
+            # attrs.select_set(True)
+
+            self.report({'INFO'}, "Empties added")
+            return {'FINISHED'}

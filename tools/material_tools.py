@@ -76,7 +76,7 @@ class I3DEA_OT_remove_duplicate_material(bpy.types.Operator):
         for ob in bpy.context.scene.objects:
             if not ob.material_slots:
                 continue
-            bpy.ops.object.material_slot_remove_unused({"object": context.scene.objects[0]})
+            bpy.ops.object.material_slot_remove_unused()
         for mat in bpy.data.materials:
             if not mat.users:
                 bpy.data.materials.remove(mat)
@@ -117,6 +117,10 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                 img_tex_diffuse = nodes.new("ShaderNodeTexImage")
                 img_tex_diffuse.location = (-510, 310)
                 links.new(img_tex_diffuse.outputs["Color"], principled.inputs["Base Color"])
+                if bpy.context.scene.i3dea.alpha_box:
+                    links.new(img_tex_diffuse.outputs["Alpha"], principled.inputs["Alpha"])
+                    mat.blend_method = 'CLIP'
+                    mat.shadow_method = 'CLIP'
             self.report({'INFO'}, mat_name + " created")
 
         for obj in bpy.context.selected_objects:
