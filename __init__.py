@@ -22,7 +22,7 @@ bl_info = {
     "author": "T-Bone",
     "description": "Additionals For Giants I3D Exporter",
     "blender": (3, 0, 0),
-    "version": (2, 0, 5),
+    "version": (2, 0, 6),
     "location": "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
     "warning": "",
     "category": "Game Engine"
@@ -183,6 +183,9 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     custom_text_box: bpy.props.BoolProperty(name="Custom name", description="If checked you will be able to add custom name for the track pieces", default=False)
     custom_text: bpy.props.StringProperty(name="Custom track name", description="Set custom name", default="trackPiece")
     add_empty_int: bpy.props.IntProperty(name="Number of empties add: ", description="Place your number", default=1, min=1, max=5)
+    piece_distance: bpy.props.FloatProperty(name="Track piece distance: ", description="Add track piece distance", default=0.2, precision=10, min=0.0001)
+    curve_length_disp: bpy.props.FloatProperty(name="curve_length", default=0.0, precision=10)
+    track_piece_amount: bpy.props.StringProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve")
 
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
     UI_track_tools: bpy.props.BoolProperty(name="UV-Tools", default=False)
@@ -223,9 +226,9 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.operator("i3dea.remove_doubles", text="Clean Meshes")
             row.operator("i3dea.mesh_name", text="Set Mesh Name")
             row = box.row()
-            row.operator("i3dea.curve_length", text="Get Curve Length")
-
+            row.operator("i3dea.mirror_orientation", text="Set mirror orientation")
             if giants_i3d:
+                row = box.row()
                 row.operator("i3dea.ignore", text="Add Suffix _ignore")
         # "Track-Tools" Box
         box = layout.box()
@@ -250,7 +253,22 @@ class I3DEA_PT_panel(bpy.types.Panel):
             box = col.box()
             row = box.row()
             row.prop(context.scene.i3dea, "add_empty_int", text="")
-            row.operator("i3dea.add_empty", text="Add Empty")
+            row.operator("i3dea.add_empty", text="Add Empty", icon='EMPTY_DATA')
+            box = col.box()
+            row = box.row()
+            row.operator("i3dea.curve_length", text="Get Curve Length", icon='MOD_LENGTH')
+            row.prop(context.scene.i3dea, "curve_length_disp", text="")
+            box = col.box()
+            row = box.row()
+            row.prop(context.scene.i3dea, "piece_distance", text="")
+            row.operator("i3dea.calculate_amount", text="Calculate Amount")
+            row = box.row()
+            row.prop(context.scene.i3dea, "track_piece_amount", text="")
+            box = col.box()
+            row = box.row()
+            row.operator("i3dea.track_on_curve", text="Add track along curve")
+            row.operator("i3dea.track_on_curve_delete", text="Delete")
+            # row.prop(context.scene.i3dea, "curve_length_disp", text="")
         # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()
@@ -261,7 +279,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
         if context.scene.i3dea.UI_skeletons:
             row = box.row()
             row.prop(context.scene.i3dea, "skeletons_dropdown", text="")
-            row.operator("i3dea.skeletons", text="Create")
+            row.operator("i3dea.skeletons", text="Create", icon='BONE_DATA')
         # ---------------------------------------------------------------
         # "Material-Tools" box
         box = layout.box()
@@ -351,10 +369,14 @@ classes = [
     I3DEA_OT_addon_disable_stjerne,
     track_tools.I3DEA_OT_make_uvset,
     track_tools.I3DEA_OT_add_empty,
+    track_tools.I3DEA_OT_curve_length,
+    track_tools.I3DEA_OT_calculate_amount,
+    track_tools.I3DEA_OT_track_on_curve,
+    track_tools.I3DEA_OT_track_on_curve_delete,
     mesh_tools.I3DEA_OT_remove_doubles,
     mesh_tools.I3DEA_OT_mesh_name,
-    mesh_tools.I3DEA_OT_curve_length,
     mesh_tools.I3DEA_OT_ignore,
+    mesh_tools.I3DEA_OT_mirror_orientation,
     skeletons.I3DEA_OT_skeletons,
     material_tools.I3DEA_OT_mirror_material,
     material_tools.I3DEA_OT_remove_duplicate_material,
