@@ -230,6 +230,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
             if giants_i3d:
                 row = box.row()
                 row.operator("i3dea.ignore", text="Add Suffix _ignore")
+                row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
         # "Track-Tools" Box
         box = layout.box()
         row = box.row()
@@ -377,6 +378,7 @@ classes = [
     mesh_tools.I3DEA_OT_mesh_name,
     mesh_tools.I3DEA_OT_ignore,
     mesh_tools.I3DEA_OT_mirror_orientation,
+    mesh_tools.I3DEA_OT_xml_config,
     skeletons.I3DEA_OT_skeletons,
     material_tools.I3DEA_OT_mirror_material,
     material_tools.I3DEA_OT_remove_duplicate_material,
