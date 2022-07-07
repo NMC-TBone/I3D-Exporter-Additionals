@@ -17,6 +17,16 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
+"""
+TODO:
+    - Make a script to check if scale for collisions are 1 1 1
+        - Perhaps extend it to verify more
+    - See if it's possible to create some sort of fillVolume checker
+    - Make support for rubber tracks for track visualization
+    - Create a importer for in game lights
+"""
+
+
 bl_info = {
     "name": "I3D Exporter Additionals",
     "author": "T-Bone",
