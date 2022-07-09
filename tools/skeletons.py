@@ -224,9 +224,9 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         # turn lights
         turn_lights = self.create_skel_node("6_turnLights", lights_group)
         turn_light_left_front = self.create_light('turnLightLeftFront', turn_lights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
-        self.create_light('turnLightLeftBack', turn_light_left_front, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(-30), 0, math.radians(-180)))
+        self.create_light('turnLightLeftBack', turn_light_left_front, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(0, 0, 0))
         turn_light_right_front = self.create_light('turnLightRightFront', turn_lights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
-        self.create_light('turnLightRightBack', turn_light_right_front, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(-30), 0, math.radians(-180)))
+        self.create_light('turnLightRightBack', turn_light_right_front, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(0, 0, 0))
         # beacon lights
         beacon_lights = self.create_skel_node("7_beaconLights", lights_group)
         self.create_skel_node("beaconLight1", beacon_lights)
