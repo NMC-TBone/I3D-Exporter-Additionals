@@ -1,5 +1,3 @@
-"""skeletons.py contains skeleton setup for vehicles, tools and placeables"""
-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -22,10 +20,12 @@
 #  Converted/inspired from skeletons script in maya i3d exporter, plugins/Skeletons.py
 # --------------------------------------------------------------------------------------
 
+# skeletons.py contains skeleton setup for vehicles, tools and placeables
+
 import bpy
 import math
 
-from .. import check_i3d_exporter_type
+from ..i3d_exporter_type import check_i3d_exporter_type
 
 giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 

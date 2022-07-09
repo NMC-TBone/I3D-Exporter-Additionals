@@ -1,5 +1,3 @@
-"""mesh_tools.py includes different tools for mesh"""
-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -18,11 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# mesh_tools.py includes different tools for mesh
+
 import bmesh
 import bpy
 import math
 
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 
 
 class I3DEA_OT_remove_doubles(bpy.types.Operator):
@@ -108,6 +108,64 @@ class I3DEA_OT_xml_config(bpy.types.Operator):
         for obj in bpy.context.selected_objects:
             obj["I3D_XMLconfigBool"] = 1
             obj["I3D_XMLconfigID"] = obj.name
+        return {'FINISHED'}
+
+
+def check_bottom_face(fill_volume):
+    # https://blender.stackexchange.com/questions/75517/selecting-faces-in-python
+    def find_direction(normal, direction, limit=1.0):
+        return direction.dot(normal) > limit
+
+    def find_bottom(normal, limit=0.9999999):
+        return find_direction(normal, Vector((0, 0, -1)), limit)
+
+    prev_mode = fill_volume.mode
+    bpy.ops.object.editmode_toggle()
+    prev_select_type = bpy.context.tool_settings.mesh_select_mode[:]
+    for poly in fill_volume.data.polygons:
+        poly.select = False
+    # bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+    bpy.context.tool_settings.mesh_select_mode = (False, False, True)
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    # Selects the bottom face
+    for face in fill_volume.data.polygons:
+        face.select = find_bottom(face.normal)
+
+    value = False
+    if True in [mesh.select for mesh in bpy.context.object.data.polygons]:
+        value = True
+
+    bpy.ops.object.editmode_toggle()
+
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.context.tool_settings.mesh_select_mode = prev_select_type
+    bpy.ops.object.mode_set(mode=prev_mode, toggle=False)
+
+    return value
+
+
+class I3DEA_OT_fill_volume(bpy.types.Operator):
+    bl_idname = "i3dea.fill_volume"
+    bl_label = "Check Fill Volume"
+    bl_description = "Check if fill volume bottom face is flat"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if bpy.context.object.type == 'MESH':
+            original_mode = bpy.context.object.mode
+            bpy.ops.object.mode_set(mode='OBJECT')
+            fill_volume = context.object
+            if check_bottom_face(fill_volume):
+                print("keep going")
+            else:
+                self.report({'ERROR'}, fill_volume.name + " doesn't have flat bottom face")
+
+            bpy.ops.object.select_all(action='DESELECT')
+            fill_volume.select_set(True)
+            context.view_layer.objects.active = fill_volume
+            bpy.ops.object.mode_set(mode=original_mode)
         return {'FINISHED'}
 
 
@@ -209,3 +267,51 @@ def vector_norm(v):
     if length == 0:
         length = 1
     return [v[0]/length, v[1]/length, v[2]/length]
+
+
+# backup
+"""original_rot = fill_volume.rotation_euler.copy()
+    # original_cursor = bpy.context.scene.cursor.location.copy()
+    if fill_volume.rotation_euler != (0.0, 0.0, 0.0):
+        fill_volume.rotation_euler = (0.0, 0.0, 0.0)
+    fill_volume.instance_type = 'FACES'
+
+    bpy.context.scene.cursor.location = fill_volume.location
+    bpy.ops.object.empty_add(type='ARROWS', radius=0.25)
+    empty = bpy.context.active_object
+    empty.parent = fill_volume
+
+    matrix_world = empty.matrix_world.copy()
+    empty.parent = fill_volume
+    empty.matrix_parent_inverse = Matrix.Identity(4)
+    empty.matrix_world = matrix_world
+
+    bpy.ops.object.select_all(action='DESELECT')
+    fill_volume.select_set(True)
+    bpy.context.view_layer.objects.active = fill_volume
+    bpy.ops.object.duplicates_make_real(use_base_parent=True, use_hierarchy=True)
+    bpy.data.objects.remove(empty)
+    empties = [empty for empty in bpy.context.selected_objects]
+    lowest_values = (100, None)
+    for empty in empties:
+        loc_z = empty.location.z
+        print("loc_z", loc_z)
+        if loc_z < lowest_values[0]:
+            lowest_values = (loc_z, empty)
+            bpy.ops.object.select_all(action='DESELECT')
+            lowest_values[1].select_set(True)
+            bpy.context.view_layer.objects.active = lowest_values[1]
+    print("Lowest val: ", lowest_values)
+    value = True
+    obj = bpy.context.object
+    # obj.rotation_euler = rotation
+    rotation = math.degrees(obj.rotation_euler)
+    if not rotation == (180 or -180):
+        value = False
+    # for empty in empties:
+    #     bpy.data.objects.remove(empty)
+    fill_volume.rotation_euler = original_rot
+    bpy.context.scene.cursor.location = original_cursor
+    # print("variable loc: ", original_cursor)
+    # print("bpy loc: ", bpy.context.scene.cursor.location)
+    return value"""
