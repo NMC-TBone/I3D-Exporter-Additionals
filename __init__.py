@@ -32,7 +32,7 @@ bl_info = {
     "author": "T-Bone",
     "description": "Additionals For Giants I3D Exporter",
     "blender": (3, 0, 0),
-    "version": (2, 0, 6),
+    "version": (2, 0, 7),
     "location": "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
     "warning": "",
     "category": "Game Engine"
