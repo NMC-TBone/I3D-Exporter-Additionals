@@ -1,5 +1,3 @@
-"""assets_importer.py importer for FS game files assets"""
-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -17,6 +15,8 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+
+# assets_importer.py importer for FS game files assets
 
 import bpy
 import os
@@ -44,16 +44,8 @@ class I3DEA_OT_assets(bpy.types.Operator):
         bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path, name), directory=os.path.join(file_path, inner_path), filename=name, )
 
     def execute(self, context):
-        if len(bpy.context.selected_objects) > 0:
-            mode = bpy.context.object.mode
-            for obj in bpy.context.selected_objects:
-                if not obj.type == "MESH":
-                    continue
-                if not mode == 'OBJECT':
-                    bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.context.active_object.select_set(False)
-        for obj in bpy.context.selected_objects:
-            bpy.context.view_layer.objects.active = obj
+        if bpy.context.view_layer.objects.active is not None:
+            bpy.ops.object.mode_set(mode='OBJECT')
         name = context.scene.i3dea.assets_dropdown
         self.get_asset(name)
         self.report({'INFO'}, name + " imported")

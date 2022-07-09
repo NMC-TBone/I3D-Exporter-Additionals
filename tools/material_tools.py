@@ -1,5 +1,3 @@
-"""material_tools.py includes different material tools"""
-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -18,9 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# material_tools.py includes different material tools
+
 import bpy
 
-from .. import check_i3d_exporter_type
+from ..i3d_exporter_type import check_i3d_exporter_type
 
 giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
