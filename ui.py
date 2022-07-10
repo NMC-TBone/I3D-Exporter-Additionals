@@ -111,6 +111,13 @@ class I3DEA_PT_panel(bpy.types.Panel):
                     row.prop(context.scene.i3dea, "alpha_box", text="Alpha")
                 row = box.row()
                 row.prop(context.scene.i3dea, "material_name", text="")
+                if context.scene.i3dea.diffuse_box:
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "diffuse_texture_path", text="Diffuse")
+                row = box.row()
+                row.prop(context.scene.i3dea, "spec_texture_path", text="Specular")
+                row = box.row()
+                row.prop(context.scene.i3dea, "normal_texture_path", text="Normal")
                 row = box.row()
                 row.operator("i3dea.setup_material", text="Create " + bpy.context.scene.i3dea.material_name)
             if stjerne_i3d:

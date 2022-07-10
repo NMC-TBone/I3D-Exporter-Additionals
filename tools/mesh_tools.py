@@ -111,7 +111,7 @@ class I3DEA_OT_xml_config(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def check_bottom_face(fill_volume):
+def check_parallel(fill_volume):
     # https://blender.stackexchange.com/questions/75517/selecting-faces-in-python
     def find_direction(normal, direction, limit=1.0):
         return direction.dot(normal) > limit
@@ -119,12 +119,38 @@ def check_bottom_face(fill_volume):
     def find_bottom(normal, limit=0.9999999):
         return find_direction(normal, Vector((0, 0, -1)), limit)
 
+    def find_top(normal, limit=0.9999999):
+        return find_direction(normal, Vector((0, 0, 1)), limit)
+
+    def find_face_count():
+        # Add all selected faces from bottom to a list
+        sel_faces = []
+        for faces in bpy.context.object.data.polygons:
+            if faces.select:
+                sel_faces.append(face)
+        # print("Face count ", len(sel_faces))
+        return len(sel_faces)
+
+    def linked_faces():
+        # runs linked flat faces and store the new selected faces to later compare number with find_face_count
+        sel_faces_linked = []
+        previous_mode = bpy.context.object.mode
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.mesh.faces_select_linked_flat(sharpness=math.radians(15))
+        bpy.ops.object.editmode_toggle()
+        for faces in bpy.context.object.data.polygons:
+            if faces.select:
+                sel_faces_linked.append(faces)
+        bpy.ops.object.mode_set(mode=previous_mode, toggle=False)
+        # print("Linked faces ", len(sel_faces_linked))
+        return len(sel_faces_linked)
+
     prev_mode = fill_volume.mode
     bpy.ops.object.editmode_toggle()
     prev_select_type = bpy.context.tool_settings.mesh_select_mode[:]
     for poly in fill_volume.data.polygons:
         poly.select = False
-    # bpy.ops.mesh.select_all(action='DESELECT')
+
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
     bpy.context.tool_settings.mesh_select_mode = (False, False, True)
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -133,17 +159,34 @@ def check_bottom_face(fill_volume):
     for face in fill_volume.data.polygons:
         face.select = find_bottom(face.normal)
 
-    value = False
-    if True in [mesh.select for mesh in bpy.context.object.data.polygons]:
-        value = True
+    bottom = False
+    if True in [mesh.select for mesh in fill_volume.data.polygons]:
+        bottom = True
+        if find_face_count() != linked_faces():
+            bottom = False
+
+    # need to clear selection to get correct result for top faces
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    # selects top faces
+    for face in fill_volume.data.polygons:
+        face.select = find_top(face.normal)
+
+    top = False
+    if True in [mesh.select for mesh in fill_volume.data.polygons]:
+        top = True
+        if find_face_count() != linked_faces():
+            top = False
 
     bpy.ops.object.editmode_toggle()
-
     bpy.ops.mesh.select_all(action='DESELECT')
+
     bpy.context.tool_settings.mesh_select_mode = prev_select_type
     bpy.ops.object.mode_set(mode=prev_mode, toggle=False)
 
-    return value
+    return bottom, top
 
 
 class I3DEA_OT_fill_volume(bpy.types.Operator):
@@ -157,8 +200,11 @@ class I3DEA_OT_fill_volume(bpy.types.Operator):
             original_mode = bpy.context.object.mode
             bpy.ops.object.mode_set(mode='OBJECT')
             fill_volume = context.object
-            if check_bottom_face(fill_volume):
-                print("keep going")
+            if check_parallel(fill_volume)[0]:
+                if check_parallel(fill_volume)[1]:
+                    self.report({'INFO'}, fill_volume.name + " passed the tests")
+                else:
+                    self.report({'ERROR'}, fill_volume.name + " doesn't have parallel bottom and top face")
             else:
                 self.report({'ERROR'}, fill_volume.name + " doesn't have flat bottom face")
 
