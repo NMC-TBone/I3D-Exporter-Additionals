@@ -107,6 +107,18 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
             links.new(normal.outputs["Normal"], principled.inputs["Normal"])
             links.new(img_tex_normal.outputs["Color"], normal.inputs["Color"])
             img_tex_spec.location = (-510, 80)
+            if context.scene.i3dea.normal_texture_path:
+                try:
+                    img_tex_normal.image = bpy.data.images.load(context.scene.i3dea.normal_texture_path)
+                    img_tex_normal.image.colorspace_settings.name = 'Non-Color'
+                except Exception as e:
+                    print(e)
+            if context.scene.i3dea.spec_texture_path:
+                try:
+                    img_tex_spec.image = bpy.data.images.load(context.scene.i3dea.spec_texture_path)
+                except Exception as e:
+                    print(e)
+
             if giants_i3d:
                 links.new(img_tex_spec.outputs["Color"], principled.inputs["Specular"])
             if stjerne_i3d:
@@ -121,6 +133,12 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                     links.new(img_tex_diffuse.outputs["Alpha"], principled.inputs["Alpha"])
                     mat.blend_method = 'CLIP'
                     mat.shadow_method = 'CLIP'
+                if context.scene.i3dea.diffuse_texture_path:
+                    try:
+                        img_tex_diffuse.image = bpy.data.images.load(context.scene.i3dea.diffuse_texture_path)
+                    except Exception as e:
+                        print(e)
+                        # print("something went wrong when adding file to: ", img_tex_diffuse)
             self.report({'INFO'}, mat_name + " created")
 
         for obj in bpy.context.selected_objects:

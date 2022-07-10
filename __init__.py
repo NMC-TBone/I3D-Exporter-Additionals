@@ -21,7 +21,7 @@
 TODO:
     - Make a script to check if scale for collisions are 1 1 1
         - Perhaps extend it to verify more
-    - See if it's possible to create some sort of fillVolume checker
+    - See if it's possible to do more with fill volume checker
     - Make support for rubber tracks for track visualization
     - Create a importer for in game lights
 """
@@ -163,6 +163,9 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     material_name: bpy.props.StringProperty(name="Material name", description="Write name of the material you want to create", default="material_mat")
     diffuse_box: bpy.props.BoolProperty(name="Add diffuse node", description="If checked it will create a image texture linked to Base Color", default=False)
     alpha_box: bpy.props.BoolProperty(name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False)
+    diffuse_texture_path: bpy.props.StringProperty(name="Diffuse", description="Add path to your diffuse texture.", subtype='FILE_PATH', default="")
+    spec_texture_path: bpy.props.StringProperty(name="Specular", description="Add path to your specular texture.", subtype='FILE_PATH', default="")
+    normal_texture_path: bpy.props.StringProperty(name="Normal", description="Add path to your normal map texture.", subtype='FILE_PATH', default="")
 
     shader_path: bpy.props.StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
     mask_map: bpy.props.StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
