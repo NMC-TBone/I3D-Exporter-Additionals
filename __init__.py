@@ -182,7 +182,20 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     curve_length_disp: bpy.props.FloatProperty(name="curve_length", default=0.0, precision=10)
     track_piece_amount: bpy.props.StringProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve")
 
+    # User Attributes
+    user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
+    user_attribute_type: bpy.props.EnumProperty(
+        name="Type",
+        description="List of UV size",
+        items=[
+            ('boolean', "boolean", ""),
+            ('float', "float", ""),
+            ('string', "string", ""),
+            ('scriptCallback', "scriptCallback", ""),],
+        default='boolean')
+
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
+    UI_user_attributes: bpy.props.BoolProperty(name="User Attributes", default=False)
     UI_track_tools: bpy.props.BoolProperty(name="UV-Tools", default=False)
     UI_uvset: bpy.props.BoolProperty(name="UVset", default=False)
     UI_skeletons: bpy.props.BoolProperty(name="Skeletons", default=False)
@@ -190,6 +203,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     UI_create_mat: bpy.props.BoolProperty(name="Create material", default=False)
     UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=False)
     UI_assets: bpy.props.BoolProperty(name="Assets Importer", default=False)
+    UI_active_obj: bpy.props.StringProperty(name="Active Object Name", default="")
 
 
 from .tools import (
@@ -199,6 +213,7 @@ from .tools import (
     mesh_tools,
     skeletons,
     track_tools,
+    user_attributes,
 )
 from . import ui
 
@@ -227,6 +242,7 @@ classes = [
     freeze_tools.I3DEA_OT_freeze_scale,
     freeze_tools.I3DEA_OT_freeze_all,
     assets_importer.I3DEA_OT_assets,
+    user_attributes.I3DEA_OT_create_user_attribute,
 ]
 
 

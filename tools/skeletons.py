@@ -329,8 +329,8 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_exact_fill_root_node("exactFillRootNodeStraw", straw)
         milktank = self.create_skel_node("1_4_milktank", animal_husbandry)
         self.create_trigger("milktankTrigger", 2097152, "200000", milktank)
-        lqiuid_manure_tank = self.create_skel_node("1_5_lqiuidManureTank", animal_husbandry)
-        self.create_trigger("lqiuidManureTankTrigger", 2097152, "200000", lqiuid_manure_tank)
+        liquid_manure_tank = self.create_skel_node("1_5_liquidManureTank", animal_husbandry)
+        self.create_trigger("liquidManureTankTrigger", 2097152, "200000", liquid_manure_tank)
         water_places = self.create_skel_node("6_waterPlaces", animal_husbandry)
         self.create_skel_node("waterPlace1", water_places)
         self.create_skel_node("waterPlace2", water_places)
@@ -419,9 +419,19 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         collisions = self.create_skel_node("9_collisions", parent)
         self.create_collision("collision", 255, "ff", collisions)
         self.create_collision("tipCollision", 524288, "80000", collisions)
-        tip_col_wall = self.create_collision("tipCollisionWall", 524288, "80000", collisions)
+        self.create_collision("tipCollisionWall", 524288, "80000", collisions)
         if giants_i3d:
-            dcc.I3DSetAttrBool(tip_col_wall, 'collisionHeight', 4)
+            prop_name = 'userAttribute_float_collisionHeight'
+            bpy.context.object[prop_name] = 4.0
+            bpy.context.object.id_properties_ensure()  # Make sure the manager is updated
+            property_manager = bpy.context.object.id_properties_ui(prop_name)
+            property_manager.update(min=-200, max=200)
+        if stjerne_i3d:
+            bpy.ops.i3dio_user_attribute_list.new_item()
+            bpy.context.object.i3d_user_attributes.attribute_list[0].name = "collisionHeight"
+            bpy.context.object.i3d_user_attributes.attribute_list[0].type = 'data_float'
+            bpy.context.object.i3d_user_attributes.attribute_list[0].data_float = 4
+
         doors = self.create_skel_node("10_doors", parent)
         self.create_trigger("doorTrigger", 3145728, "300000", doors)
         lights = self.create_skel_node("11_lights", parent)
