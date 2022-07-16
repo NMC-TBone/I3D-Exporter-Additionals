@@ -181,6 +181,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     piece_distance: bpy.props.FloatProperty(name="Track piece distance: ", description="Add track piece distance", default=0.2, precision=10, min=0.0001)
     curve_length_disp: bpy.props.FloatProperty(name="curve_length", default=0.0, precision=10)
     track_piece_amount: bpy.props.StringProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve")
+    rubber_track: bpy.props.BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
 
     # User Attributes
     user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")

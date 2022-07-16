@@ -46,6 +46,23 @@ class I3DEA_PT_panel(bpy.types.Panel):
                         row.label(text="Object Name: ")
                         row.label(text=obj.name)
                         row = box.row()
+
+                        attributes = [k for k in obj.keys() if 0 == k.find("userAttribute_")]
+                        if attributes:
+                            col2 = box.column()
+                            box2 = col2.box()
+                            row2 = box2.row()
+                            row2.label(text="Attributes:")
+                            row2 = box2.row()
+                            for k in attributes:
+                                m_list = k.split("_", 2)
+                                name = m_list[2]
+                                row2.prop(obj, f'["{k}"]', text=name)
+                                row2 = box2.row()
+                            row = box.row()
+
+                        row.label(text="Add new attributes:")
+                        row = box.row()
                         row.prop(context.scene.i3dea, "user_attribute_name", text="Name")
                         row = box.row()
                         row.prop(context.scene.i3dea, "user_attribute_type", text="Type")
@@ -88,9 +105,10 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.prop(context.scene.i3dea, "track_piece_amount", text="")
             box = col.box()
             row = box.row()
-            row.operator("i3dea.track_on_curve", text="Add track along curve")
+            row.prop(context.scene.i3dea, "rubber_track")
+            row = box.row()
+            row.operator("i3dea.track_on_curve", text="Add track to curve")
             row.operator("i3dea.track_on_curve_delete", text="Delete")
-            # row.prop(context.scene.i3dea, "curve_length_disp", text="")
         # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()

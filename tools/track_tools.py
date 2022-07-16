@@ -22,6 +22,11 @@ import bpy
 import math
 
 
+def getCurveLength(curve_obj):
+    length = curve_obj.data.splines[0].calc_length(resolution=1024)
+    return length
+
+
 class I3DEA_OT_add_empty(bpy.types.Operator):
     bl_label = "Create empties"
     bl_idname = "i3dea.add_empty"
@@ -45,26 +50,21 @@ class I3DEA_OT_add_empty(bpy.types.Operator):
             return {'FINISHED'}
 
 
-def getCurveLength(length):
-    length = bpy.context.active_object.data.splines[0].calc_length(resolution=1024)
-    return length
-
-
 class I3DEA_OT_curve_length(bpy.types.Operator):
     bl_idname = "i3dea.curve_length"
     bl_label = "Get Curve Length"
     bl_description = "Measure length of the selected curve"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, length):
-        if bpy.context.view_layer.objects.active is None:
+    def execute(self, context):
+        if context.view_layer.objects.active is None:
             self.report({'ERROR'}, "No active object in scene")
             return {'CANCELLED'}
-        if not bpy.context.active_object.type == "CURVE":
-            self.report({'ERROR'}, "The active object [" + bpy.context.active_object.name + "] is not a curve")
+        if not context.object.type == "CURVE":
+            self.report({'ERROR'}, "The active object [" + context.active_object.name + "] is not a curve")
             return {'CANCELLED'}
         else:
-            curve_length = getCurveLength(length)
+            curve_length = getCurveLength(context.object)
             bpy.context.scene.i3dea.curve_length_disp = curve_length
         return {'FINISHED'}
 
@@ -75,52 +75,56 @@ class I3DEA_OT_calculate_amount(bpy.types.Operator):
     bl_description = "Calculates how many track pieces that fit from given track piece length and curve length"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, length):
-        if bpy.context.view_layer.objects.active is None:
+    def execute(self, context):
+        if context.view_layer.objects.active is None:
             self.report({'ERROR'}, "No active object in scene")
             return {'CANCELLED'}
-        # if not bpy.context.active_object.type == "CURVE":
-        #     self.report({'ERROR'}, "The active object [" + bpy.context.active_object.name + "] is not a curve")
-        #     return {'CANCELLED'}
-        if len(bpy.context.selected_objects) == 2:
-            obj1 = bpy.context.selected_objects[0].location
-            obj2 = bpy.context.selected_objects[1].location
-            # print(math.dist(obj1, obj2))
-            bpy.context.scene.i3dea.piece_distance = math.dist(obj1, obj2)
-            # curve_length = getCurveLength(length)
-        if bpy.context.active_object.type == 'CURVE':
-            curve_length = getCurveLength(length)
+        if len(context.selected_objects) == 2:
+            obj1 = context.selected_objects[0].location
+            obj2 = context.selected_objects[1].location
+            context.scene.i3dea.piece_distance = math.dist(obj1, obj2)
+        if context.object.type == 'CURVE':
+            curve = bpy.context.object
+            curve_length = getCurveLength(curve)
             float_val = curve_length/bpy.context.scene.i3dea.piece_distance
-            # print(float_val)
             rounded_val = round(float_val)
             string = str(float_val and rounded_val)
             bpy.context.scene.i3dea.track_piece_amount = string
-
         return {'FINISHED'}
 
 
 class I3DEA_OT_track_on_curve(bpy.types.Operator):
     bl_idname = "i3dea.track_on_curve"
-    bl_label = "Add track along curve"
+    bl_label = "Add track to curve"
     bl_description = "Makes a full setup to see how the track will look along the curve"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        types = ['MESH', 'CURVE']
-        selected_list = [obj for obj in bpy.context.selected_objects if obj.type in types]
-        piece_list = [mesh for mesh in selected_list if mesh.type == 'MESH']
-        curve_list = [curve for curve in selected_list if curve.type == 'CURVE']
+        piece_list = []
+        curve_list = []
 
-        if len(bpy.context.selected_objects) == 2:
-            for piece, curve in zip(piece_list, curve_list):
+        for obj in context.selected_objects:
+            if obj.type == 'MESH':
+                piece_list.append(obj)
+            if obj.type == 'CURVE':
+                curve_list.append(obj)
 
-                hierarchy_name = 'track_visualization'
-                space = bpy.context.scene.i3dea.piece_distance
+        if len(curve_list) < 1:
+            for curve in context.scene.objects:
+                if curve.type == 'CURVE':
+                    curve_list.append(curve)
+                    break
+
+        for piece, curve in zip(piece_list, curve_list):
+            hierarchy_name = 'track_visualization'
+            space = bpy.context.scene.i3dea.piece_distance
+            curve_length = getCurveLength(curve)
+            if not bpy.context.scene.i3dea.rubber_track:
                 if bpy.context.scene.i3dea.track_piece_amount:
                     piece_num = int(bpy.context.scene.i3dea.track_piece_amount)
                 else:
-                    piece_num = 30
-                    self.report({'INFO'}, "No amount set in track piece amount, using default instead")
+                    piece_num = 25
+                    self.report({'INFO'}, "No amount set in track piece amount, using default amount instead ({})".format(piece_num))
 
                 bpy.ops.mesh.primitive_plane_add()
                 plane = bpy.context.object
@@ -138,8 +142,33 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
                 plane.modifiers.new("Curve", 'CURVE')
                 plane.modifiers["Curve"].object = curve
                 plane.modifiers["Curve"].deform_axis = 'NEG_Y'
-
+                plane.lock_location[0] = True
+                plane.lock_location[2] = True
+                plane.keyframe_insert("location", frame=1)
+                plane.location[1] = curve_length
+                plane.keyframe_insert("location", frame=250)
                 piece.parent = plane
+                piece.hide_set(True)
+
+            if bpy.context.scene.i3dea.rubber_track:
+                obj = context.object
+                # bpy.ops.object.duplicate()
+                duplicate = bpy.data.objects.new(hierarchy_name, bpy.data.objects[obj.name].data)
+                duplicate.dimensions[1] = curve_length
+                duplicate.modifiers.new("Curve", 'CURVE')
+                duplicate.modifiers["Curve"].object = curve
+                duplicate.modifiers["Curve"].deform_axis = 'NEG_Y'
+                duplicate.keyframe_insert("location", frame=1)
+                duplicate.location[1] = curve_length
+                duplicate.keyframe_insert("location", frame=250)
+                context.collection.objects.link(duplicate)
+
+            def stop_anim(scene):
+                if scene.frame_current == 250:
+                    bpy.ops.screen.animation_cancel()
+
+            bpy.app.handlers.frame_change_pre.append(stop_anim)
+            bpy.ops.screen.animation_play()
 
         return {'FINISHED'}
 
@@ -155,9 +184,10 @@ class I3DEA_OT_track_on_curve_delete(bpy.types.Operator):
 
         if obj_list:
             for obj in obj_list:
-                # for children in obj.children_recursive:
-                #     bpy.data.objects.remove(children)
+                for child in obj.children_recursive:
+                    child.hide_set(False)
                 bpy.data.objects.remove(obj)
+                self.report({'INFO'}, "Track Visualization deleted")
         return {'FINISHED'}
 
 

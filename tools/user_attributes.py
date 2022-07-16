@@ -46,7 +46,6 @@ class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}"""
 
 
-
 class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     bl_idname = "i3dea.create_user_attribute"
     bl_label = "Create User Attribute"
@@ -62,7 +61,6 @@ class I3DEA_OT_create_user_attribute(bpy.types.Operator):
         if obj:
             if context.scene.i3dea.user_attribute_name:
                 if attr_type == 'boolean':
-                    bpy.types.Object[create_attr_name] = bpy.props.BoolProperty()
                     obj[create_attr_name] = False
                     ui = obj.id_properties_ui(create_attr_name)
                     ui.update(description=create_attr_name)
