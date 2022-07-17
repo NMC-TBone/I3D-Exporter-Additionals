@@ -21,6 +21,13 @@
 import bpy
 import math
 
+"""
+for obj in bpy.context.selected_objects:
+    name = obj.name
+    new_name = name.replace(".", "_")
+    obj.name = new_name
+"""
+
 
 def getCurveLength(curve_obj):
     length = curve_obj.data.splines[0].calc_length(resolution=1024)
@@ -197,233 +204,73 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
     bl_description = "Generate UVset 2 from selected objects."
     bl_options = {'REGISTER', 'UNDO'}
 
-    def four(self, context):
-        if not bpy.context.active_object:
-            self.report({'ERROR'}, "No selected object!")
-            return {'CANCELLED'}
-        if len(bpy.context.selected_objects) > 0:
-            mode = bpy.context.object.mode
-            for obj in bpy.context.selected_objects:
-                if not obj.type == "MESH":
-                    continue
-                if not mode == 'OBJECT':
-                    bpy.ops.object.mode_set(mode='OBJECT')
-        selected_obj = bpy.context.selected_objects
-        for obj in selected_obj:
-            if obj.type == 'MESH':
-                obj.data.uv_layers[0].name = 'UVset1'
-            if 'UVset2' not in obj.data.uv_layers:
-                obj.data.uv_layers.new(name="UVset2")
-
-        # start location X 0.25
-        # start location Y 0.25
-        # scale 0.5
-        original_type = bpy.context.area.ui_type
-        bpy.context.area.ui_type = 'UV'
-        bpy.context.space_data.cursor_location[0] = 0.25
-        bpy.context.space_data.cursor_location[1] = 0.25
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.context.space_data.pivot_point = 'CENTER'
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.transform.resize(value=[0.5, 0.5, 0.5])
-        bpy.ops.object.editmode_toggle()
-        bpy.context.object.name = context.scene.i3dea.custom_text + ".001"
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.75
-        bpy.context.space_data.cursor_location[1] = 0.25
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.75
-        bpy.context.space_data.cursor_location[1] = 0.75
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.25
-        bpy.context.space_data.cursor_location[1] = 0.75
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.context.area.ui_type = original_type
-        self.report({'INFO'}, "UVset2 2x2 Created")
-
-    def sixteen(self, context):
-        if not bpy.context.active_object:
-            self.report({'ERROR'}, "No selected object!")
-            return {'CANCELLED'}
-        if len(bpy.context.selected_objects) > 0:
-            mode = bpy.context.object.mode
-            for obj in bpy.context.selected_objects:
-                if not obj.type == "MESH":
-                    continue
-                if not mode == 'OBJECT':
-                    bpy.ops.object.mode_set(mode='OBJECT')
-        selected_obj = bpy.context.selected_objects
-        for obj in selected_obj:
-            if obj.type == 'MESH':
-                obj.data.uv_layers[0].name = 'UVset1'
-            if 'UVset2' not in obj.data.uv_layers:
-                obj.data.uv_layers.new(name="UVset2")
-
-        # start location X 0.125
-        # start location Y 0.125
-        # scale 0.25
-        original_type = bpy.context.area.ui_type
-        bpy.context.area.ui_type = 'UV'
-        bpy.context.space_data.cursor_location[0] = 0.125
-        bpy.context.space_data.cursor_location[1] = 0.125
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.context.space_data.pivot_point = 'CENTER'
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.transform.resize(value=[0.25, 0.25, 0.25])
-        bpy.ops.object.editmode_toggle()
-        bpy.context.object.name = context.scene.i3dea.custom_text + ".001"
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.375
-        bpy.context.space_data.cursor_location[1] = 0.125
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.625
-        bpy.context.space_data.cursor_location[1] = 0.125
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.875
-        bpy.context.space_data.cursor_location[1] = 0.125
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        # start location X 0.875
-        # start location Y 0.375
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.875
-        bpy.context.space_data.cursor_location[1] = 0.375
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.625
-        bpy.context.space_data.cursor_location[1] = 0.375
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.375
-        bpy.context.space_data.cursor_location[1] = 0.375
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.125
-        bpy.context.space_data.cursor_location[1] = 0.375
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        # start location X 0.125
-        # start location Y 0.625
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.125
-        bpy.context.space_data.cursor_location[1] = 0.625
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.375
-        bpy.context.space_data.cursor_location[1] = 0.625
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.625
-        bpy.context.space_data.cursor_location[1] = 0.625
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.875
-        bpy.context.space_data.cursor_location[1] = 0.625
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        # start location X 0.875
-        # start location Y 0.875
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.875
-        bpy.context.space_data.cursor_location[1] = 0.875
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.625
-        bpy.context.space_data.cursor_location[1] = 0.875
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.375
-        bpy.context.space_data.cursor_location[1] = 0.875
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.duplicate_move()
-        bpy.context.space_data.cursor_location[0] = 0.125
-        bpy.context.space_data.cursor_location[1] = 0.875
-        bpy.context.object.data.uv_layers['UVset2'].active = True
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
-        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
-        bpy.ops.object.editmode_toggle()
-        bpy.context.area.ui_type = original_type
-        self.report({'INFO'}, "UVset2 4x4 Created")
-
     def execute(self, context):
+        if not bpy.context.active_object:
+            self.report({'ERROR'}, "No selected object!")
+            return {'CANCELLED'}
+        if len(bpy.context.selected_objects) > 0:
+            mode = bpy.context.object.mode
+            for obj in bpy.context.selected_objects:
+                if not obj.type == "MESH":
+                    continue
+                if not mode == 'OBJECT':
+                    bpy.ops.object.mode_set(mode='OBJECT')
+        duplicated_obj = create_second_uv(context.object)
+
+        for obj in duplicated_obj:
+            obj.select_set(True)
+
         if context.scene.i3dea.size_dropdown == 'four':
-            self.four(context)
-            return {'FINISHED'}
-        if context.scene.i3dea.size_dropdown == 'sixteen':
-            self.sixteen(context)
-            return {'FINISHED'}
+            self.report({'INFO'}, "UVset2 2x2 Created")
+        else:
+            self.report({'INFO'}, "UVset2 4x4 Created")
         return {'FINISHED'}
+
+
+def create_second_uv(original_obj):
+    # Create a copy/duplicate of the active object
+    obj = original_obj.copy()
+    obj.data = original_obj.data.copy()
+    bpy.context.collection.objects.link(obj)
+
+    # Check if UVset2 exist
+    if 'UVset2' not in obj.data.uv_layers:
+        obj.data.uv_layers.new(name="UVset2")
+    obj.data.uv_layers['UVset2'].active = True
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.view_layer.objects.active = None
+
+    original_type = bpy.context.area.ui_type
+    bpy.context.area.ui_type = 'UV'
+
+    # UV cursor coordinates
+    values = ((0.25, 0.25), (0.75, 0.25), (0.75, 0.75), (0.25, 0.75))
+    if bpy.context.scene.i3dea.size_dropdown == 'sixteen':
+        values = ((0.125, 0.125), (0.375, 0.125), (0.625, 0.125), (0.875, 0.125), (0.875, 0.375), (0.625, 0.375), (0.375, 0.375), (0.125, 0.375), (0.125, 0.625), (0.375, 0.625),
+                  (0.625, 0.625), (0.875, 0.625), (0.875, 0.875), (0.625, 0.875), (0.375, 0.875), (0.125, 0.875))
+    # list of objects created in for loop
+    duplicated_obj = []
+    for i, value in enumerate(values):
+        duplicate = obj.copy()
+        duplicate.data = obj.data.copy()
+        bpy.context.collection.objects.link(duplicate)
+        duplicate.select_set(True)
+        bpy.context.view_layer.objects.active = duplicate
+        bpy.context.object.name = bpy.context.scene.i3dea.custom_text + ".001"
+        bpy.context.space_data.cursor_location = value
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.uv.select_all(action='SELECT')
+        bpy.context.space_data.pivot_point = 'CENTER'
+        bpy.ops.uv.snap_selected(target='CURSOR_OFFSET')
+        if bpy.context.scene.i3dea.size_dropdown == 'sixteen':
+            bpy.ops.transform.resize(value=[0.25, 0.25, 0.25])
+        else:
+            bpy.ops.transform.resize(value=[0.5, 0.5, 0.5])
+        bpy.ops.object.mode_set(mode='OBJECT')
+        duplicated_obj.append(duplicate)
+        duplicate.select_set(False)
+    # Set ui back to the ui started in
+    bpy.context.area.ui_type = original_type
+    # Remove the first duplicated object
+    bpy.data.objects.remove(obj)
+    return duplicated_obj
