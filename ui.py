@@ -1,6 +1,6 @@
 import bpy
 
-from .i3d_exporter_type import check_i3d_exporter_type
+from .functions import check_i3d_exporter_type
 
 
 class I3DEA_PT_panel(bpy.types.Panel):
@@ -83,9 +83,13 @@ class I3DEA_PT_panel(bpy.types.Panel):
             if context.scene.i3dea.UI_uvset:
                 row = box.row()
                 row.prop(context.scene.i3dea, "custom_text_box", text="Custom Name")
+                row.prop(context.scene.i3dea, "advanced_mode", text="Advanced Setup")
                 if context.scene.i3dea.custom_text_box:
                     row = box.row()
                     row.prop(context.scene.i3dea, "custom_text", text="Custom track name")
+                if context.scene.i3dea.advanced_mode:
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "all_curves")
                 row = box.row()
                 row.prop(context.scene.i3dea, "size_dropdown", text="")
                 row.operator("i3dea.make_uvset", text="Create UVset 2")

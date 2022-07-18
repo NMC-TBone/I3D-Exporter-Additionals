@@ -21,6 +21,8 @@
 import bpy
 import math
 
+from ..functions import check_obj_type
+
 """
 for obj in bpy.context.selected_objects:
     name = obj.name
@@ -86,17 +88,17 @@ class I3DEA_OT_calculate_amount(bpy.types.Operator):
         if context.view_layer.objects.active is None:
             self.report({'ERROR'}, "No active object in scene")
             return {'CANCELLED'}
-        if len(context.selected_objects) == 2:
+
+        elif len(context.selected_objects) == 2:
             obj1 = context.selected_objects[0].location
             obj2 = context.selected_objects[1].location
-            context.scene.i3dea.piece_distance = math.dist(obj1, obj2)
-        if context.object.type == 'CURVE':
+            context.scene.i3dea.piece_distance = abs(obj1[1] - obj2[1])
+        elif context.object.type == 'CURVE':
             curve = bpy.context.object
             curve_length = getCurveLength(curve)
             float_val = curve_length/bpy.context.scene.i3dea.piece_distance
-            rounded_val = round(float_val)
-            string = str(float_val and rounded_val)
-            bpy.context.scene.i3dea.track_piece_amount = string
+            # rounded_val = round(float_val)
+            bpy.context.scene.i3dea.track_piece_amount = float_val
         return {'FINISHED'}
 
 
@@ -127,7 +129,7 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
             space = bpy.context.scene.i3dea.piece_distance
             curve_length = getCurveLength(curve)
             if not bpy.context.scene.i3dea.rubber_track:
-                if bpy.context.scene.i3dea.track_piece_amount:
+                if bpy.context.scene.i3dea.track_piece_amount > 1:
                     piece_num = int(bpy.context.scene.i3dea.track_piece_amount)
                 else:
                     piece_num = 25
@@ -205,16 +207,15 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        if not bpy.context.active_object:
+        if not context.object:
             self.report({'ERROR'}, "No selected object!")
             return {'CANCELLED'}
-        if len(bpy.context.selected_objects) > 0:
-            mode = bpy.context.object.mode
-            for obj in bpy.context.selected_objects:
-                if not obj.type == "MESH":
-                    continue
-                if not mode == 'OBJECT':
-                    bpy.ops.object.mode_set(mode='OBJECT')
+        if not context.object.type == 'MESH':
+            self.report({'ERROR'}, "Selected object is not a mesh!")
+            return {'CANCELLED'}
+
+        check_obj_type(context.object)
+
         duplicated_obj = create_second_uv(context.object)
 
         for obj in duplicated_obj:

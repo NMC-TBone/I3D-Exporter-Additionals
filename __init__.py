@@ -180,8 +180,9 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     add_empty_int: bpy.props.IntProperty(name="Number of empties add: ", description="Place your number", default=1, min=1, max=5)
     piece_distance: bpy.props.FloatProperty(name="Track piece distance: ", description="Add track piece distance", default=0.2, precision=10, min=0.0001)
     curve_length_disp: bpy.props.FloatProperty(name="curve_length", default=0.0, precision=10)
-    track_piece_amount: bpy.props.StringProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve")
+    track_piece_amount: bpy.props.FloatProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve", min=1, max=400, default=1)
     rubber_track: bpy.props.BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
+    advanced_mode: bpy.props.BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
 
     # User Attributes
     user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
