@@ -21,7 +21,9 @@
 import bpy
 import math
 
-from ..functions import check_obj_type
+from mathutils import Vector
+
+from ..helper_functions import check_obj_type
 
 """
 for obj in bpy.context.selected_objects:
@@ -97,7 +99,6 @@ class I3DEA_OT_calculate_amount(bpy.types.Operator):
             curve = bpy.context.object
             curve_length = getCurveLength(curve)
             float_val = curve_length/bpy.context.scene.i3dea.piece_distance
-            # rounded_val = round(float_val)
             bpy.context.scene.i3dea.track_piece_amount = float_val
         return {'FINISHED'}
 
@@ -215,17 +216,24 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             return {'CANCELLED'}
 
         check_obj_type(context.object)
-
         duplicated_obj = create_second_uv(context.object)
-
         for obj in duplicated_obj:
             obj.select_set(True)
 
-        if context.scene.i3dea.size_dropdown == 'four':
-            self.report({'INFO'}, "UVset2 2x2 Created")
-        else:
-            self.report({'INFO'}, "UVset2 4x4 Created")
-        return {'FINISHED'}
+        if not context.scene.i3dea.advanced_mode:
+            if context.scene.i3dea.size_dropdown == 'four':
+                self.report({'INFO'}, "UVset2 2x2 Created")
+            else:
+                self.report({'INFO'}, "UVset2 4x4 Created")
+            return {'FINISHED'}
+
+        elif context.scene.i3dea.advanced_mode:
+            if not context.scene.i3dea.all_curves == "None":
+                bbox = create_bbox(context.scene.i3dea.all_curves)
+                # print(bbox.name)
+
+
+            return {'FINISHED'}
 
 
 def create_second_uv(original_obj):
@@ -275,3 +283,35 @@ def create_second_uv(original_obj):
     # Remove the first duplicated object
     bpy.data.objects.remove(obj)
     return duplicated_obj
+
+
+def create_bbox(curve_name):
+    prev_sel = bpy.context.selected_objects
+    prev_cursor = Vector(bpy.context.scene.cursor.location)
+    curve = bpy.data.objects[curve_name]
+    print(curve)
+    curve.select_set(True)
+    bpy.context.view_layer.objects.active = curve
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.curve.select_all(action='SELECT')
+    bpy.ops.view3d.snap_cursor_to_selected()
+    bpy.ops.object.mode_set(mode='OBJECT')
+    curve_dim = curve.dimensions
+    # Create bbox
+    bpy.ops.mesh.primitive_cube_add()
+    bbox = bpy.context.object
+    bbox.name = "zzz_bbox_trackObj"
+    dim = curve_dim + Vector((1.0, 1.0, 1.0))
+    bbox.dimensions = dim
+    bpy.context.view_layer.update()
+    bbox.select_set(False)
+    bpy.context.scene.cursor.location = prev_cursor
+
+    for obj in prev_sel:
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+    return bbox
+
+
+def create_from_amount():
+    pass

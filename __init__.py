@@ -38,6 +38,24 @@ bl_info = {
     "category": "Game Engine"
 }
 
+
+if "bpy" in locals():
+    import importlib
+    importlib.reload(ui)
+    importlib.reload(tools)
+else:
+    from .tools import (
+        assets_importer,
+        freeze_tools,
+        material_tools,
+        mesh_tools,
+        skeletons,
+        track_tools,
+        user_attributes,
+    )
+    from . import ui
+
+
 import bpy
 
 
@@ -175,6 +193,21 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     dirt_diffuse_box: bpy.props.BoolProperty(name="Set dirt diffuse path", description="If checked it add the the path to dirt diffuse in material", default=True)
 
     # Track-Tools
+    def get_all_curves(self, context):
+        """ Returns enum elements of all Curves of the current Scene. """
+        # From Giants I3D Exporter
+
+        curves = tuple()
+        curves += (("None", "None", "None", 0),)
+        try:
+            num = 1
+            for curveName in [obj.name for obj in context.scene.objects if obj.type == 'CURVE']:
+                curves += ((curveName, curveName, curveName, num),)
+                num += 1
+            return curves
+        except:
+            return curves
+
     custom_text_box: bpy.props.BoolProperty(name="Custom name", description="If checked you will be able to add custom name for the track pieces", default=False)
     custom_text: bpy.props.StringProperty(name="Custom track name", description="Set custom name", default="trackPiece")
     add_empty_int: bpy.props.IntProperty(name="Number of empties add: ", description="Place your number", default=1, min=1, max=5)
@@ -183,6 +216,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     track_piece_amount: bpy.props.FloatProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve", min=1, max=400, default=1)
     rubber_track: bpy.props.BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
     advanced_mode: bpy.props.BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
+    all_curves: bpy.props.EnumProperty(items=get_all_curves, name="Select A Curve")
 
     # User Attributes
     user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
@@ -208,16 +242,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     UI_active_obj: bpy.props.StringProperty(name="Active Object Name", default="")
 
 
-from .tools import (
-    assets_importer,
-    freeze_tools,
-    material_tools,
-    mesh_tools,
-    skeletons,
-    track_tools,
-    user_attributes,
-)
-from . import ui
+
 
 classes = [
     I3DEA_PG_List,

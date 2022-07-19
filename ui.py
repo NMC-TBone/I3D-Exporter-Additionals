@@ -1,6 +1,6 @@
 import bpy
 
-from .functions import check_i3d_exporter_type
+from .helper_functions import check_i3d_exporter_type
 
 
 class I3DEA_PT_panel(bpy.types.Panel):

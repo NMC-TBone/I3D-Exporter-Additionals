@@ -22,30 +22,6 @@
 import bpy
 
 
-"""class I3DEA_PG_user_attributes(bpy.types.PropertyGroup):
-        name: bpy.types.StringProperty(
-            name="Name",
-            description="A name for this item",
-            default="Untitled")
-
-        random_prop: bpy.types.StringProperty(
-            name="Any other property you want",
-            description="",
-            default="")
-
-
-class I3DEA_UL_user_attributes(bpy.types.UIList):
-    def draw_list(self):
-        pass
-
-
-class I3DEA_OT_create_user_attribute(bpy.types.Operator):
-    bl_idname = "i3dea.create_user_attribute"
-    bl_label = "Create User Attribute"
-    bl_description = "Create user attribute for selected objects"
-    bl_options = {'REGISTER', 'UNDO'}"""
-
-
 class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     bl_idname = "i3dea.create_user_attribute"
     bl_label = "Create User Attribute"
