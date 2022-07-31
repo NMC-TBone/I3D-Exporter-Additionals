@@ -23,7 +23,9 @@ import math
 
 from mathutils import Vector
 
-from ..helper_functions import check_obj_type
+from ..helper_functions import check_obj_type, check_i3d_exporter_type
+
+giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
 """
 for obj in bpy.context.selected_objects:
@@ -215,8 +217,14 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             self.report({'ERROR'}, "Selected object is not a mesh!")
             return {'CANCELLED'}
 
-        check_obj_type(context.object)
-        duplicated_obj = create_second_uv(context.object)
+        name = "track"
+        if bpy.context.scene.i3dea.custom_text_box:
+            name = bpy.context.scene.i3dea.custom_text
+
+        original_obj = context.object
+        check_obj_type(original_obj)
+        original_obj.name = "originalMesh"
+        duplicated_obj = create_second_uv(original_obj, name)
         for obj in duplicated_obj:
             obj.select_set(True)
 
@@ -227,20 +235,48 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
                 self.report({'INFO'}, "UVset2 4x4 Created")
             return {'FINISHED'}
 
-        elif context.scene.i3dea.advanced_mode:
-            if not context.scene.i3dea.all_curves == "None":
-                bbox = create_bbox(context.scene.i3dea.all_curves)
-                # print(bbox.name)
+        elif context.scene.i3dea.advanced_mode and not context.scene.i3dea.all_curves == "None":
+            bpy.ops.object.empty_add(radius=0)
+            empty_parent = context.object
+            empty_parent.name = name
+            bpy.ops.object.empty_add(radius=0)
+            track_geo = bpy.context.object
+            track_geo.name = "{}Geo".format(name)
+            if giants_i3d:
+                dcc.I3DSetAttrBool(track_geo.name, 'I3D_receiveShadows', True)
+                dcc.I3DSetAttrBool(track_geo.name, 'I3D_castsShadows', True)
+                dcc.I3DSetAttrBool(track_geo.name, 'I3D_clipDistance', 300)
+                dcc.I3DSetAttrBool(track_geo.name, 'I3D_mergeChildren', True)
+                dcc.I3DSetAttrBool(track_geo.name, 'I3D_objectDataExportOrientation', True)
+                dcc.I3DSetAttrBool(track_geo.name, 'I3D_objectDataExportPosition', True)
+            obj_name = track_geo.name
+            dim_x = original_obj.dimensions[0]
+            bbox = create_bbox(context.scene.i3dea.all_curves, name, obj_name, dim_x)
+            bbox.hide_set(True)
+            all_pieces = create_from_amount(duplicated_obj)
+            for obj in all_pieces:
+                obj.select_set(True)
+                obj.parent = track_geo
+            track_geo.parent = empty_parent
 
+            if "zzz_data_ignore" not in bpy.data.objects:
+                bpy.ops.object.empty_add(radius=0)
+                data_ignore = bpy.context.object
+                data_ignore.name = "zzz_data_ignore"
+            data_ignore = bpy.data.objects["zzz_data_ignore"]
 
+            bpy.data.objects[context.scene.i3dea.all_curves].parent = data_ignore
+            original_obj.parent = data_ignore
+            self.report({'INFO'}, "Full track setup created and ready for export!")
             return {'FINISHED'}
 
 
-def create_second_uv(original_obj):
+def create_second_uv(original_obj, name):
     # Create a copy/duplicate of the active object
     obj = original_obj.copy()
     obj.data = original_obj.data.copy()
     bpy.context.collection.objects.link(obj)
+    obj.name = name
 
     # Check if UVset2 exist
     if 'UVset2' not in obj.data.uv_layers:
@@ -248,9 +284,6 @@ def create_second_uv(original_obj):
     obj.data.uv_layers['UVset2'].active = True
     bpy.ops.object.select_all(action='DESELECT')
     bpy.context.view_layer.objects.active = None
-
-    original_type = bpy.context.area.ui_type
-    bpy.context.area.ui_type = 'UV'
 
     # UV cursor coordinates
     values = ((0.25, 0.25), (0.75, 0.25), (0.75, 0.75), (0.25, 0.75))
@@ -265,7 +298,9 @@ def create_second_uv(original_obj):
         bpy.context.collection.objects.link(duplicate)
         duplicate.select_set(True)
         bpy.context.view_layer.objects.active = duplicate
-        bpy.context.object.name = bpy.context.scene.i3dea.custom_text + ".001"
+        bpy.context.object.name = name + ".001"
+        original_type = bpy.context.area.ui_type
+        bpy.context.area.ui_type = 'UV'
         bpy.context.space_data.cursor_location = value
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.uv.select_all(action='SELECT')
@@ -278,18 +313,18 @@ def create_second_uv(original_obj):
         bpy.ops.object.mode_set(mode='OBJECT')
         duplicated_obj.append(duplicate)
         duplicate.select_set(False)
-    # Set ui back to the ui started in
-    bpy.context.area.ui_type = original_type
+        # Set ui back to the ui started in
+        bpy.context.area.ui_type = original_type
+
     # Remove the first duplicated object
     bpy.data.objects.remove(obj)
     return duplicated_obj
 
 
-def create_bbox(curve_name):
+def create_bbox(curve_name, name, obj_name, dim_x):
     prev_sel = bpy.context.selected_objects
     prev_cursor = Vector(bpy.context.scene.cursor.location)
     curve = bpy.data.objects[curve_name]
-    print(curve)
     curve.select_set(True)
     bpy.context.view_layer.objects.active = curve
     bpy.ops.object.mode_set(mode='EDIT')
@@ -300,10 +335,15 @@ def create_bbox(curve_name):
     # Create bbox
     bpy.ops.mesh.primitive_cube_add()
     bbox = bpy.context.object
-    bbox.name = "zzz_bbox_trackObj"
+    bbox.name = "zzz_bbox_{}Geo".format(name)
     dim = curve_dim + Vector((1.0, 1.0, 1.0))
     bbox.dimensions = dim
     bpy.context.view_layer.update()
+    bbox.dimensions[0] = dim_x + 1
+    bpy.context.view_layer.update()
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    if giants_i3d:
+        dcc.I3DSetAttrString(bbox.name, 'I3D_boundingVolume', obj_name)
     bbox.select_set(False)
     bpy.context.scene.cursor.location = prev_cursor
 
@@ -313,5 +353,18 @@ def create_bbox(curve_name):
     return bbox
 
 
-def create_from_amount():
-    pass
+def create_from_amount(objects):
+    amount = int(bpy.context.scene.i3dea.track_piece_amount)
+    obj_list = objects
+
+    index = 0
+    while len(obj_list) < amount:
+        bpy.ops.object.select_all(action='DESELECT')
+        old_object = obj_list[index]
+        old_object.select_set(True)
+        bpy.context.view_layer.objects.active = old_object
+        bpy.ops.object.duplicate_move()
+        new_object = bpy.context.object
+        obj_list.append(new_object)
+        index += 1
+    return obj_list
