@@ -236,6 +236,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             return {'FINISHED'}
 
         elif context.scene.i3dea.advanced_mode and not context.scene.i3dea.all_curves == "None":
+            vmask_bake = vmask_bake_objs(duplicated_obj, name)
             bpy.ops.object.empty_add(radius=0)
             empty_parent = context.object
             empty_parent.name = name
@@ -267,6 +268,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
             bpy.data.objects[context.scene.i3dea.all_curves].parent = data_ignore
             original_obj.parent = data_ignore
+            vmask_bake.parent = data_ignore
             self.report({'INFO'}, "Full track setup created and ready for export!")
             return {'FINISHED'}
 
@@ -299,6 +301,9 @@ def create_second_uv(original_obj, name):
         duplicate.select_set(True)
         bpy.context.view_layer.objects.active = duplicate
         bpy.context.object.name = name + ".001"
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
         original_type = bpy.context.area.ui_type
         bpy.context.area.ui_type = 'UV'
         bpy.context.space_data.cursor_location = value
@@ -319,6 +324,24 @@ def create_second_uv(original_obj, name):
     # Remove the first duplicated object
     bpy.data.objects.remove(obj)
     return duplicated_obj
+
+
+def vmask_bake_objs(objs, name):
+    bpy.ops.object.empty_add(radius=0)
+    vmask_empty = bpy.context.object
+    vmask_empty.name = "objsForBake"
+
+    location = 0
+    for obj in objs:
+        location += 2
+        vmask_obj = obj.copy()
+        vmask_obj.data = obj.data.copy()
+        bpy.context.collection.objects.link(vmask_obj)
+        vmask_obj.select_set(True)
+        vmask_obj.name = name + "_vmask.001"
+        vmask_obj.parent = vmask_empty
+        vmask_obj.data.uv_layers.remove(vmask_obj.data.uv_layers[0])
+    return vmask_empty
 
 
 def create_bbox(curve_name, name, obj_name, dim_x):
