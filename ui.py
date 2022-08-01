@@ -1,6 +1,6 @@
 import bpy
 
-from .i3d_exporter_type import check_i3d_exporter_type
+from .helper_functions import check_i3d_exporter_type
 
 
 class I3DEA_PT_panel(bpy.types.Panel):
@@ -18,9 +18,6 @@ class I3DEA_PT_panel(bpy.types.Panel):
             # "Exporter selection" box
             layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
             layout.label(text="Recommend to disable one of them as it can cause some issues")
-            # layout.label(text="Do you want do disable one of them?")
-            # layout.operator("i3dea.addon_disable_giants", text="Giants")
-            # layout.operator("i3dea.addon_disable_stjerne", text="Stjerne")
         # "Mesh-Tools" box
         box = layout.box()
         row = box.row()
@@ -38,6 +35,40 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 row = box.row()
                 row.operator("i3dea.ignore", text="Add Suffix _ignore")
                 row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
+                col = box.column()
+                box = col.box()
+                row = box.row()
+                row.prop(context.scene.i3dea, "UI_user_attributes", text="User Attributes", icon='TRIA_DOWN' if context.scene.i3dea.UI_user_attributes else 'TRIA_RIGHT', icon_only=False, emboss=False)
+                if context.scene.i3dea.UI_user_attributes:
+                    row = box.row()
+                    obj = context.object
+                    if obj:
+                        row.label(text="Object Name: ")
+                        row.label(text=obj.name)
+                        row = box.row()
+
+                        attributes = [k for k in obj.keys() if 0 == k.find("userAttribute_")]
+                        if attributes:
+                            col2 = box.column()
+                            box2 = col2.box()
+                            row2 = box2.row()
+                            row2.label(text="Attributes:")
+                            row2 = box2.row()
+                            for k in attributes:
+                                m_list = k.split("_", 2)
+                                name = m_list[2]
+                                row2.prop(obj, f'["{k}"]', text=name)
+                                row2 = box2.row()
+                            row = box.row()
+
+                        row.label(text="Add new attributes:")
+                        row = box.row()
+                        row.prop(context.scene.i3dea, "user_attribute_name", text="Name")
+                        row = box.row()
+                        row.prop(context.scene.i3dea, "user_attribute_type", text="Type")
+                        row = box.row()
+                        row.operator("i3dea.create_user_attribute", text="Add")
+
         # "Track-Tools" Box
         box = layout.box()
         row = box.row()
@@ -52,9 +83,15 @@ class I3DEA_PT_panel(bpy.types.Panel):
             if context.scene.i3dea.UI_uvset:
                 row = box.row()
                 row.prop(context.scene.i3dea, "custom_text_box", text="Custom Name")
+                row.prop(context.scene.i3dea, "advanced_mode", text="Advanced Setup")
                 if context.scene.i3dea.custom_text_box:
                     row = box.row()
                     row.prop(context.scene.i3dea, "custom_text", text="Custom track name")
+                if context.scene.i3dea.advanced_mode:
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "all_curves")
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "add_empties")
                 row = box.row()
                 row.prop(context.scene.i3dea, "size_dropdown", text="")
                 row.operator("i3dea.make_uvset", text="Create UVset 2")
@@ -74,9 +111,10 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.prop(context.scene.i3dea, "track_piece_amount", text="")
             box = col.box()
             row = box.row()
-            row.operator("i3dea.track_on_curve", text="Add track along curve")
+            row.prop(context.scene.i3dea, "rubber_track")
+            row = box.row()
+            row.operator("i3dea.track_on_curve", text="Add track to curve")
             row.operator("i3dea.track_on_curve_delete", text="Delete")
-            # row.prop(context.scene.i3dea, "curve_length_disp", text="")
         # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()
@@ -149,3 +187,27 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row = box.row()
             row.operator("i3dea.assets", text="Import Asset")
         # -----------------------------------------
+
+
+"""def get_attributes(obj_name):
+    m_attributes = []
+    m_types = ["boolean", "string", "scriptCallback", "float"]
+    for key in obj_name.keys():
+        if 0 == key.find("userAttribute_"):
+            try:
+                m_list = key.split("_", 2)
+                m_type = m_list[1]
+                m_name = m_list[2]
+                m_val = obj_name[key]
+                if m_type in m_types:
+                    if "boolean" == m_type:
+                        if m_val:
+                            m_val = "true"
+                        else:
+                            m_val = "false"
+                    m_val = "{}".format(m_val)
+                    m_item = {"name": m_name, "type": m_type, "value": m_val}
+                    m_attributes.append(m_item)
+            except:
+                pass
+    return m_attributes"""
