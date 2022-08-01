@@ -258,6 +258,10 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             for obj in all_pieces:
                 obj.select_set(True)
                 obj.parent = track_geo
+
+            if context.scene.i3dea.add_empties:
+                bpy.ops.i3dea.add_empty()
+
             track_geo.parent = empty_parent
 
             if "zzz_data_ignore" not in bpy.data.objects:

@@ -90,6 +90,8 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 if context.scene.i3dea.advanced_mode:
                     row = box.row()
                     row.prop(context.scene.i3dea, "all_curves")
+                    row = box.row()
+                    row.prop(context.scene.i3dea, "add_empties")
                 row = box.row()
                 row.prop(context.scene.i3dea, "size_dropdown", text="")
                 row.operator("i3dea.make_uvset", text="Create UVset 2")

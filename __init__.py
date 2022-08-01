@@ -217,6 +217,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     rubber_track: bpy.props.BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
     advanced_mode: bpy.props.BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
     all_curves: bpy.props.EnumProperty(items=get_all_curves, name="Select A Curve")
+    add_empties: bpy.props.BoolProperty(name="Add Empties", description="If you check this it will add the amount of empties between each track link that's written bellow.", default=False)
 
     # User Attributes
     user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
