@@ -27,13 +27,6 @@ from ..helper_functions import check_obj_type, check_i3d_exporter_type
 
 giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
-"""
-for obj in bpy.context.selected_objects:
-    name = obj.name
-    new_name = name.replace(".", "_")
-    obj.name = new_name
-"""
-
 
 def getCurveLength(curve_obj):
     length = curve_obj.data.splines[0].calc_length(resolution=1024)
@@ -223,6 +216,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
         original_obj = context.object
         check_obj_type(original_obj)
+        original_loc = original_obj.location
         original_obj.name = "originalMesh"
         duplicated_obj = create_second_uv(original_obj, name)
         for obj in duplicated_obj:
@@ -237,10 +231,10 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
         elif context.scene.i3dea.advanced_mode and not context.scene.i3dea.all_curves == "None":
             vmask_bake = vmask_bake_objs(duplicated_obj, name)
-            bpy.ops.object.empty_add(radius=0)
+            bpy.ops.object.empty_add(radius=0, location=original_loc)
             empty_parent = context.object
             empty_parent.name = name
-            bpy.ops.object.empty_add(radius=0)
+            bpy.ops.object.empty_add(radius=0, location=original_loc)
             track_geo = bpy.context.object
             track_geo.name = "{}Geo".format(name)
             if giants_i3d:
@@ -260,12 +254,13 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
                 obj.parent = track_geo
 
             if context.scene.i3dea.add_empties:
+
                 bpy.ops.i3dea.add_empty()
 
             track_geo.parent = empty_parent
 
             if "zzz_data_ignore" not in bpy.data.objects:
-                bpy.ops.object.empty_add(radius=0)
+                bpy.ops.object.empty_add(radius=0, location=[0, 0, 0])
                 data_ignore = bpy.context.object
                 data_ignore.name = "zzz_data_ignore"
             data_ignore = bpy.data.objects["zzz_data_ignore"]
@@ -331,18 +326,19 @@ def create_second_uv(original_obj, name):
 
 
 def vmask_bake_objs(objs, name):
-    bpy.ops.object.empty_add(radius=0)
+    bpy.ops.object.empty_add(radius=0, location=[0, 0, 0])
     vmask_empty = bpy.context.object
     vmask_empty.name = "objsForBake"
 
     location = 0
     for obj in objs:
-        location += 2
+        location += 1
         vmask_obj = obj.copy()
         vmask_obj.data = obj.data.copy()
         bpy.context.collection.objects.link(vmask_obj)
         vmask_obj.select_set(True)
         vmask_obj.name = name + "_vmask.001"
+        vmask_obj.location[1] = location
         vmask_obj.parent = vmask_empty
         vmask_obj.data.uv_layers.remove(vmask_obj.data.uv_layers[0])
     return vmask_empty
