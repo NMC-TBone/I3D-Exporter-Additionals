@@ -22,8 +22,7 @@ TODO:
     - Make a script to check if scale for collisions are 1 1 1
         - Perhaps extend it to verify more
     - See if it's possible to do more with fill volume checker
-    - Make support for rubber tracks for track visualization
-    - Create a importer for in game lights
+    - Make it possible to scale the curve to get an rounded value for the track amount
 """
 
 
@@ -241,8 +240,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=False)
     UI_assets: bpy.props.BoolProperty(name="Assets Importer", default=False)
     UI_active_obj: bpy.props.StringProperty(name="Active Object Name", default="")
-
-
 
 
 classes = [

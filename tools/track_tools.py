@@ -27,17 +27,27 @@ from ..helper_functions import check_obj_type, check_i3d_exporter_type
 
 giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
-"""
-for obj in bpy.context.selected_objects:
-    name = obj.name
-    new_name = name.replace(".", "_")
-    obj.name = new_name
-"""
-
 
 def getCurveLength(curve_obj):
     length = curve_obj.data.splines[0].calc_length(resolution=1024)
     return length
+
+
+def create_empties(objs):
+    for _ in range(bpy.context.scene.i3dea.add_empty_int):
+        for loop_obj in objs:
+            location = loop_obj.location
+            bpy.ops.object.empty_add(radius=0, location=location)
+            empty = bpy.context.active_object
+            empty.name = loop_obj.name + ".001"
+            if loop_obj.parent is not None:
+                empty.parent = loop_obj.parent
+                empty.matrix_parent_inverse = loop_obj.matrix_world.inverted()
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in objs:
+        obj.select_set(True)
+        return
 
 
 class I3DEA_OT_add_empty(bpy.types.Operator):
@@ -48,19 +58,9 @@ class I3DEA_OT_add_empty(bpy.types.Operator):
 
     def execute(self, context):
         selected_list = [obj for obj in bpy.context.selected_objects if obj.type == 'MESH']
-        for _ in range(context.scene.i3dea.add_empty_int):
-            for loop_obj in selected_list:
-                bpy.ops.object.empty_add(radius=0)
-                empty = bpy.context.active_object
-                empty.name = loop_obj.name + ".001"
-                if loop_obj.parent is not None:
-                    empty.parent = loop_obj.parent
-
-        bpy.ops.object.select_all(action='DESELECT')
-        for loop_obj in selected_list:
-            bpy.data.objects[loop_obj.name].select_set(True)
-            self.report({'INFO'}, "Empties added")
-            return {'FINISHED'}
+        create_empties(selected_list)
+        self.report({'INFO'}, "Empties added")
+        return {'FINISHED'}
 
 
 class I3DEA_OT_curve_length(bpy.types.Operator):
@@ -223,6 +223,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
         original_obj = context.object
         check_obj_type(original_obj)
+        original_loc = original_obj.location
         original_obj.name = "originalMesh"
         duplicated_obj = create_second_uv(original_obj, name)
         for obj in duplicated_obj:
@@ -237,10 +238,10 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
         elif context.scene.i3dea.advanced_mode and not context.scene.i3dea.all_curves == "None":
             vmask_bake = vmask_bake_objs(duplicated_obj, name)
-            bpy.ops.object.empty_add(radius=0)
+            bpy.ops.object.empty_add(radius=0, location=[0,0,0])
             empty_parent = context.object
             empty_parent.name = name
-            bpy.ops.object.empty_add(radius=0)
+            bpy.ops.object.empty_add(radius=0, location=original_loc)
             track_geo = bpy.context.object
             track_geo.name = "{}Geo".format(name)
             if giants_i3d:
@@ -258,14 +259,17 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             for obj in all_pieces:
                 obj.select_set(True)
                 obj.parent = track_geo
+                obj.matrix_parent_inverse = track_geo.matrix_world.inverted()
 
             if context.scene.i3dea.add_empties:
-                bpy.ops.i3dea.add_empty()
+                create_empties(all_pieces)
+                # bpy.ops.i3dea.add_empty()
 
             track_geo.parent = empty_parent
+            track_geo.matrix_parent_inverse = empty_parent.matrix_world.inverted()
 
             if "zzz_data_ignore" not in bpy.data.objects:
-                bpy.ops.object.empty_add(radius=0)
+                bpy.ops.object.empty_add(radius=0, location=[0, 0, 0])
                 data_ignore = bpy.context.object
                 data_ignore.name = "zzz_data_ignore"
             data_ignore = bpy.data.objects["zzz_data_ignore"]
@@ -331,18 +335,19 @@ def create_second_uv(original_obj, name):
 
 
 def vmask_bake_objs(objs, name):
-    bpy.ops.object.empty_add(radius=0)
+    bpy.ops.object.empty_add(radius=0, location=[0, 0, 0])
     vmask_empty = bpy.context.object
     vmask_empty.name = "objsForBake"
 
     location = 0
     for obj in objs:
-        location += 2
+        location += 1
         vmask_obj = obj.copy()
         vmask_obj.data = obj.data.copy()
         bpy.context.collection.objects.link(vmask_obj)
         vmask_obj.select_set(True)
         vmask_obj.name = name + "_vmask.001"
+        vmask_obj.location[1] = location
         vmask_obj.parent = vmask_empty
         vmask_obj.data.uv_layers.remove(vmask_obj.data.uv_layers[0])
     return vmask_empty
