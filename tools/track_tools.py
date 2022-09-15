@@ -263,7 +263,6 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
             if context.scene.i3dea.add_empties:
                 create_empties(all_pieces)
-                # bpy.ops.i3dea.add_empty()
 
             track_geo.parent = empty_parent
             track_geo.matrix_parent_inverse = empty_parent.matrix_world.inverted()

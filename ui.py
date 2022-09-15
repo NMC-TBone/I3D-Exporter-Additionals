@@ -35,6 +35,8 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 row = box.row()
                 row.operator("i3dea.ignore", text="Add Suffix _ignore")
                 row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
+                row = box.row()
+                row.operator("i3dea.verify_scene", text="Verify Scene")
                 col = box.column()
                 box = col.box()
                 row = box.row()
