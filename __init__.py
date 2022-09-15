@@ -22,9 +22,7 @@ TODO:
     - Make a script to check if scale for collisions are 1 1 1
         - Perhaps extend it to verify more
     - See if it's possible to do more with fill volume checker
-    - Create a importer for in game lights
     - Make it possible to scale the curve to get an rounded value for the track amount
-    - Fix so 3d cursor doesn't need to be in center for the advanced mode to work
 """
 
 

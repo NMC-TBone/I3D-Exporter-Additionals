@@ -33,6 +33,23 @@ def getCurveLength(curve_obj):
     return length
 
 
+def create_empties(objs):
+    for _ in range(bpy.context.scene.i3dea.add_empty_int):
+        for loop_obj in objs:
+            location = loop_obj.location
+            bpy.ops.object.empty_add(radius=0, location=location)
+            empty = bpy.context.active_object
+            empty.name = loop_obj.name + ".001"
+            if loop_obj.parent is not None:
+                empty.parent = loop_obj.parent
+                empty.matrix_parent_inverse = loop_obj.matrix_world.inverted()
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in objs:
+        obj.select_set(True)
+        return
+
+
 class I3DEA_OT_add_empty(bpy.types.Operator):
     bl_label = "Create empties"
     bl_idname = "i3dea.add_empty"
@@ -41,19 +58,9 @@ class I3DEA_OT_add_empty(bpy.types.Operator):
 
     def execute(self, context):
         selected_list = [obj for obj in bpy.context.selected_objects if obj.type == 'MESH']
-        for _ in range(context.scene.i3dea.add_empty_int):
-            for loop_obj in selected_list:
-                bpy.ops.object.empty_add(radius=0)
-                empty = bpy.context.active_object
-                empty.name = loop_obj.name + ".001"
-                if loop_obj.parent is not None:
-                    empty.parent = loop_obj.parent
-
-        bpy.ops.object.select_all(action='DESELECT')
-        for loop_obj in selected_list:
-            bpy.data.objects[loop_obj.name].select_set(True)
-            self.report({'INFO'}, "Empties added")
-            return {'FINISHED'}
+        create_empties(selected_list)
+        self.report({'INFO'}, "Empties added")
+        return {'FINISHED'}
 
 
 class I3DEA_OT_curve_length(bpy.types.Operator):
@@ -231,7 +238,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
         elif context.scene.i3dea.advanced_mode and not context.scene.i3dea.all_curves == "None":
             vmask_bake = vmask_bake_objs(duplicated_obj, name)
-            bpy.ops.object.empty_add(radius=0, location=original_loc)
+            bpy.ops.object.empty_add(radius=0, location=[0,0,0])
             empty_parent = context.object
             empty_parent.name = name
             bpy.ops.object.empty_add(radius=0, location=original_loc)
@@ -252,12 +259,14 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             for obj in all_pieces:
                 obj.select_set(True)
                 obj.parent = track_geo
+                obj.matrix_parent_inverse = track_geo.matrix_world.inverted()
 
             if context.scene.i3dea.add_empties:
-
-                bpy.ops.i3dea.add_empty()
+                create_empties(all_pieces)
+                # bpy.ops.i3dea.add_empty()
 
             track_geo.parent = empty_parent
+            track_geo.matrix_parent_inverse = empty_parent.matrix_world.inverted()
 
             if "zzz_data_ignore" not in bpy.data.objects:
                 bpy.ops.object.empty_add(radius=0, location=[0, 0, 0])
