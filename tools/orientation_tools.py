@@ -19,6 +19,38 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
+import math
+import mathutils
+
+
+class I3DEA_OT_copy_orientation(bpy.types.Operator):
+    bl_idname = "i3dea.copy_orientation"
+    bl_label = "Copy Orientation"
+    bl_description = "Copy selected object orientation to clipboard"
+    state: bpy.props.IntProperty()
+
+    def execute(self, context):
+        def bakeTransformMatrix(matrix):
+            return mathutils.Matrix.Rotation(math.radians(-90), 4, "X") @ matrix @ mathutils.Matrix.Rotation(math.radians(90), 4, "X")
+
+        obj = bpy.context.object
+        m = bakeTransformMatrix(obj.matrix_local)
+        orientation = "0 0 0"
+
+        if 1 == self.state:
+            t = m.to_translation()[:]
+            orientation = "%g %g %g" % t
+
+        elif 2 == self.state:
+            r = m.to_euler("XYZ")
+            r = (math.degrees(r.x) if (r.x > 1e-6 or r.x < -1e-6) else 0,
+                 math.degrees(r.y) if (r.y > 1e-6 or r.y < -1e-6) else 0,
+                 math.degrees(r.z) if (r.z > 1e-6 or r.z < -1e-6) else 0)
+            orientation = "%g %g %g" % r
+
+        bpy.context.window_manager.clipboard = orientation
+        self.report({'INFO'}, f'{orientation} from {obj.name} copied to clipboard')
+        return {'FINISHED'}
 
 
 class I3DEA_OT_freeze_trans(bpy.types.Operator):

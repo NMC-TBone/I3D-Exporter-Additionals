@@ -26,6 +26,9 @@ class I3DEA_PT_panel(bpy.types.Panel):
         # expanded view
         if context.scene.i3dea.UI_meshTools:
             row = box.row()
+            row.operator("i3dea.copy_orientation", text="Copy Location").state = 1
+            row.operator("i3dea.copy_orientation", text="Copy Rotation").state = 2
+            row = box.row()
             row.operator("i3dea.remove_doubles", text="Clean Meshes")
             row.operator("i3dea.mesh_name", text="Set Mesh Name")
             row = box.row()
