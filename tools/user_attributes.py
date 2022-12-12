@@ -25,7 +25,7 @@ import bpy
 class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     bl_idname = "i3dea.create_user_attribute"
     bl_label = "Create User Attribute"
-    bl_description = "Create user attribute for selected objects"
+    bl_description = "Create user attribute for selected object"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

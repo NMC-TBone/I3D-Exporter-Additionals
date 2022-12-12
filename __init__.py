@@ -19,8 +19,6 @@
 
 """
 TODO:
-    - Make a script to check if scale for collisions are 1 1 1
-        - Perhaps extend it to verify more
     - See if it's possible to do more with fill volume checker
     - Make it possible to scale the curve to get an rounded value for the track amount
 """
@@ -45,12 +43,14 @@ if "bpy" in locals():
 else:
     from .tools import (
         assets_importer,
-        freeze_tools,
+        orientation_tools,
         material_tools,
         mesh_tools,
         skeletons,
         track_tools,
         user_attributes,
+        verifier,
+        generate_empty_on_curves,
     )
     from . import ui
 
@@ -59,6 +59,7 @@ import bpy
 
 
 class I3DEA_PG_List(bpy.types.PropertyGroup):
+    # Dropdown for UV size
     size_dropdown: bpy.props.EnumProperty(
         name="Size List",
         description="List of UV size",
@@ -67,6 +68,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
             ('sixteen', '4x4', "Create UVset 2 4x4")],
         default='four')
 
+    # Dropdown for skeletons
     skeletons_dropdown: bpy.props.EnumProperty(
         items=[
             ('create_base_vehicle', 'Tractor', "Add Tractor Skeleton"),
@@ -84,6 +86,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         name="Skeletons List",
         description="List of skeletons")
 
+    # Dropdown for assets import
     assets_dropdown: bpy.props.EnumProperty(
         name="Assets List",
         description="List of assets",
@@ -177,6 +180,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
                ('upperLink', "upperLink", "Import upperLink",),
                ('upperLinkSmall', "upperLinkSmall", "Import upperLinkSmall",), ])
 
+    # Properties for material_tools
     material_name: bpy.props.StringProperty(name="Material name", description="Write name of the material you want to create", default="material_mat")
     diffuse_box: bpy.props.BoolProperty(name="Add diffuse node", description="If checked it will create a image texture linked to Base Color", default=False)
     alpha_box: bpy.props.BoolProperty(name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False)
@@ -184,6 +188,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     spec_texture_path: bpy.props.StringProperty(name="Specular", description="Add path to your specular texture.", subtype='FILE_PATH', default="")
     normal_texture_path: bpy.props.StringProperty(name="Normal", description="Add path to your normal map texture.", subtype='FILE_PATH', default="")
 
+    # i3dio_material handler
     shader_path: bpy.props.StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
     mask_map: bpy.props.StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
     dirt_diffuse: bpy.props.StringProperty(name="Dirt diffuse", description="Add dirt diffuse texture", subtype='FILE_PATH', default="")
@@ -218,11 +223,11 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     all_curves: bpy.props.EnumProperty(items=get_all_curves, name="Select A Curve")
     add_empties: bpy.props.BoolProperty(name="Add Empties", description="If you check this it will add the amount of empties between each track link that's written bellow.", default=False)
 
-    # User Attributes
+    # User Attribute properties
     user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
     user_attribute_type: bpy.props.EnumProperty(
         name="Type",
-        description="List of UV size",
+        description="List of User Attributes",
         items=[
             ('boolean', "boolean", ""),
             ('float', "float", ""),
@@ -230,11 +235,20 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
             ('scriptCallback', "scriptCallback", ""),],
         default='boolean')
 
+    # Properties for Curve-Tools
+    curve_array_name: bpy.props.StringProperty(name="Array Name", description="Set array name", default="curveArray")
+    amount_curve: bpy.props.IntProperty(name="Static amount", description="Add empties on all curves with this amount", default=32, min=1)
+    distance_curve: bpy.props.FloatProperty(name="Distance", description="Add empties along curve by said distance", default=0.2, min=0.01)
+    use_amount: bpy.props.BoolProperty(name="Use Amount", description="When this is checked, it will use amount", default=True)
+    use_distance: bpy.props.BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
+
+    # Properties for UI in dropdowns
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
     UI_user_attributes: bpy.props.BoolProperty(name="User Attributes", default=False)
     UI_track_tools: bpy.props.BoolProperty(name="UV-Tools", default=False)
     UI_uvset: bpy.props.BoolProperty(name="UVset", default=False)
     UI_skeletons: bpy.props.BoolProperty(name="Skeletons", default=False)
+    UI_curve_tools: bpy.props.BoolProperty(name="Curve-Tools", default=False)
     UI_materialTools: bpy.props.BoolProperty(name="Material-Tools", default=False)
     UI_create_mat: bpy.props.BoolProperty(name="Create material", default=False)
     UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=False)
@@ -257,17 +271,16 @@ classes = [
     mesh_tools.I3DEA_OT_mirror_orientation,
     mesh_tools.I3DEA_OT_xml_config,
     mesh_tools.I3DEA_OT_fill_volume,
+    generate_empty_on_curves.I3DEA_OT_emties_along_curves,
     skeletons.I3DEA_OT_skeletons,
     material_tools.I3DEA_OT_mirror_material,
     material_tools.I3DEA_OT_remove_duplicate_material,
     material_tools.I3DEA_OT_setup_material,
     material_tools.I3DEA_OT_i3dio_material,
-    freeze_tools.I3DEA_OT_freeze_trans,
-    freeze_tools.I3DEA_OT_freeze_rot,
-    freeze_tools.I3DEA_OT_freeze_scale,
-    freeze_tools.I3DEA_OT_freeze_all,
+    orientation_tools.I3DEA_OT_copy_orientation,
     assets_importer.I3DEA_OT_assets,
     user_attributes.I3DEA_OT_create_user_attribute,
+    verifier.I3DEA_OT_verify_scene,
 ]
 
 
