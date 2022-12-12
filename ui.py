@@ -121,6 +121,29 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.operator("i3dea.track_on_curve", text="Add track to curve")
             row.operator("i3dea.track_on_curve_delete", text="Delete")
         # ---------------------------------------------------------------
+        # "Curve-Tools" Box
+        box = layout.box()
+        row = box.row()
+        # expand button for "Curve Tools"
+        row.prop(context.scene.i3dea, "UI_curve_tools", text="Curve-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_curve_tools else 'TRIA_RIGHT', icon_only=False, emboss=False)
+        # expanded view
+        if context.scene.i3dea.UI_curve_tools:
+            row = box.row()
+            # if not context.scene.i3dea.use_distance:
+            row.enabled = context.scene.i3dea.use_distance is False
+            row.prop(context.scene.i3dea, "use_amount")
+            # not context.scene.i3dea.use_amount:
+            row2 = row.row()
+            row2.enabled = context.scene.i3dea.use_amount is False
+            row2.prop(context.scene.i3dea, "use_distance")
+            row = box.row()
+            row.prop(context.scene.i3dea, "amount_curve")
+            row.prop(context.scene.i3dea, "distance_curve")
+            row = box.row()
+            row.prop(context.scene.i3dea, "curve_array_name", text="Array Name")
+            row = box.row()
+            row.operator("i3dea.add_empties_curves", text="Create", icon='OUTLINER_DATA_CURVES')
+        # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()
         row = box.row()

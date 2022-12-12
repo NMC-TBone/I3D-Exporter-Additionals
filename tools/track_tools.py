@@ -28,7 +28,7 @@ from ..helper_functions import check_obj_type, check_i3d_exporter_type
 giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
 
-def getCurveLength(curve_obj):
+def get_curve_length(curve_obj):
     length = curve_obj.data.splines[0].calc_length(resolution=1024)
     return length
 
@@ -77,7 +77,7 @@ class I3DEA_OT_curve_length(bpy.types.Operator):
             self.report({'ERROR'}, "The active object [" + context.active_object.name + "] is not a curve")
             return {'CANCELLED'}
         else:
-            curve_length = getCurveLength(context.object)
+            curve_length = get_curve_length(context.object)
             bpy.context.scene.i3dea.curve_length_disp = curve_length
         return {'FINISHED'}
 
@@ -99,7 +99,7 @@ class I3DEA_OT_calculate_amount(bpy.types.Operator):
             context.scene.i3dea.piece_distance = abs(obj1[1] - obj2[1])
         elif context.object.type == 'CURVE':
             curve = bpy.context.object
-            curve_length = getCurveLength(curve)
+            curve_length = get_curve_length(curve)
             float_val = curve_length/bpy.context.scene.i3dea.piece_distance
             bpy.context.scene.i3dea.track_piece_amount = float_val
         return {'FINISHED'}
@@ -130,7 +130,7 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
         for piece, curve in zip(piece_list, curve_list):
             hierarchy_name = 'track_visualization'
             space = bpy.context.scene.i3dea.piece_distance
-            curve_length = getCurveLength(curve)
+            curve_length = get_curve_length(curve)
             if not bpy.context.scene.i3dea.rubber_track:
                 if bpy.context.scene.i3dea.track_piece_amount > 1:
                     piece_num = int(bpy.context.scene.i3dea.track_piece_amount)
