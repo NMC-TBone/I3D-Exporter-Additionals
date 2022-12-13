@@ -241,6 +241,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     distance_curve: bpy.props.FloatProperty(name="Distance", description="Add empties along curve by said distance", default=0.2, min=0.01)
     use_amount: bpy.props.BoolProperty(name="Use Amount", description="When this is checked, it will use amount", default=True)
     use_distance: bpy.props.BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
+    use_pose2: bpy.props.BoolProperty(name="Use Pose 2", description="When this is checked, you will be able to use another set of curves.", default=False)
 
     # Properties for UI in dropdowns
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
@@ -272,6 +273,7 @@ classes = [
     mesh_tools.I3DEA_OT_xml_config,
     mesh_tools.I3DEA_OT_fill_volume,
     generate_empty_on_curves.I3DEA_OT_emties_along_curves,
+    generate_empty_on_curves.MATERIAL_UL_matslots_example,
     skeletons.I3DEA_OT_skeletons,
     material_tools.I3DEA_OT_mirror_material,
     material_tools.I3DEA_OT_remove_duplicate_material,

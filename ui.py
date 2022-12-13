@@ -129,10 +129,22 @@ class I3DEA_PT_panel(bpy.types.Panel):
         # expanded view
         if context.scene.i3dea.UI_curve_tools:
             row = box.row()
-            # if not context.scene.i3dea.use_distance:
+            obj = context.object
+
+            # template_list now takes two new args.
+            # The first one is the identifier of the registered UIList to use (if you want only the default list,
+            # with no custom draw code, use "UI_UL_list").
+            row.template_list("MATERIAL_UL_matslots_example", "", obj, "material_slots", obj, "active_material_index")
+            row = box.row()
+            # The second one can usually be left as an empty string.
+            # It's an additional ID used to distinguish lists in case you
+            # use the same list several times in a given area.
+            row.template_list("MATERIAL_UL_matslots_example", "compact", obj, "material_slots", obj, "active_material_index", type='COMPACT')
+            row = box.row()
+            row.prop(context.scene.i3dea, "use_pose2")
+            row = box.row()
             row.enabled = context.scene.i3dea.use_distance is False
             row.prop(context.scene.i3dea, "use_amount")
-            # not context.scene.i3dea.use_amount:
             row2 = row.row()
             row2.enabled = context.scene.i3dea.use_amount is False
             row2.prop(context.scene.i3dea, "use_distance")
