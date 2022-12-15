@@ -1,6 +1,7 @@
 import bpy
 
 from .helper_functions import check_i3d_exporter_type
+from .tools.generate_empty_on_curves import I3DEA_OT_empties_along_curves
 
 
 class I3DEA_PT_panel(bpy.types.Panel):
@@ -128,20 +129,23 @@ class I3DEA_PT_panel(bpy.types.Panel):
         row.prop(context.scene.i3dea, "UI_curve_tools", text="Curve-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_curve_tools else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
         if context.scene.i3dea.UI_curve_tools:
+            scene = context.scene
+            pg = scene.i3dea
             row = box.row()
-            obj = context.object
-
-            # template_list now takes two new args.
-            # The first one is the identifier of the registered UIList to use (if you want only the default list,
-            # with no custom draw code, use "UI_UL_list").
-            row.template_list("MATERIAL_UL_matslots_example", "", obj, "material_slots", obj, "active_material_index")
+            row.template_list("I3DEA_UL_selected_curves", "", pg, "object_collection", pg, "active_obj_index")
             row = box.row()
-            # The second one can usually be left as an empty string.
-            # It's an additional ID used to distinguish lists in case you
-            # use the same list several times in a given area.
-            row.template_list("MATERIAL_UL_matslots_example", "compact", obj, "material_slots", obj, "active_material_index", type='COMPACT')
+            row.operator("i3dea.add_empties_curves", text="Load Selected").state = 1
+            row.operator("i3dea.add_empties_curves", text="Remove All").state = 2
+            row.operator("i3dea.add_empties_curves", text="Remove Active").state = 3
             row = box.row()
             row.prop(context.scene.i3dea, "use_pose2")
+            if context.scene.i3dea.use_pose2:
+                row = box.row()
+                row.template_list("I3DEA_UL_selected_curves2", "", pg, "object_collection2", pg, "active_obj_index2")
+                row = box.row()
+                row.operator("i3dea.add_empties_curves", text="Load Selected").state = 4
+                row.operator("i3dea.add_empties_curves", text="Remove All").state = 5
+                row.operator("i3dea.add_empties_curves", text="Remove Active").state = 6
             row = box.row()
             row.enabled = context.scene.i3dea.use_distance is False
             row.prop(context.scene.i3dea, "use_amount")
@@ -154,7 +158,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row = box.row()
             row.prop(context.scene.i3dea, "curve_array_name", text="Array Name")
             row = box.row()
-            row.operator("i3dea.add_empties_curves", text="Create", icon='OUTLINER_DATA_CURVES')
+            row.operator("i3dea.add_empties_curves", text="Create", icon='OUTLINER_DATA_CURVES').state = 7
         # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()
@@ -227,27 +231,3 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row = box.row()
             row.operator("i3dea.assets", text="Import Asset")
         # -----------------------------------------
-
-
-"""def get_attributes(obj_name):
-    m_attributes = []
-    m_types = ["boolean", "string", "scriptCallback", "float"]
-    for key in obj_name.keys():
-        if 0 == key.find("userAttribute_"):
-            try:
-                m_list = key.split("_", 2)
-                m_type = m_list[1]
-                m_name = m_list[2]
-                m_val = obj_name[key]
-                if m_type in m_types:
-                    if "boolean" == m_type:
-                        if m_val:
-                            m_val = "true"
-                        else:
-                            m_val = "false"
-                    m_val = "{}".format(m_val)
-                    m_item = {"name": m_name, "type": m_type, "value": m_val}
-                    m_attributes.append(m_item)
-            except:
-                pass
-    return m_attributes"""

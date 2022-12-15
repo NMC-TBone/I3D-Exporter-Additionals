@@ -58,6 +58,13 @@ else:
 import bpy
 
 
+class I3DEA_custom_ObjectProps(bpy.types.PropertyGroup):
+    curve_ref: bpy.props.PointerProperty(
+        name="Object",
+        type=bpy.types.Object
+        )
+
+
 class I3DEA_PG_List(bpy.types.PropertyGroup):
     # Dropdown for UV size
     size_dropdown: bpy.props.EnumProperty(
@@ -243,6 +250,16 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     use_distance: bpy.props.BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
     use_pose2: bpy.props.BoolProperty(name="Use Pose 2", description="When this is checked, you will be able to use another set of curves.", default=False)
 
+    active_obj_index: bpy.props.IntProperty()
+    object_collection: bpy.props.CollectionProperty(
+        type=I3DEA_custom_ObjectProps
+    )
+
+    active_obj_index2: bpy.props.IntProperty()
+    object_collection2: bpy.props.CollectionProperty(
+        type=I3DEA_custom_ObjectProps
+    )
+
     # Properties for UI in dropdowns
     UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
     UI_user_attributes: bpy.props.BoolProperty(name="User Attributes", default=False)
@@ -258,6 +275,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
 
 
 classes = [
+    I3DEA_custom_ObjectProps,
     I3DEA_PG_List,
     ui.I3DEA_PT_panel,
     track_tools.I3DEA_OT_make_uvset,
@@ -272,8 +290,9 @@ classes = [
     mesh_tools.I3DEA_OT_mirror_orientation,
     mesh_tools.I3DEA_OT_xml_config,
     mesh_tools.I3DEA_OT_fill_volume,
-    generate_empty_on_curves.I3DEA_OT_emties_along_curves,
-    generate_empty_on_curves.MATERIAL_UL_matslots_example,
+    generate_empty_on_curves.I3DEA_OT_empties_along_curves,
+    generate_empty_on_curves.I3DEA_UL_selected_curves,
+    generate_empty_on_curves.I3DEA_UL_selected_curves2,
     skeletons.I3DEA_OT_skeletons,
     material_tools.I3DEA_OT_mirror_material,
     material_tools.I3DEA_OT_remove_duplicate_material,

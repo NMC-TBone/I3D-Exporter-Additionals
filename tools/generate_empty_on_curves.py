@@ -4,52 +4,122 @@ from ..helper_functions import check_i3d_exporter_type
 giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
 
-class MATERIAL_UL_matslots_example(bpy.types.UIList):
-    # The draw_item function is called for each item of the collection that is visible in the list.
-    #   data is the RNA object containing the collection,
-    #   item is the current drawn item of the collection,
-    #   icon is the "computed" icon for the item (as an integer, because some objects like materials or textures
-    #   have custom icons ID, which are not available as enum items).
-    #   active_data is the RNA object containing the active property for the collection (i.e. integer pointing to the
-    #   active item of the collection).
-    #   active_propname is the name of the active property (use 'getattr(active_data, active_propname)').
-    #   index is index of the current item in the collection.
-    #   flt_flag is the result of the filtering process for this item.
-    #   Note: as index and flt_flag are optional arguments, you do not have to use/declare them here if you don't
-    #         need them.
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        ob = data
-        slot = item
-        ma = slot.material
-        # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            # You should always start your row layout by a label (icon + text), or a non-embossed text field,
-            # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
-            # We use icon_value of label, as our given icon is an integer value, not an enum ID.
-            # Note "data" names should never be translated!
-            if ma:
-                layout.prop(ma, "name", text="", emboss=False, icon_value=icon)
-            else:
-                layout.label(text="", translate=False, icon_value=icon)
-        # 'GRID' layout type should be as compact as possible (typically a single icon!).
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+class I3DEA_UL_selected_curves(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        pg = data
+        curve_icon = 'OUTLINER_OB_CURVE'
+        layout.prop(item, "curve_ref", text="", emboss=False, translate=False, icon=curve_icon)
 
 
-class I3DEA_OT_emties_along_curves(bpy.types.Operator):
+class I3DEA_UL_selected_curves2(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        pg = data
+        curve_icon = 'OUTLINER_OB_CURVE'
+        layout.prop(item, "curve_ref", text="", emboss=False, translate=False, icon=curve_icon)
+
+
+class I3DEA_OT_empties_along_curves(bpy.types.Operator):
     bl_label = "Create empties along curves"
     bl_idname = "i3dea.add_empties_curves"
     bl_description = "Create empties evenly spread along selected curves"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'UNDO'}
+    state: bpy.props.IntProperty()
+
+    # Store the selected objects (curves)
+    selected_curves = [[], []]
+
+    def load_curves(self, context, pose2=False):
+        for curve in context.selected_objects:
+            if curve.type == 'CURVE':
+                if not pose2:
+                    if curve.name not in self.selected_curves[0]:
+                        self.selected_curves[0].append(curve.name)
+                elif pose2:
+                    if curve.name not in self.selected_curves[1]:
+                        self.selected_curves[1].append(curve.name)
 
     def execute(self, context):
-        # Store the selected objects (curves)
-        selected_objects = [obj for obj in bpy.context.selected_objects if obj.type == 'CURVE']
+        if self.state == 1:
+            self.load_curves(context)
 
-        # Create empty objects along selected curves
-        create_empties_on_curve(selected_objects, context.scene.i3dea.curve_array_name, num_empties=context.scene.i3dea.amount_curve)
-        self.report({'INFO'}, "Generated empties a long selected curves")
+            object_names = [item.name for item in context.scene.i3dea.object_collection]
+            for curve_name in self.selected_curves[0]:
+                curve = bpy.data.objects[curve_name]
+                if curve.type == 'CURVE' and curve.name not in object_names:
+                    my_curve = context.scene.i3dea.object_collection.add()
+                    my_curve.name = curve.name
+                    my_curve.curve_ref = curve
+
+            context.scene.i3dea.active_obj_index = len(context.scene.i3dea.object_collection) - 1
+
+            print(self.selected_curves[0])
+
+        elif self.state == 2:
+            context.scene.i3dea.object_collection.clear()
+            context.scene.i3dea.active_obj_index = -1
+
+            self.selected_curves[0].clear()
+
+        elif self.state == 3:
+            if len(context.scene.i3dea.object_collection) > 0:
+                print(f"First print \n{self.selected_curves[0]}\n-------------------")
+                ob_list = context.scene.i3dea.object_collection
+                active = context.scene.i3dea.active_obj_index
+                active_obj = context.scene.i3dea.object_collection[context.scene.i3dea.active_obj_index].curve_ref.name
+
+                self.selected_curves[0].remove(active_obj)
+
+                ob_list.remove(active)
+                context.scene.i3dea.active_obj_index = min(max(0, active - 1), len(ob_list) - 1)
+
+                # self.selected_curves[0].remove(context.scene.i3dea.obj_ref.name)
+                print(f"After print \n{self.selected_curves[0]}\n-------------------")
+            else:
+                pass
+
+        if self.state == 4:
+            self.load_curves(context, pose2=True)
+
+            object_names2 = [item.name for item in context.scene.i3dea.object_collection2]
+            for curve_name in self.selected_curves[1]:
+                curve = bpy.data.objects[curve_name]
+                if curve.type == 'CURVE' and curve.name not in object_names2:
+                    my_curve = context.scene.i3dea.object_collection2.add()
+                    my_curve.name = curve.name
+                    my_curve.curve_ref = curve
+
+            context.scene.i3dea.active_obj_index2 = len(context.scene.i3dea.object_collection2) - 1
+
+            print(self.selected_curves[1])
+
+        elif self.state == 5:
+            context.scene.i3dea.object_collection2.clear()
+            context.scene.i3dea.active_obj_index2 = -1
+
+            self.selected_curves[1].clear()
+
+        elif self.state == 6:
+            if len(context.scene.i3dea.object_collection2) > 0:
+                print(f"First print \n{self.selected_curves[1]}\n-------------------")
+                ob_list = context.scene.i3dea.object_collection2
+                active = context.scene.i3dea.active_obj_index2
+                active_obj = context.scene.i3dea.object_collection2[context.scene.i3dea.active_obj_index2].curve_ref.name
+
+                self.selected_curves[1].remove(active_obj)
+
+                ob_list.remove(active)
+                context.scene.i3dea.active_obj_index2 = min(max(0, active - 1), len(ob_list) - 1)
+
+                # self.selected_curves[0].remove(context.scene.i3dea.obj_ref.name)
+                print(f"After print \n{self.selected_curves[1]}\n-------------------")
+            else:
+                pass
+
+        elif self.state == 7:
+            # Create empty objects along selected curves
+            create_empties_on_curve(self.selected_curves, context.scene.i3dea.curve_array_name, num_empties=context.scene.i3dea.amount_curve)
+            self.report({'INFO'}, "Generated empties a long selected curves")
+
         return {'FINISHED'}
 
 
@@ -67,12 +137,12 @@ def create_empties_on_curve(selected_curves, hierarchy_name, num_empties=10):
     hierarchy_empty = create_empty(name=hierarchy_name)
 
     if giants_i3d:
-        dcc.I3DSetAttrString(hierarchy_empty, 'I3D_objectDataFilePath', hierarchy_name + ".dds")
-        dcc.I3DSetAttrBool(hierarchy_empty, 'I3D_objectDataHierarchicalSetup', True)
-        dcc.I3DSetAttrBool(hierarchy_empty, 'I3D_objectDataHideFirstAndLastObject', True)
-        dcc.I3DSetAttrBool(hierarchy_empty, 'I3D_objectDataExportPosition', True)
-        dcc.I3DSetAttrBool(hierarchy_empty, 'I3D_objectDataExportOrientation', True)
-        dcc.I3DSetAttrBool(hierarchy_empty, 'I3D_objectDataExportScale', True)
+        dcc.I3DSetAttrString(hierarchy_empty.name, 'I3D_objectDataFilePath', hierarchy_name + ".dds")
+        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataHierarchicalSetup', True)
+        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataHideFirstAndLastObject', True)
+        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataExportPosition', True)
+        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataExportOrientation', True)
+        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataExportScale', True)
 
     # Create empty object "pose1"
     pose1 = create_empty(name="pose1")
@@ -84,7 +154,7 @@ def create_empties_on_curve(selected_curves, hierarchy_name, num_empties=10):
         pose2.parent = hierarchy_empty
 
     num1, num2 = -1, -1
-    for obj in selected_curves:
+    for obj in selected_curves[0]:
         # Create Y empties inside pose1 & pose2
         # Set empty name based on curve name
         if obj.name.startswith("pose1"):
