@@ -149,9 +149,9 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row = box.row()
             row.enabled = context.scene.i3dea.use_distance is False
             row.prop(context.scene.i3dea, "use_amount")
-            row2 = row.row()
-            row2.enabled = context.scene.i3dea.use_amount is False
-            row2.prop(context.scene.i3dea, "use_distance")
+            # row2 = row.row()
+            # row2.enabled = context.scene.i3dea.use_amount is False
+            # row2.prop(context.scene.i3dea, "use_distance")
             row = box.row()
             row.prop(context.scene.i3dea, "amount_curve")
             row.prop(context.scene.i3dea, "distance_curve")
