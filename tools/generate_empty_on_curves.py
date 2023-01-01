@@ -6,14 +6,12 @@ giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
 class I3DEA_UL_selected_curves(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        pg = data
         curve_icon = 'OUTLINER_OB_CURVE'
         layout.prop(item, "curve_ref", text="", emboss=False, translate=False, icon=curve_icon)
 
 
 class I3DEA_UL_selected_curves2(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        pg = data
         curve_icon = 'OUTLINER_OB_CURVE'
         layout.prop(item, "curve_ref", text="", emboss=False, translate=False, icon=curve_icon)
 

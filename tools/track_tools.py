@@ -29,6 +29,9 @@ giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
 
 def get_curve_length(curve_obj):
+    if curve_obj.scale != Vector((1, 1, 1)):
+        print(f"{curve_obj.name} scale is not 1 1 1, scale will be applied.")
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     length = curve_obj.data.splines[0].calc_length(resolution=1024)
     return length
 
@@ -74,7 +77,7 @@ class I3DEA_OT_curve_length(bpy.types.Operator):
             self.report({'ERROR'}, "No active object in scene")
             return {'CANCELLED'}
         if not context.object.type == "CURVE":
-            self.report({'ERROR'}, "The active object [" + context.active_object.name + "] is not a curve")
+            self.report({'ERROR'}, f"The active object ({context.active_object.name}) is not a curve")
             return {'CANCELLED'}
         else:
             curve_length = get_curve_length(context.object)
@@ -105,8 +108,8 @@ class I3DEA_OT_calculate_amount(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class I3DEA_OT_track_on_curve(bpy.types.Operator):
-    bl_idname = "i3dea.track_on_curve"
+class I3DEA_OT_visualization(bpy.types.Operator):
+    bl_idname = "i3dea.visualization"
     bl_label = "Add track to curve"
     bl_description = "Makes a full setup to see how the track will look along the curve"
     bl_options = {'REGISTER', 'UNDO'}
@@ -126,17 +129,19 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
                 if curve.type == 'CURVE':
                     curve_list.append(curve)
                     break
+            else:
+                self.report({'ERROR'}, "No curve in scene")
 
         for piece, curve in zip(piece_list, curve_list):
             hierarchy_name = 'track_visualization'
             space = bpy.context.scene.i3dea.piece_distance
             curve_length = get_curve_length(curve)
-            if not bpy.context.scene.i3dea.rubber_track:
+            if bpy.context.scene.i3dea.track_type_method == 'CATERPILLAR':
                 if bpy.context.scene.i3dea.track_piece_amount > 1:
                     piece_num = int(bpy.context.scene.i3dea.track_piece_amount)
                 else:
                     piece_num = 25
-                    self.report({'INFO'}, "No amount set in track piece amount, using default amount instead ({})".format(piece_num))
+                    self.report({'INFO'}, f"No amount set in track piece amount, using default amount instead ({piece_num})")
 
                 bpy.ops.mesh.primitive_plane_add()
                 plane = bpy.context.object
@@ -159,10 +164,12 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
                 plane.keyframe_insert("location", frame=1)
                 plane.location[1] = curve_length
                 plane.keyframe_insert("location", frame=250)
-                piece.parent = plane
-                piece.hide_set(True)
+                new = bpy.data.objects.new(piece.name+"_visual", bpy.data.objects[piece.name].data)
+                context.collection.objects.link(new)
+                new.parent = plane
+                new.hide_set(True)
 
-            if bpy.context.scene.i3dea.rubber_track:
+            elif bpy.context.scene.i3dea.track_type_method == 'RUBBER':
                 obj = context.object
                 # bpy.ops.object.duplicate()
                 duplicate = bpy.data.objects.new(hierarchy_name, bpy.data.objects[obj.name].data)
@@ -175,6 +182,9 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
                 duplicate.keyframe_insert("location", frame=250)
                 context.collection.objects.link(duplicate)
 
+            elif bpy.context.scene.i3dea.track_type_method == 'BOGIE':
+                self.report({'WARNING'}, "Bogie is not supported yet")
+
             def stop_anim(scene):
                 if scene.frame_current == 250:
                     bpy.ops.screen.animation_cancel()
@@ -185,8 +195,8 @@ class I3DEA_OT_track_on_curve(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class I3DEA_OT_track_on_curve_delete(bpy.types.Operator):
-    bl_idname = "i3dea.track_on_curve_delete"
+class I3DEA_OT_visualization_del(bpy.types.Operator):
+    bl_idname = "i3dea.visualization_del"
     bl_label = "Delete track visualization"
     bl_description = "Deletes the track visualization"
     bl_options = {'REGISTER', 'UNDO'}
@@ -198,6 +208,7 @@ class I3DEA_OT_track_on_curve_delete(bpy.types.Operator):
             for obj in obj_list:
                 for child in obj.children_recursive:
                     child.hide_set(False)
+                    bpy.data.objects.remove(child)
                 bpy.data.objects.remove(obj)
                 self.report({'INFO'}, "Track Visualization deleted")
         return {'FINISHED'}

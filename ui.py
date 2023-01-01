@@ -117,10 +117,10 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row.prop(context.scene.i3dea, "track_piece_amount", text="")
             box = col.box()
             row = box.row()
-            row.prop(context.scene.i3dea, "rubber_track")
+            row.prop(context.scene.i3dea, "track_type_method", expand=True)
             row = box.row()
-            row.operator("i3dea.track_on_curve", text="Add track to curve")
-            row.operator("i3dea.track_on_curve_delete", text="Delete")
+            row.operator("i3dea.visualization", text="Track Visualization")
+            row.operator("i3dea.visualization_del", text="Delete")
         # ---------------------------------------------------------------
         # "Curve-Tools" Box
         box = layout.box()

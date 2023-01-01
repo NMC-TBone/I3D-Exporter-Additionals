@@ -229,6 +229,12 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     advanced_mode: bpy.props.BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
     all_curves: bpy.props.EnumProperty(items=get_all_curves, name="Select A Curve")
     add_empties: bpy.props.BoolProperty(name="Add Empties", description="If you check this it will add the amount of empties between each track link that's written bellow.", default=False)
+    track_type_method: bpy.props.EnumProperty(name="Track Method",
+                                              items=[('CATERPILLAR', 'Caterpillar', ""),
+                                                     ('RUBBER', 'Rubber', "",),
+                                                     ('BOGIE', 'Bogie', "")],
+                                              description="Track visualization method, caterpillar, rubber or bogie",
+                                              default='CATERPILLAR')
 
     # User Attribute properties
     user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
@@ -282,8 +288,8 @@ classes = [
     track_tools.I3DEA_OT_add_empty,
     track_tools.I3DEA_OT_curve_length,
     track_tools.I3DEA_OT_calculate_amount,
-    track_tools.I3DEA_OT_track_on_curve,
-    track_tools.I3DEA_OT_track_on_curve_delete,
+    track_tools.I3DEA_OT_visualization,
+    track_tools.I3DEA_OT_visualization_del,
     mesh_tools.I3DEA_OT_remove_doubles,
     mesh_tools.I3DEA_OT_mesh_name,
     mesh_tools.I3DEA_OT_ignore,
