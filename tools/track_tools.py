@@ -249,12 +249,12 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
 
         elif context.scene.i3dea.advanced_mode and not context.scene.i3dea.all_curves == "None":
             vmask_bake = vmask_bake_objs(duplicated_obj, name)
-            bpy.ops.object.empty_add(radius=0, location=[0,0,0])
+            bpy.ops.object.empty_add(radius=0, location=(0, 0, 0))
             empty_parent = context.object
             empty_parent.name = name
             bpy.ops.object.empty_add(radius=0, location=original_loc)
             track_geo = bpy.context.object
-            track_geo.name = "{}Geo".format(name)
+            track_geo.name = f"{name}Geo"
             if giants_i3d:
                 dcc.I3DSetAttrBool(track_geo.name, 'I3D_receiveShadows', True)
                 dcc.I3DSetAttrBool(track_geo.name, 'I3D_castsShadows', True)

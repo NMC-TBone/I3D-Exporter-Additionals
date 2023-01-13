@@ -1,7 +1,6 @@
 import bpy
 
 from .helper_functions import check_i3d_exporter_type
-from .tools.generate_empty_on_curves import I3DEA_OT_empties_along_curves
 
 
 class I3DEA_PT_panel(bpy.types.Panel):
