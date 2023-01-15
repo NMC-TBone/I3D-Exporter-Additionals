@@ -14,9 +14,9 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         name="Size List",
         description="List of UV size",
         items=[
-            ('four', '2x2', "Create UVset 2 2x2"),
-            ('sixteen', '4x4', "Create UVset 2 4x4")],
-        default='four')
+            ('4', '2x2', "Create UVset 2 2x2"),
+            ('16', '4x4', "Create UVset 2 4x4")],
+        default='4')
 
     # Dropdown for skeletons
     skeletons_dropdown: bpy.props.EnumProperty(
