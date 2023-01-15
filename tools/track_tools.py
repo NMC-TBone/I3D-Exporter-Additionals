@@ -31,6 +31,9 @@ giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
 
 
 def get_curve_length(curve_obj):
+    """
+    Returns length of curve and if the scale is not 1 1 1, it will be applied first to get the correct result
+    """
     if curve_obj.scale != Vector((1, 1, 1)):
         print(f"{curve_obj.name} scale is not 1 1 1, scale will be applied.")
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -39,6 +42,12 @@ def get_curve_length(curve_obj):
 
 
 def create_empties(objs, amount):
+    """
+    It will add x amount of empties in between each object
+
+    param objs: The objects the empties will be added in between
+    param amount: The amount of empties that will be added between each object
+    """
     for obj in objs:
         for _ in range(amount):
             empty = bpy.data.objects.new(obj.name + ".001", None)
@@ -77,7 +86,7 @@ class I3DEA_OT_curve_length(bpy.types.Operator):
             return {'CANCELLED'}
         else:
             curve_length = get_curve_length(context.object)
-            bpy.context.scene.i3dea.curve_length_disp = curve_length
+            context.scene.i3dea.curve_length_disp = curve_length
         return {'FINISHED'}
 
 
@@ -226,8 +235,8 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             return {'CANCELLED'}
 
         name = "track"
-        if bpy.context.scene.i3dea.custom_text_box:
-            name = bpy.context.scene.i3dea.custom_text
+        if context.scene.i3dea.custom_text_box:
+            name = context.scene.i3dea.custom_text
 
         original_obj = context.object
         check_obj_type(original_obj)
@@ -329,6 +338,12 @@ def create_second_uv(original_obj, name, amount):
 
 
 def vmask_bake_objs(objs, name):
+    """
+    Input objects will be spread out in a line and 1st uv will be removed so its ready for bake
+
+    param objs: objects to be added to vmask bake
+    param name:
+    """
     vmask_empty = bpy.data.objects.new("objsForBake", None)
     bpy.context.collection.objects.link(vmask_empty)
     vmask_empty.empty_display_size = 0
@@ -349,6 +364,14 @@ def vmask_bake_objs(objs, name):
 
 
 def create_bbox(curve_name, name, obj_name, dim_x):
+    """
+    Creates a bounding box/volume around the curve
+
+    param curve_name: Name of the curve
+    param name: name of the bbox
+    param obj_name: Name of object
+    param dim_x: X dimension
+    """
     curve = bpy.data.objects[curve_name]
     bbox = [Vector(b) for b in curve.bound_box]
     center = sum(bbox, Vector()) / 8
@@ -368,6 +391,7 @@ def create_bbox(curve_name, name, obj_name, dim_x):
 
     if giants_i3d:
         dcc.I3DSetAttrString(bbox.name, 'I3D_boundingVolume', obj_name)
+    bbox.hide_set(True)
     return bbox
 
 

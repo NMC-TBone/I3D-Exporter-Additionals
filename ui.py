@@ -48,8 +48,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
                     row = box.row()
                     obj = context.object
                     if obj:
-                        row.label(text="Object Name: ")
-                        row.label(text=obj.name)
+                        row.label(text=f"Object Name: {obj.name}")
                         row = box.row()
 
                         attributes = [k for k in obj.keys() if 0 == k.find("userAttribute_")]
@@ -63,6 +62,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
                                 m_list = k.split("_", 2)
                                 name = m_list[2]
                                 row2.prop(obj, f'["{k}"]', text=name)
+                                row2.operator("i3dea.delete_user_attribute", text="", icon='X').attribute_name = k
                                 row2 = box2.row()
                             row = box.row()
 

@@ -55,3 +55,21 @@ class I3DEA_OT_create_user_attribute(bpy.types.Operator):
                 if attr_type == 'scriptCallback':
                     obj[create_attr_name] = ""
         return {'FINISHED'}
+
+
+class I3DEA_OT_delete_user_attribute(bpy.types.Operator):
+    bl_idname = "i3dea.delete_user_attribute"
+    bl_label = "Delete User Attribute"
+    bl_description = "Delete selected user attribute"
+    bl_options = {'UNDO'}
+
+    attribute_name: bpy.props.StringProperty()
+
+    def execute(self, context):
+        obj = context.object
+
+        if obj and self.attribute_name in obj:
+            del obj[self.attribute_name]
+
+        return {'FINISHED'}
+

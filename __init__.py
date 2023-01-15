@@ -86,6 +86,7 @@ classes = [
     orientation_tools.I3DEA_OT_copy_orientation,
     assets_importer.I3DEA_OT_assets,
     user_attributes.I3DEA_OT_create_user_attribute,
+    user_attributes.I3DEA_OT_delete_user_attribute,
     verifier.I3DEA_OT_verify_scene,
 ]
 

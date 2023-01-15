@@ -180,7 +180,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
                                               default='CATERPILLAR')
 
     # User Attribute properties.py
-    user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.", default="")
+    user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.")
     user_attribute_type: bpy.props.EnumProperty(
         name="Type",
         description="List of User Attributes",
@@ -188,7 +188,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
             ('boolean', "boolean", ""),
             ('float', "float", ""),
             ('string', "string", ""),
-            ('scriptCallback', "scriptCallback", ""),],
+            ('scriptCallback', "scriptCallback", "")],
         default='boolean')
 
     # Properties for Curve-Tools
