@@ -18,10 +18,10 @@
 bl_info = {
     "name": "I3D Exporter Additionals",
     "author": "T-Bone",
-    "description": "Additionals For Giants I3D Exporter",
+    "description": "Additionals For I3D Exporter",
     "blender": (3, 0, 0),
     "version": (2, 0, 8),
-    "location": "View3D > UI > GIANTS I3D Exporter > I3D Exporter Additionals",
+    "location": "View3D > UI > I3D Exporter Additionals > I3D Exporter Additionals",
     "warning": "",
     "category": "Game Engine"
 }
@@ -51,10 +51,6 @@ else:
 classes = [
     properties.I3DEA_custom_ObjectProps,
     properties.I3DEA_PG_List,
-    ui.I3DEA_PT_panel,
-    new_ui.I3DEA_PT_MainPanel,
-    new_ui.I3DEA_PT_GeneralTools,
-    new_ui.I3DEA_PT_UserAttributes,
     track_tools.I3DEA_OT_make_uvset,
     track_tools.I3DEA_OT_add_empty,
     track_tools.I3DEA_OT_curve_length,
@@ -80,6 +76,14 @@ classes = [
     user_attributes.I3DEA_OT_create_user_attribute,
     user_attributes.I3DEA_OT_delete_user_attribute,
     verifier.I3DEA_OT_verify_scene,
+    ui.I3DEA_PT_panel,
+    new_ui.I3DEA_PT_MainPanel,
+    new_ui.I3DEA_PT_GeneralTools,
+    new_ui.I3DEA_PT_UserAttributes,
+    new_ui.I3DEA_PT_TrackTools,
+    new_ui.I3DEA_PT_TrackSetup,
+    new_ui.I3DEA_PT_TrackVisualization,
+    new_ui.I3DEA_PT_ArrayHierarchy,
 ]
 
 

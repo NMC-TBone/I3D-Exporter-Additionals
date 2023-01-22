@@ -1,8 +1,16 @@
 import bpy
-
+from bpy.props import (
+    StringProperty,
+    BoolProperty,
+    IntProperty,
+    FloatProperty,
+    EnumProperty,
+    CollectionProperty,
+    PointerProperty
+)
 
 class I3DEA_custom_ObjectProps(bpy.types.PropertyGroup):
-    curve_ref: bpy.props.PointerProperty(
+    curve_ref: PointerProperty(
         name="Object",
         type=bpy.types.Object
         )
@@ -10,7 +18,7 @@ class I3DEA_custom_ObjectProps(bpy.types.PropertyGroup):
 
 class I3DEA_PG_List(bpy.types.PropertyGroup):
     # Dropdown for UV size
-    size_dropdown: bpy.props.EnumProperty(
+    size_dropdown: EnumProperty(
         name="Size List",
         description="List of UV size",
         items=[
@@ -19,7 +27,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default='4')
 
     # Dropdown for skeletons
-    skeletons_dropdown: bpy.props.EnumProperty(
+    skeletons_dropdown: EnumProperty(
         items=[
             ('create_base_vehicle', 'Tractor', "Add Tractor Skeleton"),
             ('create_base_harvester', 'Combine', "Add Harvester Skeleton"),
@@ -37,7 +45,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         description="List of skeletons")
 
     # Dropdown for assets import
-    assets_dropdown: bpy.props.EnumProperty(
+    assets_dropdown: EnumProperty(
         name="Assets List",
         description="List of assets",
         default='frontloaderAdapter',
@@ -131,20 +139,20 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
                ('upperLinkSmall', "upperLinkSmall", "Import upperLinkSmall",), ])
 
     # Properties for material_tools
-    material_name: bpy.props.StringProperty(name="Material name", description="Write name of the material you want to create", default="material_mat")
-    diffuse_box: bpy.props.BoolProperty(name="Add diffuse node", description="If checked it will create a image texture linked to Base Color", default=False)
-    alpha_box: bpy.props.BoolProperty(name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False)
-    diffuse_texture_path: bpy.props.StringProperty(name="Diffuse", description="Add path to your diffuse texture.", subtype='FILE_PATH', default="")
-    spec_texture_path: bpy.props.StringProperty(name="Specular", description="Add path to your specular texture.", subtype='FILE_PATH', default="")
-    normal_texture_path: bpy.props.StringProperty(name="Normal", description="Add path to your normal map texture.", subtype='FILE_PATH', default="")
+    material_name: StringProperty(name="Material name", description="Write name of the material you want to create", default="material_mat")
+    diffuse_box: BoolProperty(name="Add diffuse node", description="If checked it will create a image texture linked to Base Color", default=False)
+    alpha_box: BoolProperty(name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False)
+    diffuse_texture_path: StringProperty(name="Diffuse", description="Add path to your diffuse texture.", subtype='FILE_PATH', default="")
+    spec_texture_path: StringProperty(name="Specular", description="Add path to your specular texture.", subtype='FILE_PATH', default="")
+    normal_texture_path: StringProperty(name="Normal", description="Add path to your normal map texture.", subtype='FILE_PATH', default="")
 
     # i3dio_material handler
-    shader_path: bpy.props.StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
-    mask_map: bpy.props.StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
-    dirt_diffuse: bpy.props.StringProperty(name="Dirt diffuse", description="Add dirt diffuse texture", subtype='FILE_PATH', default="")
-    shader_box: bpy.props.BoolProperty(name="Set shader path", description="If checked it will add the the path to the shader in material", default=True)
-    mask_map_box: bpy.props.BoolProperty(name="Set mask map path", description="If checked it will add the the path to mask map in material", default=True)
-    dirt_diffuse_box: bpy.props.BoolProperty(name="Set dirt diffuse path", description="If checked it add the the path to dirt diffuse in material", default=True)
+    shader_path: StringProperty(name="Path to shader location", description="Select path to the shader you want to apply", subtype='FILE_PATH', default="")
+    mask_map: StringProperty(name="Mask Map", description="Add mask map texture", subtype='FILE_PATH', default="")
+    dirt_diffuse: StringProperty(name="Dirt diffuse", description="Add dirt diffuse texture", subtype='FILE_PATH', default="")
+    shader_box: BoolProperty(name="Set shader path", description="If checked it will add the the path to the shader in material", default=True)
+    mask_map_box: BoolProperty(name="Set mask map path", description="If checked it will add the the path to mask map in material", default=True)
+    dirt_diffuse_box: BoolProperty(name="Set dirt diffuse path", description="If checked it add the the path to dirt diffuse in material", default=True)
 
     # Track-Tools
     def get_all_curves(self, context):
@@ -162,26 +170,33 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         except:
             return curves
 
-    custom_text_box: bpy.props.BoolProperty(name="Custom name", description="If checked you will be able to add custom name for the track pieces", default=False)
-    custom_text: bpy.props.StringProperty(name="Custom track name", description="Set custom name", default="trackPiece")
-    add_empty_int: bpy.props.IntProperty(name="Number of empties add: ", description="Place your number", default=1, min=1, max=5)
-    piece_distance: bpy.props.FloatProperty(name="Track piece distance: ", description="Add track piece distance", default=0.2, precision=10, min=0.0001)
-    curve_length_disp: bpy.props.FloatProperty(name="curve_length", default=0.0, precision=10)
-    track_piece_amount: bpy.props.FloatProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve", min=1, max=400, default=1)
-    rubber_track: bpy.props.BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
-    advanced_mode: bpy.props.BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
-    all_curves: bpy.props.EnumProperty(items=get_all_curves, name="Select A Curve")
-    add_empties: bpy.props.BoolProperty(name="Add Empties", description="If you check this it will add the amount of empties between each track link that's written bellow.", default=False)
-    track_type_method: bpy.props.EnumProperty(name="Track Method",
-                                              items=[('CATERPILLAR', 'Caterpillar', ""),
-                                                     ('RUBBER', 'Rubber', "",),
-                                                     ('BOGIE', 'Bogie', "")],
-                                              description="Track visualization method, caterpillar, rubber or bogie",
-                                              default='CATERPILLAR')
+    track_mode: EnumProperty(name="Track Mode",
+                             items=[('MANUAL', 'Manual Tools', ""),
+                                    ('AUTOMATIC', 'Automatic', "",)],
+                             description="Track Mode",
+                             default='MANUAL')
+    custom_text_box: BoolProperty(name="Custom name", description="If checked you will be able to add custom name for the track pieces", default=False)
+    custom_text: StringProperty(name="Custom track name", description="Set custom name", default="trackPiece")
+    add_empty_int: IntProperty(name="Number of empties add: ", description="Place your number", default=1, min=1, max=5)
+    piece_distance: FloatProperty(name="Track piece distance: ", description="Add track piece distance", default=0.2, precision=10, min=0.0001)
+    curve_length_disp: StringProperty(name="curve_length", default="0.0")
+    track_piece_amount: FloatProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve", min=1, max=400, default=1)
+    rubber_track: BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
+    advanced_mode: BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
+    all_curves: EnumProperty(items=get_all_curves, name="Select A Curve")
+    add_empties: BoolProperty(name="Add Empties", description="If you check this it will add the amount of empties between each track link that's written bellow.", default=False)
+    track_type_method: EnumProperty(name="Track Method",
+                                    items=[('CATERPILLAR', 'Caterpillar', ""),
+                                           ('RUBBER', 'Rubber', "",),
+                                           ('BOGIE', 'Bogie', "")],
+                                    description="Track visualization method, caterpillar, rubber or bogie",
+                                    default='CATERPILLAR')
+    track_vis_amount: IntProperty(name="Amount of pieces", description="Amount of track pieces to use along the curve", default=1, min=1, max=200)
+    track_vis_distance: FloatProperty(name="Distance between links", description="Distance between each link", default=0.2, precision=6, min=0.0001, max=5, unit='LENGTH')
 
     # User Attribute properties.py
-    user_attribute_name: bpy.props.StringProperty(name="Name", description="Name of the User Attribute.")
-    user_attribute_type: bpy.props.EnumProperty(
+    user_attribute_name: StringProperty(name="Name", description="Name of the User Attribute.")
+    user_attribute_type: EnumProperty(
         name="Type",
         description="List of User Attributes",
         items=[
@@ -192,32 +207,32 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default='boolean')
 
     # Properties for Curve-Tools
-    curve_array_name: bpy.props.StringProperty(name="Array Name", description="Set array name", default="curveArray")
-    amount_curve: bpy.props.IntProperty(name="Static amount", description="Add empties on all curves with this amount", default=32, min=1)
-    distance_curve: bpy.props.FloatProperty(name="Distance", description="Add empties along curve by said distance", default=0.2, min=0.01)
-    use_amount: bpy.props.BoolProperty(name="Use Amount", description="When this is checked, it will use amount", default=True)
-    use_distance: bpy.props.BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
-    use_pose2: bpy.props.BoolProperty(name="Use Pose 2", description="When this is checked, you will be able to use another set of curves.", default=False)
+    curve_array_name: StringProperty(name="Array Name", description="Set array name", default="curveArray")
+    amount_curve: IntProperty(name="Static amount", description="Add empties on all curves with this amount", default=32, min=1)
+    distance_curve: FloatProperty(name="Distance", description="Add empties along curve by said distance", default=0.2, min=0.01)
+    use_amount: BoolProperty(name="Use Amount", description="When this is checked, it will use amount", default=True)
+    use_distance: BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
+    use_pose2: BoolProperty(name="Use Pose 2", description="When this is checked, you will be able to use another set of curves.", default=False)
 
-    active_obj_index: bpy.props.IntProperty()
-    object_collection: bpy.props.CollectionProperty(
+    active_obj_index: IntProperty()
+    object_collection: CollectionProperty(
         type=I3DEA_custom_ObjectProps
     )
 
-    active_obj_index2: bpy.props.IntProperty()
-    object_collection2: bpy.props.CollectionProperty(
+    active_obj_index2: IntProperty()
+    object_collection2: CollectionProperty(
         type=I3DEA_custom_ObjectProps
     )
 
     # Properties for UI in dropdowns
-    UI_meshTools: bpy.props.BoolProperty(name="Mesh-Tools", default=False)
-    UI_user_attributes: bpy.props.BoolProperty(name="User Attributes", default=False)
-    UI_track_tools: bpy.props.BoolProperty(name="UV-Tools", default=False)
-    UI_uvset: bpy.props.BoolProperty(name="UVset", default=False)
-    UI_skeletons: bpy.props.BoolProperty(name="Skeletons", default=False)
-    UI_curve_tools: bpy.props.BoolProperty(name="Curve-Tools", default=False)
-    UI_materialTools: bpy.props.BoolProperty(name="Material-Tools", default=False)
-    UI_create_mat: bpy.props.BoolProperty(name="Create material", default=False)
-    UI_paths: bpy.props.BoolProperty(name="Add paths to material", default=False)
-    UI_assets: bpy.props.BoolProperty(name="Assets Importer", default=False)
-    UI_active_obj: bpy.props.StringProperty(name="Active Object Name", default="")
+    UI_meshTools: BoolProperty(name="Mesh-Tools", default=False)
+    UI_user_attributes: BoolProperty(name="User Attributes", default=False)
+    UI_track_tools: BoolProperty(name="UV-Tools", default=False)
+    UI_uvset: BoolProperty(name="UVset", default=False)
+    UI_skeletons: BoolProperty(name="Skeletons", default=False)
+    UI_curve_tools: BoolProperty(name="Curve-Tools", default=False)
+    UI_materialTools: BoolProperty(name="Material-Tools", default=False)
+    UI_create_mat: BoolProperty(name="Create material", default=False)
+    UI_paths: BoolProperty(name="Add paths to material", default=False)
+    UI_assets: BoolProperty(name="Assets Importer", default=False)
+    UI_active_obj: StringProperty(name="Active Object Name", default="")

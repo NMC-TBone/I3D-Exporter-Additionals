@@ -25,7 +25,7 @@ import math
 import mathutils
 from mathutils import Vector
 
-from ..helper_functions import check_i3d_exporter_type
+from ..helper_functions import check_i3d_exporter_type, check_obj_type
 
 giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
@@ -86,7 +86,7 @@ class I3DEA_OT_curve_length(bpy.types.Operator):
             return {'CANCELLED'}
         else:
             curve_length = get_curve_length(context.object)
-            context.scene.i3dea.curve_length_disp = curve_length
+            context.scene.i3dea.curve_length_disp = str(round(curve_length, 6))
         return {'FINISHED'}
 
 
@@ -139,16 +139,9 @@ class I3DEA_OT_visualization(bpy.types.Operator):
 
         for piece, curve in zip(piece_list, curve_list):
             hierarchy_name = 'track_visualization'
-            space = bpy.context.scene.i3dea.piece_distance
+            space = context.scene.i3dea.track_vis_distance
             curve_length = get_curve_length(curve)
             if bpy.context.scene.i3dea.track_type_method == 'CATERPILLAR':
-                if bpy.context.scene.i3dea.track_piece_amount > 1:
-                    piece_num = int(bpy.context.scene.i3dea.track_piece_amount)
-                else:
-                    piece_num = 25
-                    self.report({'INFO'},
-                                f"No amount set in track piece amount, using default amount instead ({piece_num})")
-
                 bpy.ops.mesh.primitive_plane_add()
                 plane = bpy.context.object
                 plane.name = hierarchy_name
@@ -161,7 +154,7 @@ class I3DEA_OT_visualization(bpy.types.Operator):
                 plane.modifiers["Array"].use_constant_offset = True
                 plane.modifiers["Array"].constant_offset_displace[0] = 0
                 plane.modifiers["Array"].constant_offset_displace[1] = space
-                plane.modifiers["Array"].count = piece_num
+                plane.modifiers["Array"].count = context.scene.i3dea.track_vis_amount
                 plane.modifiers.new("Curve", 'CURVE')
                 plane.modifiers["Curve"].object = curve
                 plane.modifiers["Curve"].deform_axis = 'NEG_Y'
@@ -190,6 +183,8 @@ class I3DEA_OT_visualization(bpy.types.Operator):
 
             elif bpy.context.scene.i3dea.track_type_method == 'BOGIE':
                 self.report({'WARNING'}, "Bogie is not supported yet")
+                return {'CANCELLED'}
+
 
             def stop_anim(scene):
                 if scene.frame_current == 250:
@@ -258,7 +253,7 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             bpy.ops.object.empty_add(radius=0, location=original_loc)
             track_geo = bpy.context.object
             track_geo.name = f"{name}Geo"
-            if singleton_instance.giants_i3d:
+            if giants_i3d:
                 track_geo['I3D_receiveShadows'] = True
                 track_geo['I3D_castsShadows'] = True
                 track_geo['I3D_clipDistance'] = 300.00
@@ -389,7 +384,7 @@ def create_bbox(curve_name, name, obj_name, dim_x):
         vert.co = matrix @ vert.co
     bbox.matrix_world.identity()
 
-    if singleton_instance.giants_i3d:
+    if giants_i3d:
         bbox['I3D_boundingVolume'] = obj_name
     bbox.hide_set(True)
     return bbox
@@ -413,4 +408,39 @@ def create_from_amount(objects, amount):
         bpy.context.collection.objects.link(new_object)
         obj_list.append(new_object)
     return obj_list
+
+
+"""import bpy
+
+def scale_curve_to_integer(curve_object):
+    # Enter edit mode
+    bpy.ops.object.editmode_toggle()
+
+    # Select all control points
+    bpy.ops.curve.select_all(action='SELECT')
+
+    # Get the total length of the curve
+    length = curve_object.data.splines[0].calc_length(resolution=10000)
+    print(length)
+
+    # Round the length to the nearest whole number
+    # rounded_length = round(length)
+
+    # Calculate the scale factor
+    scale_factor = round(length) / length
+
+    # Apply the scale factor to the curve object
+    bpy.ops.transform.resize(value=(scale_factor, scale_factor, scale_factor))
+
+    # Exit edit mode
+    bpy.ops.object.editmode_toggle()
+
+# Example usage:
+# Select the curve object in Blender's 3D View
+# then run:
+bpy.ops.object.select_all(action='DESELECT')
+bpy.context.object.select_set(True)
+scale_curve_to_integer(bpy.context.object)"""
+
+
 

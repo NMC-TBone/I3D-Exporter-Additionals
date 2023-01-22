@@ -18,7 +18,7 @@ class I3DEA_UL_pose_curves(UIList):
 class I3deaPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'GIANTS I3D Exporter NEW'
+    bl_category = 'I3D Exporter Additionals'
 
 
 class I3DEA_PT_MainPanel(I3deaPanel, Panel):
@@ -38,6 +38,7 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_GeneralTools'
     bl_label = 'General Tools'
     bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         giants_i3d, stjerne_i3d = check_i3d_exporter_type()
@@ -64,6 +65,7 @@ class I3DEA_PT_UserAttributes(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_UserAttributes'
     bl_label = 'User Attributes'
     bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -101,3 +103,106 @@ class I3DEA_PT_UserAttributes(I3deaPanel, Panel):
             row.prop(context.scene.i3dea, "user_attribute_type", text="Type")
             row = col.row()
             row.operator("i3dea.create_user_attribute", text="Add")
+
+
+class I3DEA_PT_TrackTools(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_TrackTools'
+    bl_label = 'Track Tools'
+    bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+        layout = self.layout
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.label(text="Hey")
+
+
+class I3DEA_PT_TrackSetup(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_TrackSetup'
+    bl_label = 'Track Setup'
+    bl_parent_id = 'I3DEA_PT_TrackTools'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        i3dea = context.scene.i3dea
+        layout = self.layout
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(i3dea, "track_mode", expand=True)
+
+        if i3dea.track_mode == 'MANUAL':
+            box = layout.box()
+            box_col = box.column(align=True)
+            box_col.label(text="Create Second UV")
+            box_row = box_col.row(align=True)
+
+            box_row.prop(i3dea, "size_dropdown", text="")
+            box_row.operator("i3dea.make_uvset", text="Create UVset 2", icon="UV")
+
+            box = layout.box()
+            box_col = box.column(align=True)
+            box_col.label(text="Add empties between selected objects")
+            box_row = box_col.row(align=True)
+
+            box_row.prop(i3dea, "add_empty_int", text="")
+            box_row.operator("i3dea.add_empty", text="Add", icon='EMPTY_DATA')
+
+            box = layout.box()
+            box_col = box.column(align=True)
+            box_col.label(text="Get length of selected curve")
+            box_row = box_col.row(align=True)
+
+            box_row.prop(i3dea, "curve_length_disp", text="")
+            box_row.operator("i3dea.curve_length", text="Get Curve Length", icon='MOD_LENGTH')
+
+            box = layout.box()
+            box_col = box.column(align=True)
+            box_col.label(text="Get length of selected curve")
+            box_row = box_col.row(align=True)
+
+            box_row.prop(i3dea, "piece_distance", text="")
+            box_row.operator("i3dea.calculate_amount", text="Calculate Amount")
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "track_piece_amount", text="")
+
+
+class I3DEA_PT_TrackVisualization(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_TrackVisualization'
+    bl_label = 'Track Visualization'
+    bl_parent_id = 'I3DEA_PT_TrackTools'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(context.scene.i3dea, "track_type_method", expand=True)
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        if context.scene.i3dea.track_type_method == 'CATERPILLAR':
+            col = layout.column(heading="Track Settings", align=True)
+            col.prop(context.scene.i3dea, "track_vis_amount")
+            col.prop(context.scene.i3dea, "track_vis_distance")
+        row = layout.row(align=True)
+        row.operator("i3dea.visualization", text="Track Visualization")
+        row.operator("i3dea.visualization_del", text="Delete")
+
+
+class I3DEA_PT_ArrayHierarchy(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_ArrayHierarchy'
+    bl_label = 'Motion Path From Curves'
+    bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        i3dea = context.scene.i3dea
+        layout = self.layout
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.label(text="Test")
+        # row.prop(i3dea, "track_mode", expand=True)
