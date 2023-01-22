@@ -35,7 +35,6 @@ if "bpy" in locals():
     importlib.reload(tools)
 else:
     import bpy
-    from .helper_functions import Singleton
     from . import properties, ui, new_ui
     from .tools import (
         assets_importer,

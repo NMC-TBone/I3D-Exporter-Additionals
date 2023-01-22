@@ -25,9 +25,9 @@ import math
 import mathutils
 from mathutils import Vector
 
-from ..helper_functions import Singleton
+from ..helper_functions import check_i3d_exporter_type
 
-singleton_instance = Singleton.get_instance()
+giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
 
 def get_curve_length(curve_obj):

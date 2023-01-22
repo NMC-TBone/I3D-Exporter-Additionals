@@ -20,9 +20,9 @@
 
 import bpy
 
-from ..helper_functions import Singleton
+from ..helper_functions import check_i3d_exporter_type
 
-singleton_instance = Singleton.get_instance()
+giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
 
 class I3DEA_OT_mirror_material(bpy.types.Operator):
@@ -31,7 +31,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
     bl_description = "Adds mirror_mat to materials"
 
     def execute(self, context):
-        if singleton_instance.giants_i3d:
+        if giants_i3d:
             if context.scene.I3D_UIexportSettings.I3D_shaderFolderLocation == "":
                 self.report({'ERROR'}, "Shader Folder location is not set!")
                 return {'CANCELLED'}
@@ -57,7 +57,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
                 for i in range(len(obj.material_slots)):
                     bpy.ops.object.material_slot_remove()
                 obj.data.materials.append(mirror_mat)
-                if singleton_instance.giants_i3d:
+                if giants_i3d:
                     bpy.context.object.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
                     bpy.context.object.active_material['shadingRate'] = "1x1"
             self.report({'INFO'}, "Created material: mirror_mat")
@@ -119,9 +119,9 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                 except Exception as e:
                     print(e)
 
-            if singleton_instance.giants_i3d:
+            if giants_i3d:
                 links.new(img_tex_spec.outputs["Color"], principled.inputs["Specular"])
-            if singleton_instance.stjerne_i3d:
+            if stjerne_i3d:
                 sep_rgb = nodes.new("ShaderNodeSeparateRGB")
                 sep_rgb.location = (-210, 90)
                 links.new(img_tex_spec.outputs["Color"], sep_rgb.inputs["Image"])

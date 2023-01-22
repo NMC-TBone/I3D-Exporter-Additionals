@@ -1,8 +1,8 @@
 import bpy
 
-from .helper_functions import Singleton
+from .helper_functions import check_i3d_exporter_type
 
-singleton_instance = Singleton.get_instance()
+giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
 
 class I3DEA_PT_panel(bpy.types.Panel):
@@ -15,7 +15,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        if singleton_instance.giants_i3d and singleton_instance.stjerne_i3d:
+        if giants_i3d and stjerne_i3d:
             # "Exporter selection" box
             layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
             layout.label(text="Recommend to disable one of them as it can cause some issues")
@@ -35,7 +35,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
             row = box.row()
             # row.operator("i3dea.mirror_orientation", text="Set mirror orientation")
             # row.operator("i3dea.fill_volume", text="Check Fill Volume")
-            if singleton_instance.giants_i3d:
+            if giants_i3d:
                 row = box.row()
                 # row.operator("i3dea.ignore", text="Add Suffix _ignore")
                 # row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
@@ -202,7 +202,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 row.prop(context.scene.i3dea, "normal_texture_path", text="Normal")
                 row = box.row()
                 row.operator("i3dea.setup_material", text="Create " + bpy.context.scene.i3dea.material_name)
-            if singleton_instance.stjerne_i3d:
+            if stjerne_i3d:
                 box = col.box()
                 row = box.row()
                 row.prop(context.scene.i3dea, "UI_paths", text="Add paths to material", icon='TRIA_DOWN' if context.scene.i3dea.UI_paths else 'TRIA_RIGHT', icon_only=False, emboss=False)

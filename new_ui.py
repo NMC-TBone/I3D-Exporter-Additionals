@@ -1,9 +1,7 @@
 import bpy
 
 from bpy.types import Panel, UIList
-from .helper_functions import Singleton
-
-singleton_instance = Singleton.get_instance()
+from .helper_functions import check_i3d_exporter_type
 
 
 class I3DEA_UL_pose_curves(UIList):
@@ -28,8 +26,9 @@ class I3DEA_PT_MainPanel(I3deaPanel, Panel):
     bl_label = 'I3D Exporter Additionals'
 
     def draw(self, context):
+        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
-        if singleton_instance.giants_i3d and singleton_instance.stjerne_i3d:
+        if giants_i3d and stjerne_i3d:
             # "Exporter selection" box
             layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
             layout.label(text="Recommend to disable one of them as it can cause some issues")
@@ -41,6 +40,7 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
     bl_parent_id = 'I3DEA_PT_MainPanel'
 
     def draw(self, context):
+        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -52,7 +52,7 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
         row = col.row(align=True)
         row.operator("i3dea.mesh_name", text="Set Mesh Name")
         row.operator("i3dea.fill_volume", text="Check Fill Volume")
-        if singleton_instance.giants_i3d:
+        if giants_i3d:
             row = col.row(align=True)
             row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
             row.operator("i3dea.ignore", text="Add Suffix _ignore")
@@ -67,7 +67,8 @@ class I3DEA_PT_UserAttributes(I3deaPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return singleton_instance.giants_i3d
+        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+        return giants_i3d
 
     def draw(self, context):
         layout = self.layout
