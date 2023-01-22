@@ -1,6 +1,8 @@
 import bpy
 
-from .helper_functions import check_i3d_exporter_type
+from .helper_functions import Singleton
+
+singleton_instance = Singleton.get_instance()
 
 
 class I3DEA_PT_panel(bpy.types.Panel):
@@ -13,8 +15,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
-        if giants_i3d and stjerne_i3d:
+        if singleton_instance.giants_i3d and singleton_instance.stjerne_i3d:
             # "Exporter selection" box
             layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
             layout.label(text="Recommend to disable one of them as it can cause some issues")
@@ -26,20 +27,20 @@ class I3DEA_PT_panel(bpy.types.Panel):
         # expanded view
         if context.scene.i3dea.UI_meshTools:
             row = box.row()
-            row.operator("i3dea.copy_orientation", text="Copy Location").state = 1
-            row.operator("i3dea.copy_orientation", text="Copy Rotation").state = 2
+            # row.operator("i3dea.copy_orientation", text="Copy Location").state = 1
+            # row.operator("i3dea.copy_orientation", text="Copy Rotation").state = 2
             row = box.row()
-            row.operator("i3dea.remove_doubles", text="Clean Meshes")
-            row.operator("i3dea.mesh_name", text="Set Mesh Name")
+            # row.operator("i3dea.remove_doubles", text="Clean Meshes")
+            # row.operator("i3dea.mesh_name", text="Set Mesh Name")
             row = box.row()
-            row.operator("i3dea.mirror_orientation", text="Set mirror orientation")
-            row.operator("i3dea.fill_volume", text="Check Fill Volume")
-            if giants_i3d:
+            # row.operator("i3dea.mirror_orientation", text="Set mirror orientation")
+            # row.operator("i3dea.fill_volume", text="Check Fill Volume")
+            if singleton_instance.giants_i3d:
                 row = box.row()
-                row.operator("i3dea.ignore", text="Add Suffix _ignore")
-                row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
+                # row.operator("i3dea.ignore", text="Add Suffix _ignore")
+                # row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
                 row = box.row()
-                row.operator("i3dea.verify_scene", text="Verify Scene")
+                # row.operator("i3dea.verify_scene", text="Verify Scene")
                 col = box.column()
                 box = col.box()
                 row = box.row()
@@ -201,7 +202,7 @@ class I3DEA_PT_panel(bpy.types.Panel):
                 row.prop(context.scene.i3dea, "normal_texture_path", text="Normal")
                 row = box.row()
                 row.operator("i3dea.setup_material", text="Create " + bpy.context.scene.i3dea.material_name)
-            if stjerne_i3d:
+            if singleton_instance.stjerne_i3d:
                 box = col.box()
                 row = box.row()
                 row.prop(context.scene.i3dea, "UI_paths", text="Add paths to material", icon='TRIA_DOWN' if context.scene.i3dea.UI_paths else 'TRIA_RIGHT', icon_only=False, emboss=False)

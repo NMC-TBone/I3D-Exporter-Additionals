@@ -25,9 +25,9 @@ import math
 import mathutils
 from mathutils import Vector
 
-from ..helper_functions import check_obj_type, check_i3d_exporter_type
+from ..helper_functions import Singleton
 
-giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
+singleton_instance = Singleton.get_instance()
 
 
 def get_curve_length(curve_obj):
@@ -258,13 +258,13 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             bpy.ops.object.empty_add(radius=0, location=original_loc)
             track_geo = bpy.context.object
             track_geo.name = f"{name}Geo"
-            if giants_i3d:
-                dcc.I3DSetAttrBool(track_geo.name, 'I3D_receiveShadows', True)
-                dcc.I3DSetAttrBool(track_geo.name, 'I3D_castsShadows', True)
-                dcc.I3DSetAttrBool(track_geo.name, 'I3D_clipDistance', 300)
-                dcc.I3DSetAttrBool(track_geo.name, 'I3D_mergeChildren', True)
-                dcc.I3DSetAttrBool(track_geo.name, 'I3D_objectDataExportOrientation', True)
-                dcc.I3DSetAttrBool(track_geo.name, 'I3D_objectDataExportPosition', True)
+            if singleton_instance.giants_i3d:
+                track_geo['I3D_receiveShadows'] = True
+                track_geo['I3D_castsShadows'] = True
+                track_geo['I3D_clipDistance'] = 300.00
+                track_geo['I3D_mergeChildren'] = True
+                track_geo['I3D_objectDataExportOrientation'] = True
+                track_geo['I3D_objectDataExportPosition'] = True
             obj_name = track_geo.name
             dim_x = original_obj.dimensions[0]
             create_bbox(context.scene.i3dea.all_curves, name, obj_name, dim_x)
@@ -389,8 +389,8 @@ def create_bbox(curve_name, name, obj_name, dim_x):
         vert.co = matrix @ vert.co
     bbox.matrix_world.identity()
 
-    if giants_i3d:
-        dcc.I3DSetAttrString(bbox.name, 'I3D_boundingVolume', obj_name)
+    if singleton_instance.giants_i3d:
+        bbox['I3D_boundingVolume'] = obj_name
     bbox.hide_set(True)
     return bbox
 

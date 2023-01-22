@@ -1,7 +1,7 @@
 import bpy
-from ..helper_functions import check_i3d_exporter_type
+from ..helper_functions import Singleton
 
-giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
+singleton_instance = Singleton.get_instance()
 
 
 class I3DEA_UL_selected_curves(bpy.types.UIList):
@@ -124,13 +124,13 @@ def create_empties_on_curve(selected_curves, hierarchy_name, num_empties=10):
     # Create empty object "pose1"
     hierarchy_empty = create_empty(name=hierarchy_name)
 
-    if giants_i3d:
-        dcc.I3DSetAttrString(hierarchy_empty.name, 'I3D_objectDataFilePath', hierarchy_name + ".dds")
-        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataHierarchicalSetup', True)
-        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataHideFirstAndLastObject', True)
-        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataExportPosition', True)
-        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataExportOrientation', True)
-        dcc.I3DSetAttrBool(hierarchy_empty.name, 'I3D_objectDataExportScale', True)
+    if singleton_instance.giants_i3d:
+        hierarchy_empty['I3D_objectDataFilePath'] = hierarchy_name + ".dds"
+        hierarchy_empty['I3D_objectDataHierarchicalSetup'] = True
+        hierarchy_empty['I3D_objectDataHideFirstAndLastObject'] = True
+        hierarchy_empty['I3D_objectDataExportPosition'] = True
+        hierarchy_empty['I3D_objectDataExportOrientation'] = True
+        hierarchy_empty['I3D_objectDataExportScale'] = True
 
     # Create empty object "pose1"
     pose1 = create_empty(name="pose1")

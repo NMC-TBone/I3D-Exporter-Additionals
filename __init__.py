@@ -15,15 +15,6 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
-
-"""
-TODO:
-    - See if it's possible to do more with fill volume checker
-    - Make it possible to scale the curve to get an rounded value for the track amount
-"""
-
-
 bl_info = {
     "name": "I3D Exporter Additionals",
     "author": "T-Bone",
@@ -35,14 +26,17 @@ bl_info = {
     "category": "Game Engine"
 }
 
-
 if "bpy" in locals():
     import importlib
+    importlib.reload(helper_functions)
     importlib.reload(properties)
     importlib.reload(ui)
+    importlib.reload(new_ui)
     importlib.reload(tools)
 else:
-    from . import properties, ui
+    import bpy
+    from .helper_functions import Singleton
+    from . import properties, ui, new_ui
     from .tools import (
         assets_importer,
         orientation_tools,
@@ -55,14 +49,13 @@ else:
         generate_empty_on_curves,
     )
 
-
-import bpy
-
-
 classes = [
     properties.I3DEA_custom_ObjectProps,
     properties.I3DEA_PG_List,
     ui.I3DEA_PT_panel,
+    new_ui.I3DEA_PT_MainPanel,
+    new_ui.I3DEA_PT_GeneralTools,
+    new_ui.I3DEA_PT_UserAttributes,
     track_tools.I3DEA_OT_make_uvset,
     track_tools.I3DEA_OT_add_empty,
     track_tools.I3DEA_OT_curve_length,
@@ -101,3 +94,7 @@ def unregister():
     del bpy.types.Scene.i3dea
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+
+if __name__ == "__main__":
+    register()
