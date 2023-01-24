@@ -25,20 +25,9 @@ import math
 import mathutils
 from mathutils import Vector
 
-from ..helper_functions import check_i3d_exporter_type, check_obj_type
+from ..helper_functions import check_i3d_exporter_type, check_obj_type, get_curve_length
 
 giants_i3d, stjerne_i3d = check_i3d_exporter_type()
-
-
-def get_curve_length(curve_obj):
-    """
-    Returns length of curve and if the scale is not 1 1 1, it will be applied first to get the correct result
-    """
-    if curve_obj.scale != Vector((1, 1, 1)):
-        print(f"{curve_obj.name} scale is not 1 1 1, scale will be applied.")
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    length = curve_obj.data.splines[0].calc_length(resolution=1024)
-    return length
 
 
 def create_empties(objs, amount):

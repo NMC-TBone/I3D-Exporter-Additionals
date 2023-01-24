@@ -1,5 +1,5 @@
 import bpy
-
+from mathutils import Vector
 
 def check_i3d_exporter_type():
     giants_i3d = False
@@ -20,3 +20,14 @@ def check_obj_type(obj):
                 continue
             if not mode == 'OBJECT':
                 bpy.ops.object.mode_set(mode='OBJECT')
+
+
+def get_curve_length(curve_obj):
+    """
+    Returns length of curve and if the scale is not 1 1 1, it will be applied first to get the correct result
+    """
+    if curve_obj.scale != Vector((1, 1, 1)):
+        print(f"{curve_obj.name} scale is not 1 1 1, scale will be applied.")
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    length = curve_obj.data.splines[0].calc_length(resolution=1024)
+    return length

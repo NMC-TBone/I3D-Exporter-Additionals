@@ -112,11 +112,7 @@ class I3DEA_PT_TrackTools(I3deaPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
-        layout = self.layout
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label(text="Hey")
+        pass
 
 
 class I3DEA_PT_TrackSetup(I3deaPanel, Panel):
@@ -192,6 +188,26 @@ class I3DEA_PT_TrackVisualization(I3deaPanel, Panel):
         row.operator("i3dea.visualization_del", text="Delete")
 
 
+class I3DEA_UL_PoseList(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=item.name)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text=item.name)
+
+
+class I3DEA_UL_SubPoseCurveList(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        curve_ob = item.curve
+        curve_icon = 'OUTLINER_OB_CURVE'
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.prop(curve_ob, "name", text="", emboss=False, icon=curve_icon)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+
+
 class I3DEA_PT_ArrayHierarchy(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_ArrayHierarchy'
     bl_label = 'Motion Path From Curves'
@@ -204,5 +220,47 @@ class I3DEA_PT_ArrayHierarchy(I3deaPanel, Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.label(text="Test")
-        # row.prop(i3dea, "track_mode", expand=True)
+        row.template_list("I3DEA_UL_PoseList", "", i3dea, "pose_list", i3dea, "pose_count", rows=1)
+        col = row.column(align=True)
+        col.operator("i3dea.add_pose", text="", icon='ADD')
+        col.operator("i3dea.remove_pose", text="", icon='REMOVE')
+
+
+class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
+    bl_label = "Sub Pose List"
+    bl_parent_id = "I3DEA_PT_ArrayHierarchy"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.i3dea.pose_list
+
+    def draw(self, context):
+        i3dea = context.scene.i3dea
+        layout = self.layout
+        pose_list = context.scene.i3dea.pose_list
+        if pose_list:
+            selected_pose = pose_list[context.scene.i3dea.pose_count]
+            layout.label(text=str(pose_list[context.scene.i3dea.pose_count].name))
+            row = layout.row()
+            row.template_list("I3DEA_UL_SubPoseCurveList", "", selected_pose, "sub_pose_list", selected_pose, "sub_pose_count", rows=1)
+            row = layout.row(align=True)
+            row.operator("i3dea.add_curve", text="Add Curves", icon='ADD')
+            row.operator("i3dea.remove_curve", text="Remove All", icon='CANCEL').remove_all = True
+            row.operator("i3dea.remove_curve", text="Remove", icon='REMOVE').remove_all = False
+
+            box = layout.box()
+            box_col = box.column(align=True)
+            box_col.label(text="Settings for array creation")
+            box_row = box_col.row(align=True)
+
+            box_row.prop(i3dea, "motion_type", expand=True)
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "motion_amount_rel")
+            box_row.prop(i3dea, "motion_amount_fix")
+            box_row.prop(i3dea, "motion_distance")
+            box_row = box_col.row()
+            box_row.label(text="")
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "motion_hierarchy_name")
+            box_row = box_col.row(align=True)
+            box_row.operator("i3dea.add_empties_curves", text="Create")

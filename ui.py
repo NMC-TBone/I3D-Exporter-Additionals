@@ -109,12 +109,12 @@ class I3DEA_PT_panel(bpy.types.Panel):
             # row = box.row()
             # row.operator("i3dea.curve_length", text="Get Curve Length", icon='MOD_LENGTH')
             # row.prop(context.scene.i3dea, "curve_length_disp", text="")
-            box = col.box()
-            row = box.row()
-            row.prop(context.scene.i3dea, "piece_distance", text="")
-            row.operator("i3dea.calculate_amount", text="Calculate Amount")
-            row = box.row()
-            row.prop(context.scene.i3dea, "track_piece_amount", text="")
+            # box = col.box()
+            # row = box.row()
+            # row.prop(context.scene.i3dea, "piece_distance", text="")
+            # row.operator("i3dea.calculate_amount", text="Calculate Amount")
+            # row = box.row()
+            # row.prop(context.scene.i3dea, "track_piece_amount", text="")
             # box = col.box()
             # row = box.row()
             # row.prop(context.scene.i3dea, "track_type_method", expand=True)
@@ -123,42 +123,42 @@ class I3DEA_PT_panel(bpy.types.Panel):
             # row.operator("i3dea.visualization_del", text="Delete")
         # ---------------------------------------------------------------
         # "Curve-Tools" Box
-        box = layout.box()
-        row = box.row()
+        # box = layout.box()
+        # row = box.row()
         # expand button for "Curve Tools"
-        row.prop(context.scene.i3dea, "UI_curve_tools", text="Curve-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_curve_tools else 'TRIA_RIGHT', icon_only=False, emboss=False)
+        # row.prop(context.scene.i3dea, "UI_curve_tools", text="Curve-Tools", icon='TRIA_DOWN' if context.scene.i3dea.UI_curve_tools else 'TRIA_RIGHT', icon_only=False, emboss=False)
         # expanded view
-        if context.scene.i3dea.UI_curve_tools:
-            scene = context.scene
-            pg = scene.i3dea
-            row = box.row()
-            row.template_list("I3DEA_UL_selected_curves", "", pg, "object_collection", pg, "active_obj_index")
-            row = box.row()
-            row.operator("i3dea.add_empties_curves", text="Load Selected").state = 1
-            row.operator("i3dea.add_empties_curves", text="Remove All").state = 2
-            row.operator("i3dea.add_empties_curves", text="Remove Active").state = 3
-            row = box.row()
-            row.prop(context.scene.i3dea, "use_pose2")
-            if context.scene.i3dea.use_pose2:
-                row = box.row()
-                row.template_list("I3DEA_UL_selected_curves2", "", pg, "object_collection2", pg, "active_obj_index2")
-                row = box.row()
-                row.operator("i3dea.add_empties_curves", text="Load Selected").state = 4
-                row.operator("i3dea.add_empties_curves", text="Remove All").state = 5
-                row.operator("i3dea.add_empties_curves", text="Remove Active").state = 6
-            row = box.row()
-            row.enabled = context.scene.i3dea.use_distance is False
-            row.prop(context.scene.i3dea, "use_amount")
+        # if context.scene.i3dea.UI_curve_tools:
+            # scene = context.scene
+            # pg = scene.i3dea
+            # row = box.row()
+            # row.template_list("I3DEA_UL_selected_curves", "", pg, "object_collection", pg, "active_obj_index")
+            # row = box.row()
+            # row.operator("i3dea.add_empties_curves", text="Load Selected").state = 1
+            # row.operator("i3dea.add_empties_curves", text="Remove All").state = 2
+            # row.operator("i3dea.add_empties_curves", text="Remove Active").state = 3
+            # row = box.row()
+            # row.prop(context.scene.i3dea, "use_pose2")
+            # if context.scene.i3dea.use_pose2:
+            #     row = box.row()
+            #     row.template_list("I3DEA_UL_selected_curves2", "", pg, "object_collection2", pg, "active_obj_index2")
+            #     row = box.row()
+            #     row.operator("i3dea.add_empties_curves", text="Load Selected").state = 4
+            #     row.operator("i3dea.add_empties_curves", text="Remove All").state = 5
+            #     row.operator("i3dea.add_empties_curves", text="Remove Active").state = 6
+            # row = box.row()
+            # row.enabled = context.scene.i3dea.use_distance is False
+            # row.prop(context.scene.i3dea, "use_amount")
             # row2 = row.row()
             # row2.enabled = context.scene.i3dea.use_amount is False
             # row2.prop(context.scene.i3dea, "use_distance")
-            row = box.row()
-            row.prop(context.scene.i3dea, "amount_curve")
-            row.prop(context.scene.i3dea, "distance_curve")
-            row = box.row()
-            row.prop(context.scene.i3dea, "curve_array_name", text="Array Name")
-            row = box.row()
-            row.operator("i3dea.add_empties_curves", text="Create", icon='OUTLINER_DATA_CURVES').state = 7
+            # row = box.row()
+            # row.prop(context.scene.i3dea, "amount_curve")
+            # row.prop(context.scene.i3dea, "distance_curve")
+            # row = box.row()
+            # row.prop(context.scene.i3dea, "curve_array_name", text="Array Name")
+            # row = box.row()
+            # row.operator("i3dea.add_empties_curves", text="Create", icon='OUTLINER_DATA_CURVES').state = 7
         # ---------------------------------------------------------------
         # "Skeleton-Tools" Box
         box = layout.box()

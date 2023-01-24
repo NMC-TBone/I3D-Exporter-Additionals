@@ -49,7 +49,8 @@ else:
     )
 
 classes = [
-    properties.I3DEA_custom_ObjectProps,
+    properties.SubPoseItem,
+    properties.PoseItem,
     properties.I3DEA_PG_List,
     track_tools.I3DEA_OT_make_uvset,
     track_tools.I3DEA_OT_add_empty,
@@ -63,9 +64,11 @@ classes = [
     mesh_tools.I3DEA_OT_mirror_orientation,
     mesh_tools.I3DEA_OT_xml_config,
     mesh_tools.I3DEA_OT_fill_volume,
+    generate_empty_on_curves.PoseAddOperator,
+    generate_empty_on_curves.PoseRemoveOperator,
+    generate_empty_on_curves.AddCurveOperator,
+    generate_empty_on_curves.RemoveCurveOperator,
     generate_empty_on_curves.I3DEA_OT_empties_along_curves,
-    generate_empty_on_curves.I3DEA_UL_selected_curves,
-    generate_empty_on_curves.I3DEA_UL_selected_curves2,
     skeletons.I3DEA_OT_skeletons,
     material_tools.I3DEA_OT_mirror_material,
     material_tools.I3DEA_OT_remove_duplicate_material,
@@ -83,7 +86,10 @@ classes = [
     new_ui.I3DEA_PT_TrackTools,
     new_ui.I3DEA_PT_TrackSetup,
     new_ui.I3DEA_PT_TrackVisualization,
+    new_ui.I3DEA_UL_PoseList,
+    new_ui.I3DEA_UL_SubPoseCurveList,
     new_ui.I3DEA_PT_ArrayHierarchy,
+    new_ui.I3DEA_PT_SubArrayHierarchy,
 ]
 
 

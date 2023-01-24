@@ -9,11 +9,15 @@ from bpy.props import (
     PointerProperty
 )
 
-class I3DEA_custom_ObjectProps(bpy.types.PropertyGroup):
-    curve_ref: PointerProperty(
-        name="Object",
-        type=bpy.types.Object
-        )
+
+class SubPoseItem(bpy.types.PropertyGroup):
+    curve: bpy.props.PointerProperty(type=bpy.types.Object)
+
+
+class PoseItem(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="Name", default="Pose")
+    sub_pose_list: bpy.props.CollectionProperty(type=SubPoseItem)
+    sub_pose_count: bpy.props.IntProperty(default=0)
 
 
 class I3DEA_PG_List(bpy.types.PropertyGroup):
@@ -214,15 +218,17 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     use_distance: BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
     use_pose2: BoolProperty(name="Use Pose 2", description="When this is checked, you will be able to use another set of curves.", default=False)
 
-    active_obj_index: IntProperty()
-    object_collection: CollectionProperty(
-        type=I3DEA_custom_ObjectProps
-    )
-
-    active_obj_index2: IntProperty()
-    object_collection2: CollectionProperty(
-        type=I3DEA_custom_ObjectProps
-    )
+    # Motion Path From Curves
+    pose_list: bpy.props.CollectionProperty(type=PoseItem)
+    pose_count: bpy.props.IntProperty(default=0)
+    motion_type: EnumProperty(name="Motion Types",
+                                    items=[('AMOUNT_REL', 'Fixed Amount', "Places empties on every curve in equal distances per curve"),
+                                           ('AMOUNT_FIX', 'Distance from Amount', "Places empties on longest curve in equal distance. Apply this distance on other curves",),
+                                           ('DISTANCE', 'Fixed Distance', "Places Objects in fixed equal distance")])
+    motion_amount_rel: IntProperty(name="AmountRel", default=32)
+    motion_amount_fix: IntProperty(name="AmountFix", default=32)
+    motion_distance: FloatProperty(name="AmountFix", default=0.2)
+    motion_hierarchy_name: StringProperty(name="Array Name", default="curveArray")
 
     # Properties for UI in dropdowns
     UI_meshTools: BoolProperty(name="Mesh-Tools", default=False)
