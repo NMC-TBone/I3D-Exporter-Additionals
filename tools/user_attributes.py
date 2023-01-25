@@ -31,7 +31,7 @@ class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     def execute(self, context):
         attr_type = context.scene.i3dea.user_attribute_type
         attr_name = context.scene.i3dea.user_attribute_name
-        create_attr_name = "userAttribute_{}_{}".format(attr_type, attr_name)
+        create_attr_name = f"userAttribute_{attr_type}_{attr_name}"
         obj = context.object
 
         if obj:

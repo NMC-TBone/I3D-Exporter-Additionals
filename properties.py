@@ -198,6 +198,15 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     track_vis_amount: IntProperty(name="Amount of pieces", description="Amount of track pieces to use along the curve", default=1, min=1, max=200)
     track_vis_distance: FloatProperty(name="Distance between links", description="Distance between each link", default=0.2, precision=6, min=0.0001, max=5, unit='LENGTH')
 
+    # Automatic mode settings
+    auto_uvset: BoolProperty(name="Create 2nd UV", description="If checked it will create 2nd UVset", default=False)
+    auto_vmask: BoolProperty(name="Add Vmask", description="Adds pieces ready for AO bake", default=False)
+    auto_amount: BoolProperty(name="Allow Auto Amount", description="Automatically calculates the amount of pieces", default=False)
+    auto_fxd_amount: IntProperty(name="Piece Amount", description="Fixed number of amount of pieces that will be added", default=False)
+    auto_allow_curve_scale: BoolProperty(name="Allow Curve Scale", description="If checked it will try to scale the curve so it perfectly fits a whole iteger amount of pieces", default=False)
+    auto_empty: BoolProperty(name="Add Empties", description="If checked it will add the amount of empties bellow", default=False)
+    auto_empty_int: IntProperty(name="Empty amount", description="Amount of empties that will be added between each track piece", default=False, min=1, max=5)
+
     # User Attribute properties.py
     user_attribute_name: StringProperty(name="Name", description="Name of the User Attribute.")
     user_attribute_type: EnumProperty(
@@ -229,7 +238,3 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     motion_amount_fix: IntProperty(name="AmountFix", default=32)
     motion_distance: FloatProperty(name="AmountFix", default=0.2)
     motion_hierarchy_name: StringProperty(name="Array Name", default="curveArray")
-
-    # Properties for UI in dropdowns
-    UI_track_tools: BoolProperty(name="UV-Tools", default=False)
-    UI_uvset: BoolProperty(name="UVset", default=False)

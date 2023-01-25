@@ -236,6 +236,29 @@ class I3DEA_PT_TrackSetup(I3deaPanel, Panel):
             box_row = box_col.row(align=True)
             box_row.prop(i3dea, "track_piece_amount", text="")
 
+        elif i3dea.track_mode == 'AUTOMATIC':
+            box = layout.box()
+            box_col = box.column(align=True)
+            box_col.label(text="Settings")
+            box_row = box_col.row(align=True)
+
+            box_row.prop(i3dea, "auto_uvset", text="Create 2nd UV", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_uvset else 'CHECKBOX_DEHLT')
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "auto_vmask", text="Create Vmask Objects", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_vmask else 'CHECKBOX_DEHLT')
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "auto_amount", text="Auto Calc Amount", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_amount else 'CHECKBOX_DEHLT')
+            if not i3dea.auto_amount:
+                box_row = box_col.row(align=True)
+                box_row.prop(i3dea, "auto_fxd_amount", text="")
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "auto_allow_curve_scale", text="Allow Curve Scale", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_allow_curve_scale else 'CHECKBOX_DEHLT')
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "auto_empty", text="Add empties", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_empty else 'CHECKBOX_DEHLT')
+            if i3dea.auto_empty:
+                box_row = box_col.row(align=True)
+                box_row.prop(i3dea, "auto_empty_int", text="")
+
+
 
 class I3DEA_PT_TrackVisualization(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_TrackVisualization'

@@ -57,6 +57,7 @@ classes = [
     track_tools.I3DEA_OT_calculate_amount,
     track_tools.I3DEA_OT_visualization,
     track_tools.I3DEA_OT_visualization_del,
+    track_tools.I3DEA_OT_automatic_track_creation,
     mesh_tools.I3DEA_OT_remove_doubles,
     mesh_tools.I3DEA_OT_mesh_name,
     mesh_tools.I3DEA_OT_ignore,

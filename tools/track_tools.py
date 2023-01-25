@@ -277,6 +277,17 @@ class I3DEA_OT_make_uvset(bpy.types.Operator):
             return {'FINISHED'}
 
 
+class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
+    bl_label = "Generate UVset 2"
+    bl_idname = "i3dea.automatic_track_creation"
+    bl_description = "Create track setup depending on the above settings."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+
+        pass
+
+
 def create_second_uv(original_obj, name, amount):
     """
     Creates second UV set for the given object by copying it multiple times and transforming each copy's UV set.
@@ -399,6 +410,31 @@ def create_from_amount(objects, amount):
     return obj_list
 
 
+def scale_curve_to_integer(curve_name):
+    obj = bpy.data.objects[curve_name]
+    # Enter edit mode
+    bpy.ops.object.editmode_toggle()
+
+    # Select all control points
+    bpy.ops.curve.select_all(action='SELECT')
+
+    # Get the total length of the curve
+    length = get_curve_length(curve_name)
+    print(length)
+
+    # Round the length to the nearest whole number
+    # rounded_length = round(length)
+
+    # Calculate the scale factor
+    scale_factor = round(length) / length
+
+    # Apply the scale factor to the curve object
+    bpy.ops.transform.resize(value=(scale_factor, scale_factor, scale_factor))
+
+    # Exit edit mode
+    bpy.ops.object.editmode_toggle()
+
+
 """import bpy
 
 def scale_curve_to_integer(curve_object):
@@ -409,7 +445,7 @@ def scale_curve_to_integer(curve_object):
     bpy.ops.curve.select_all(action='SELECT')
 
     # Get the total length of the curve
-    length = curve_object.data.splines[0].calc_length(resolution=10000)
+    length = curve_object.data.splines[0].calc_length(resolution=1024)
     print(length)
 
     # Round the length to the nearest whole number

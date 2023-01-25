@@ -237,21 +237,18 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
 
             mirror_axis_target = bpy.data.objects.new("mirror_axis_target", None)
             bpy.context.collection.objects.link(mirror_axis_target)
-            target_mirror = bpy.data.objects.new("target_mirror", None)
-            bpy.context.collection.objects.link(target_mirror)
 
             v1 = (mirror.location - camera.location).normalized()
             v2 = (mirror.location - target.location).normalized()
 
             v3 = v1 + v2
 
-            target_mirror.location = mirror.location
             mirror_axis_target.location = mirror.location - v3
 
             mirror_axis_target.constraints.new('TRACK_TO')
             mirror_axis_target.constraints['Track To'].track_axis = 'TRACK_NEGATIVE_Z'
             mirror_axis_target.constraints['Track To'].up_axis = 'UP_Y'
-            mirror_axis_target.constraints['Track To'].target = target_mirror
+            mirror_axis_target.constraints['Track To'].target = mirror
             bpy.ops.object.select_all(action='DESELECT')
             bpy.context.view_layer.objects.active = mirror_axis_target
             mirror_axis_target.select_set(True)
@@ -283,7 +280,6 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
                 mirror.select_set(False)
 
             bpy.data.objects.remove(mirror_axis_target)
-            bpy.data.objects.remove(target_mirror)
 
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")

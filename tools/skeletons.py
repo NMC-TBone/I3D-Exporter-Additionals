@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # --------------------------------------------------------------------------------------
-#  Converted/inspired from skeletons script in maya i3d exporter, plugins/Skeletons.py
+#  Converted from skeletons script in maya i3d exporter, plugins/Skeletons.py
 # --------------------------------------------------------------------------------------
 
 # skeletons.py contains skeleton setup for vehicles, tools and placeables
