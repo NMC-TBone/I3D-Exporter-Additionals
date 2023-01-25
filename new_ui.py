@@ -31,7 +31,7 @@ class I3DEA_PT_MainPanel(I3deaPanel, Panel):
         if giants_i3d and stjerne_i3d:
             # "Exporter selection" box
             layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
-            layout.label(text="Recommend to disable one of them as it can cause some issues")
+            layout.label(text="Recommend to disable one of them as it can cause unexpected issues")
 
 
 class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
@@ -105,6 +105,78 @@ class I3DEA_PT_UserAttributes(I3deaPanel, Panel):
             row.operator("i3dea.create_user_attribute", text="Add")
 
 
+class I3DEA_PT_Skeletons(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_Skeletons'
+    bl_label = 'Skeletons'
+    bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        i3dea = context.scene.i3dea
+        layout = self.layout
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(i3dea, "skeletons_dropdown", text="")
+        row.operator("i3dea.skeletons", text="Create", icon='BONE_DATA')
+
+
+class I3DEA_PT_MaterialTools(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_MaterialTools'
+    bl_label = 'Material Tools'
+    bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        i3dea = context.scene.i3dea
+        layout = self.layout
+
+        box = layout.box()
+        box_col = box.column(align=True)
+        box_col.label(text="Material operators")
+        box_col.label(text="Mirror material is currently not possible to export with I3D Exporter")
+        box_row = box_col.row(align=True)
+
+        box_row.operator("i3dea.mirror_material", text="Add Mirror Material")
+        box_row.operator("i3dea.remove_duplicate_material", text="Remove Duplicate Materials")
+
+        box = layout.box()
+        box_col = box.column(align=True)
+        box_col.label(text="Create a material")
+        box_row = box_col.row(align=True)
+
+        box_row.prop(i3dea, "diffuse_box", text="Diffuse")
+        if i3dea.diffuse_box:
+            box_row.prop(i3dea, "alpha_box", text="Alpha")
+        box_row = box_col.row(align=True)
+        box_row.prop(i3dea, "material_name", text="")
+        if i3dea.diffuse_box:
+            box_row = box_col.row(align=True)
+            box_row.prop(i3dea, "diffuse_texture_path", text="Diffuse")
+        box_row = box_col.row(align=True)
+        box_row.prop(i3dea, "spec_texture_path", text="Specular")
+        box_row = box_col.row(align=True)
+        box_row.prop(i3dea, "normal_texture_path", text="Normal")
+        box_row = box_col.row(align=True)
+        box_row.operator("i3dea.setup_material", text="Create " + i3dea.material_name)
+
+
+class I3DEA_PT_AssetImporter(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_AssetImporter'
+    bl_label = 'Asset Importer'
+    bl_parent_id = 'I3DEA_PT_MainPanel'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        i3dea = context.scene.i3dea
+        layout = self.layout
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(i3dea, "assets_dropdown", text="")
+        row.operator("i3dea.assets", text="Import Asset")
+
+
 class I3DEA_PT_TrackTools(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_TrackTools'
     bl_label = 'Track Tools'
@@ -156,7 +228,7 @@ class I3DEA_PT_TrackSetup(I3deaPanel, Panel):
 
             box = layout.box()
             box_col = box.column(align=True)
-            box_col.label(text="Get length of selected curve")
+            box_col.label(text="Calculate the distance between 2 track pieces")
             box_row = box_col.row(align=True)
 
             box_row.prop(i3dea, "piece_distance", text="")

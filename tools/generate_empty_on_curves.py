@@ -1,3 +1,5 @@
+import math
+
 import bpy
 from ..helper_functions import check_i3d_exporter_type, get_curve_length
 
@@ -111,9 +113,11 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
         for pose in bpy.context.scene.i3dea.pose_list:
             pose_empty = self.__create_empty(name=pose.name)
             pose_empty.parent = hierarchy_empty
+
+            # For AMOUNT_FIX
             longest_curve_length = 0
             for curve in pose.sub_pose_list:
-                curve_length = get_curve_length(curve.curve)
+                curve_length = get_curve_length(curve.curve.name)
                 if curve_length > longest_curve_length:
                     longest_curve_length = curve_length
 
@@ -123,13 +127,13 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                 amount = 0
                 if bpy.context.scene.i3dea.motion_type == "AMOUNT_REL":
                     amount = bpy.context.scene.i3dea.motion_amount_rel
-                if bpy.context.scene.i3dea.motion_type == "DISTANCE":
-                    c_length = get_curve_length(curve.curve)
-                    amount = int(c_length / bpy.context.scene.i3dea.motion_distance)
-                if bpy.context.scene.i3dea.motion_type == "AMOUNT_FIX":
-                    c_length = get_curve_length(curve.curve)
+                elif bpy.context.scene.i3dea.motion_type == "DISTANCE":
+                    c_length = get_curve_length(curve.curve.name)
+                    amount = math.ceil(c_length / bpy.context.scene.i3dea.motion_distance)
+                elif bpy.context.scene.i3dea.motion_type == "AMOUNT_FIX":
+                    c_length = get_curve_length(curve.curve.name)
                     distance = longest_curve_length / bpy.context.scene.i3dea.motion_amount_fix
-                    amount = int(c_length / distance)
+                    amount = math.ceil(c_length / distance)
                 for i in range(amount):
                     x_empty = self.__create_empty(empty_type='ARROWS', name=f"{curve.curve.name}_X_{i:03d}")
                     # Set object constraint to follow curve
@@ -138,7 +142,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                     x_empty.constraints['Follow Path'].use_curve_radius = False
                     x_empty.constraints['Follow Path'].use_fixed_location = True
                     x_empty.constraints['Follow Path'].use_curve_follow = True
-                    x_empty.constraints['Follow Path'].forward_axis = 'FORWARD_Y'
+                    x_empty.constraints['Follow Path'].forward_axis = 'TRACK_NEGATIVE_Y'
                     x_empty.constraints['Follow Path'].up_axis = 'UP_Z'
 
                     # Set object parent based on curve name
@@ -148,8 +152,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                     x_empty.constraints['Follow Path'].offset_factor = i / (amount - 1)
 
                     # Apply the constraint
-                    bpy.ops.constraint.apply({'constraint': x_empty.constraints["Follow Path"]},
-                                             constraint='Follow Path')
+                    bpy.ops.constraint.apply({'constraint': x_empty.constraints["Follow Path"]}, constraint='Follow Path')
 
     def execute(self, context):
         i3dea = context.scene.i3dea

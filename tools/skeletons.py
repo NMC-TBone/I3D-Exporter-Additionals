@@ -98,7 +98,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_skel_node("playerLeftFootTarget", character_targets, True)
         self.create_skel_node("9_mirrors_cabin", cabin)
         self.create_skel_node("10_visuals_cabin", cabin)
-        attacher_joints = ""
+        attacher_joints = None
         if is_harvester:
             attacher_joints = self.create_vehicle_attacher_joints(True)
         else:
@@ -507,11 +507,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         light_transform = bpy.context.active_object
         light_transform.parent = parent
         light_transform.name = name
-        light = light_transform.name
         if giants_i3d:
-            light['I3D_collision'] = False
-            light['I3D_static'] = False
-            light['I3D_clipDistance'] = 75.00
+            light_transform['I3D_collision'] = False
+            light_transform['I3D_static'] = False
+            light_transform['I3D_clipDistance'] = 75.00
         if stjerne_i3d:
             bpy.context.object.i3d_attributes.clip_distance = 75
         return light_transform
@@ -525,7 +524,6 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         light = bpy.context.active_object
         light.parent = parent
         light.name = name
-        light = light.name
         if giants_i3d:
             light['I3D_collision'] = False
             light['I3D_static'] = False
@@ -560,7 +558,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
-        trigger = bpy.context.active_object.name
+        trigger = bpy.context.active_object
         if giants_i3d:
             trigger['I3D_collision'] = True
             trigger['I3D_static'] = True
@@ -585,7 +583,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         bpy.context.object.dimensions = size
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
-        trigger = bpy.context.active_object.name
+        trigger = bpy.context.active_object
         if giants_i3d:
             trigger['I3D_collision'] = True
             trigger['I3D_static'] = True

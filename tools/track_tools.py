@@ -74,7 +74,7 @@ class I3DEA_OT_curve_length(bpy.types.Operator):
             self.report({'ERROR'}, f"The active object ({context.active_object.name}) is not a curve")
             return {'CANCELLED'}
         else:
-            curve_length = get_curve_length(context.object)
+            curve_length = get_curve_length(context.object.name)
             context.scene.i3dea.curve_length_disp = str(round(curve_length, 6))
         return {'FINISHED'}
 
@@ -96,7 +96,7 @@ class I3DEA_OT_calculate_amount(bpy.types.Operator):
             context.scene.i3dea.piece_distance = abs(obj1[1] - obj2[1])
         elif context.object.type == 'CURVE':
             curve = bpy.context.object
-            curve_length = get_curve_length(curve)
+            curve_length = get_curve_length(curve.name)
             float_val = curve_length / bpy.context.scene.i3dea.piece_distance
             bpy.context.scene.i3dea.track_piece_amount = float_val
         return {'FINISHED'}
@@ -129,7 +129,7 @@ class I3DEA_OT_visualization(bpy.types.Operator):
         for piece, curve in zip(piece_list, curve_list):
             hierarchy_name = 'track_visualization'
             space = context.scene.i3dea.track_vis_distance
-            curve_length = get_curve_length(curve)
+            curve_length = get_curve_length(curve.name)
             if bpy.context.scene.i3dea.track_type_method == 'CATERPILLAR':
                 bpy.ops.mesh.primitive_plane_add()
                 plane = bpy.context.object

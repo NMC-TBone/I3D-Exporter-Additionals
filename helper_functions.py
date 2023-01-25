@@ -22,12 +22,11 @@ def check_obj_type(obj):
                 bpy.ops.object.mode_set(mode='OBJECT')
 
 
-def get_curve_length(curve_obj):
+def get_curve_length(curve_name):
     """
     Returns length of curve and if the scale is not 1 1 1, it will be applied first to get the correct result
     """
-    if curve_obj.scale != Vector((1, 1, 1)):
-        print(f"{curve_obj.name} scale is not 1 1 1, scale will be applied.")
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    length = curve_obj.data.splines[0].calc_length(resolution=1024)
+    if bpy.data.objects[curve_name].scale != Vector((1, 1, 1)):
+        print(f"{curve_name} scale is not 1 1 1, this can lead to wrong result.")
+    length = bpy.data.objects[curve_name].data.splines[0].calc_length(resolution=1024)
     return length

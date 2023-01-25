@@ -30,12 +30,11 @@ if "bpy" in locals():
     import importlib
     importlib.reload(helper_functions)
     importlib.reload(properties)
-    importlib.reload(ui)
     importlib.reload(new_ui)
     importlib.reload(tools)
 else:
     import bpy
-    from . import properties, ui, new_ui
+    from . import properties, new_ui
     from .tools import (
         assets_importer,
         orientation_tools,
@@ -79,10 +78,14 @@ classes = [
     user_attributes.I3DEA_OT_create_user_attribute,
     user_attributes.I3DEA_OT_delete_user_attribute,
     verifier.I3DEA_OT_verify_scene,
-    ui.I3DEA_PT_panel,
+
+    # UI classes
     new_ui.I3DEA_PT_MainPanel,
     new_ui.I3DEA_PT_GeneralTools,
     new_ui.I3DEA_PT_UserAttributes,
+    new_ui.I3DEA_PT_Skeletons,
+    new_ui.I3DEA_PT_MaterialTools,
+    new_ui.I3DEA_PT_AssetImporter,
     new_ui.I3DEA_PT_TrackTools,
     new_ui.I3DEA_PT_TrackSetup,
     new_ui.I3DEA_PT_TrackVisualization,

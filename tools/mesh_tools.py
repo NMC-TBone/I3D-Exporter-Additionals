@@ -18,8 +18,8 @@
 
 # mesh_tools.py includes different tools for mesh
 
-import bmesh
 import bpy
+import bmesh
 import math
 
 from mathutils import Matrix, Vector
@@ -216,99 +216,75 @@ class I3DEA_OT_fill_volume(bpy.types.Operator):
 
 class I3DEA_OT_mirror_orientation(bpy.types.Operator):
     bl_idname = "i3dea.mirror_orientation"
-    bl_label = "Calculate Amount"
-    bl_description = "Calculates how many track pieces that fit from given track piece length and curve length"
+    bl_label = "Set Mirror Orientation"
+    bl_description = "Sets mirror orientation based on camera and ref empty"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        types = ['MESH', 'CAMERA', 'EMPTY']
+        camera = None
+        mirror = None
+        target = None
+        for obj in bpy.context.selected_objects:
+            if obj.type == 'CAMERA':
+                camera = obj
+            elif obj.type == 'MESH':
+                mirror = obj
+            elif obj.type == 'EMPTY':
+                target = obj
 
-        selected_list = [obj for obj in bpy.context.selected_objects if obj.type in types]
-        camera_list = [mesh for mesh in selected_list if mesh.type == 'CAMERA']
-        mesh_list = [mesh for mesh in selected_list if mesh.type == 'MESH']
-        empty_list = [mesh for mesh in selected_list if mesh.type == 'EMPTY']
+        if camera and mirror and target:
+            mirror_parent = mirror.parent if mirror.parent else None
 
-        if len(bpy.context.selected_objects) == 3:
-            for camera, mirror, target in zip(camera_list, mesh_list, empty_list):
+            mirror_axis_target = bpy.data.objects.new("mirror_axis_target", None)
+            bpy.context.collection.objects.link(mirror_axis_target)
+            target_mirror = bpy.data.objects.new("target_mirror", None)
+            bpy.context.collection.objects.link(target_mirror)
 
-                mirror_parent = get_parent(mirror.name)
-                mirror_axis_target = bpy.ops.object.empty_add(type='ARROWS')
-                mirror_axis_target = bpy.context.active_object
-                mirror_axis_target.name = "mirror_axis_target"
-                target_mirror = bpy.ops.object.empty_add(type='ARROWS')
-                target_mirror = bpy.context.active_object
-                target_mirror.name = "target_mirror"
+            v1 = (mirror.location - camera.location).normalized()
+            v2 = (mirror.location - target.location).normalized()
 
-                camera_pos = camera.location
-                mirror_pos = mirror.location
-                target_pos = target.location
+            v3 = v1 + v2
 
-                v1 = vector_norm([mirror_pos[0]-camera_pos[0], mirror_pos[1]-camera_pos[1], mirror_pos[2]-camera_pos[2]])
-                v2 = vector_norm([mirror_pos[0]-target_pos[0], mirror_pos[1]-target_pos[1], mirror_pos[2]-target_pos[2]])
+            target_mirror.location = mirror.location
+            mirror_axis_target.location = mirror.location - v3
 
-                v3 = [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]]
+            mirror_axis_target.constraints.new('TRACK_TO')
+            mirror_axis_target.constraints['Track To'].track_axis = 'TRACK_NEGATIVE_Z'
+            mirror_axis_target.constraints['Track To'].up_axis = 'UP_Y'
+            mirror_axis_target.constraints['Track To'].target = target_mirror
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.context.view_layer.objects.active = mirror_axis_target
+            mirror_axis_target.select_set(True)
+            bpy.ops.constraint.apply(constraint="Track To", owner='OBJECT')
+            mirror_axis_target.select_set(False)
 
-                bpy.data.objects[target_mirror.name].location = (mirror_pos[0], mirror_pos[1], mirror_pos[2])
-                bpy.data.objects[mirror_axis_target.name].location = (mirror_pos[0] - v3[0], mirror_pos[1] - v3[1], mirror_pos[2] - v3[2])
+            matrix_world = mirror.matrix_world.copy()
+            mirror.parent = mirror_axis_target
+            mirror.matrix_parent_inverse = Matrix.Identity(4)
+            mirror.matrix_world = matrix_world
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.context.view_layer.objects.active = mirror
+            mirror.select_set(True)
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            mirror.select_set(False)
 
-                mirror_axis_target.constraints.new('TRACK_TO')
-                mirror_axis_target.constraints['Track To'].track_axis = 'TRACK_NEGATIVE_Z'
-                mirror_axis_target.constraints['Track To'].up_axis = 'UP_Y'
-                mirror_axis_target.constraints['Track To'].target = target_mirror
-                # mirror_axis_target.rotation_euler = (0, math.radians(-180), 0)
-                bpy.context.view_layer.objects.active = mirror_axis_target
-                mirror_axis_target.select_set(True)
-                bpy.ops.constraint.apply(constraint="Track To", owner='OBJECT')
-                mirror_axis_target.select_set(False)
-
-                matrix_world = mirror.matrix_world.copy()
-                mirror.parent = mirror_axis_target
-                mirror.matrix_parent_inverse = Matrix.Identity(4)
-                mirror.matrix_world = matrix_world
+            if mirror_parent:
+                bpy.ops.object.select_all(action='DESELECT')
+                bpy.context.view_layer.objects.active = mirror_parent
+                mirror_parent.select_set(True)
+                mirror.select_set(True)
+                bpy.ops.object.parent_set(type='OBJECT', keep_transform=True)
+                mirror_parent.select_set(False)
+            else:
                 bpy.ops.object.select_all(action='DESELECT')
                 bpy.context.view_layer.objects.active = mirror
                 mirror.select_set(True)
-                bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+                bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
                 mirror.select_set(False)
 
-                if mirror_parent is not None:
-                    bpy.ops.object.select_all(action='DESELECT')
-                    bpy.context.view_layer.objects.active = mirror_parent
-                    mirror_parent.select_set(True)
-                    mirror.select_set(True)
-                    bpy.ops.object.parent_set(type='OBJECT', keep_transform=True)
-                    mirror_parent.select_set(False)
-                else:
-                    bpy.ops.object.select_all(action='DESELECT')
-                    bpy.context.view_layer.objects.active = mirror
-                    mirror.select_set(True)
-                    bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-                    mirror.select_set(False)
+            bpy.data.objects.remove(mirror_axis_target)
+            bpy.data.objects.remove(target_mirror)
 
-                bpy.data.objects.remove(mirror_axis_target)
-                bpy.data.objects.remove(target_mirror)
-#
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
         return {'FINISHED'}
-
-
-def get_parent(node):
-    parents = bpy.data.objects[node].parent
-    parent = None
-    if parents is None:
-        pass
-    else:
-        parent = parents
-    return parent
-
-
-def vector_length(v):
-    return math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
-
-
-def vector_norm(v):
-    length = vector_length(v)
-    if length == 0:
-        length = 1
-    return [v[0]/length, v[1]/length, v[2]/length]

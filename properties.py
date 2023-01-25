@@ -231,14 +231,5 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     motion_hierarchy_name: StringProperty(name="Array Name", default="curveArray")
 
     # Properties for UI in dropdowns
-    UI_meshTools: BoolProperty(name="Mesh-Tools", default=False)
-    UI_user_attributes: BoolProperty(name="User Attributes", default=False)
     UI_track_tools: BoolProperty(name="UV-Tools", default=False)
     UI_uvset: BoolProperty(name="UVset", default=False)
-    UI_skeletons: BoolProperty(name="Skeletons", default=False)
-    UI_curve_tools: BoolProperty(name="Curve-Tools", default=False)
-    UI_materialTools: BoolProperty(name="Material-Tools", default=False)
-    UI_create_mat: BoolProperty(name="Create material", default=False)
-    UI_paths: BoolProperty(name="Add paths to material", default=False)
-    UI_assets: BoolProperty(name="Assets Importer", default=False)
-    UI_active_obj: StringProperty(name="Active Object Name", default="")
