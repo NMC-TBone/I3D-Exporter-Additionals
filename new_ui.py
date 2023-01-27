@@ -21,6 +21,15 @@ class I3deaPanel:
     bl_category = 'I3D Exporter Additionals'
 
 
+class I3deaTrackSetupAuto(I3deaPanel):
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        i3dea = context.scene.i3dea
+        return i3dea.track_mode == 'AUTOMATIC'
+
+
 class I3DEA_PT_MainPanel(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_MainPanel'
     bl_label = 'I3D Exporter Additionals'
@@ -236,28 +245,103 @@ class I3DEA_PT_TrackSetup(I3deaPanel, Panel):
             box_row = box_col.row(align=True)
             box_row.prop(i3dea, "track_piece_amount", text="")
 
-        elif i3dea.track_mode == 'AUTOMATIC':
-            box = layout.box()
-            box_col = box.column(align=True)
-            box_col.label(text="Settings")
-            box_row = box_col.row(align=True)
-
-            box_row.prop(i3dea, "auto_uvset", text="Create 2nd UV", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_uvset else 'CHECKBOX_DEHLT')
-            box_row = box_col.row(align=True)
-            box_row.prop(i3dea, "auto_vmask", text="Create Vmask Objects", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_vmask else 'CHECKBOX_DEHLT')
-            box_row = box_col.row(align=True)
-            box_row.prop(i3dea, "auto_amount", text="Auto Calc Amount", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_amount else 'CHECKBOX_DEHLT')
-            if not i3dea.auto_amount:
-                box_row = box_col.row(align=True)
-                box_row.prop(i3dea, "auto_fxd_amount", text="")
-            box_row = box_col.row(align=True)
+            """
             box_row.prop(i3dea, "auto_allow_curve_scale", text="Allow Curve Scale", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_allow_curve_scale else 'CHECKBOX_DEHLT')
             box_row = box_col.row(align=True)
             box_row.prop(i3dea, "auto_empty", text="Add empties", toggle=True, icon='CHECKBOX_HLT' if i3dea.auto_empty else 'CHECKBOX_DEHLT')
             if i3dea.auto_empty:
                 box_row = box_col.row(align=True)
-                box_row.prop(i3dea, "auto_empty_int", text="")
+                box_row.prop(i3dea, "auto_empty_int", text="")"""
 
+
+class I3DEA_PT_CreateUvSet(I3deaTrackSetupAuto, Panel):
+    bl_idname = 'I3DEA_PT_CreateUvSet'
+    bl_label = 'Create UV set'
+    bl_parent_id = 'I3DEA_PT_TrackSetup'
+
+    def draw_header(self, context):
+        i3dea = context.scene.i3dea
+        self.layout.prop(i3dea, "auto_use_uvset", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        i3dea = context.scene.i3dea
+
+        col = layout.column()
+        col.active = i3dea.auto_use_uvset
+        col.prop(i3dea, "auto_uvset_dropdown", text="2nd uv size")
+        col.prop(i3dea, "auto_add_vmask")
+
+
+class I3DEA_PT_CalcAmount(I3deaTrackSetupAuto, Panel):
+    bl_idname = 'I3DEA_PT_CalcAmount'
+    bl_label = 'Fixed Amount'
+    bl_parent_id = 'I3DEA_PT_TrackSetup'
+
+    def draw_header(self, context):
+        i3dea = context.scene.i3dea
+        self.layout.prop(i3dea, "auto_calc_amount", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        i3dea = context.scene.i3dea
+
+        col = layout.column()
+        col.active = i3dea.auto_calc_amount
+        col.prop(i3dea, "auto_fxd_amount")
+
+
+class I3DEA_PT_AddEmpties(I3deaTrackSetupAuto, Panel):
+    bl_idname = 'I3DEA_PT_AddEmpties'
+    bl_label = 'Add Empties'
+    bl_parent_id = 'I3DEA_PT_TrackSetup'
+
+    def draw_header(self, context):
+        i3dea = context.scene.i3dea
+        self.layout.prop(i3dea, "auto_add_empties", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        i3dea = context.scene.i3dea
+
+        col = layout.column()
+        col.active = i3dea.auto_add_empties
+        col.prop(i3dea, "auto_empty_int")
+
+
+class I3DEA_PT_CreateAutoTrack(I3deaPanel, Panel):
+    bl_idname = 'I3DEA_PT_CreateAutoTrack'
+    bl_label = 'Manage and Create'
+    bl_parent_id = 'I3DEA_PT_TrackSetup'
+
+    @classmethod
+    def poll(cls, context):
+        i3dea = context.scene.i3dea
+        return i3dea.track_mode == 'AUTOMATIC'
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        i3dea = context.scene.i3dea
+
+        col = layout.column()
+        col.prop(i3dea, "auto_all_curves")
+        if i3dea.auto_all_curves:
+            col.prop(i3dea, "auto_allow_curve_scale")
+        col.prop(i3dea, "auto_create_bbox")
+        col.operator("i3dea.automatic_track_creation", text="Create")
 
 
 class I3DEA_PT_TrackVisualization(I3deaPanel, Panel):

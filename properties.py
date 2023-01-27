@@ -10,6 +10,11 @@ from bpy.props import (
 )
 
 
+def get_curve_objects(self, context):
+    """ Returns enum elements of all Curves of the current Scene. """
+    return [(obj.name, obj.name, "") for obj in bpy.data.objects if obj.type == 'CURVE'] if bpy.data.objects else []
+
+
 class SubPoseItem(bpy.types.PropertyGroup):
     curve: bpy.props.PointerProperty(type=bpy.types.Object)
 
@@ -159,21 +164,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     dirt_diffuse_box: BoolProperty(name="Set dirt diffuse path", description="If checked it add the the path to dirt diffuse in material", default=True)
 
     # Track-Tools
-    def get_all_curves(self, context):
-        """ Returns enum elements of all Curves of the current Scene. """
-        # From Giants I3D Exporter
-
-        curves = tuple()
-        curves += (("None", "None", "None", 0),)
-        try:
-            num = 1
-            for curveName in [obj.name for obj in context.scene.objects if obj.type == 'CURVE']:
-                curves += ((curveName, curveName, curveName, num),)
-                num += 1
-            return curves
-        except:
-            return curves
-
     track_mode: EnumProperty(name="Track Mode",
                              items=[('MANUAL', 'Manual Tools', ""),
                                     ('AUTOMATIC', 'Automatic', "",)],
@@ -187,7 +177,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     track_piece_amount: FloatProperty(name="Track pieces possible along curve", description="The amount of track links that will fit along the curve", min=1, max=400, default=1)
     rubber_track: BoolProperty(name="Rubber Track", description="Check this if you want to visualize a rubber track", default=False)
     advanced_mode: BoolProperty(name="Advanced Mode", description="Add more options  for UVset2 creation and Track setup", default=False)
-    all_curves: EnumProperty(items=get_all_curves, name="Select A Curve")
     add_empties: BoolProperty(name="Add Empties", description="If you check this it will add the amount of empties between each track link that's written bellow.", default=False)
     track_type_method: EnumProperty(name="Track Method",
                                     items=[('CATERPILLAR', 'Caterpillar', ""),
@@ -199,13 +188,22 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     track_vis_distance: FloatProperty(name="Distance between links", description="Distance between each link", default=0.2, precision=6, min=0.0001, max=5, unit='LENGTH')
 
     # Automatic mode settings
-    auto_uvset: BoolProperty(name="Create 2nd UV", description="If checked it will create 2nd UVset", default=False)
-    auto_vmask: BoolProperty(name="Add Vmask", description="Adds pieces ready for AO bake", default=False)
-    auto_amount: BoolProperty(name="Allow Auto Amount", description="Automatically calculates the amount of pieces", default=False)
-    auto_fxd_amount: IntProperty(name="Piece Amount", description="Fixed number of amount of pieces that will be added", default=False)
+    auto_use_uvset: BoolProperty(name="Create 2nd UV", description="If checked it will create 2nd UVset", default=False)
+    auto_uvset_dropdown: EnumProperty(
+        name="Size List",
+        description="List of UV size",
+        items=[
+            ('4', '2x2', "Create UVset 2 2x2"),
+            ('16', '4x4', "Create UVset 2 4x4")],
+        default='4')
+    auto_add_vmask: BoolProperty(name="Add Vmask Objects", description="Adds pieces ready for AO bake", default=False)
+    auto_calc_amount: BoolProperty(name="Fixed Amount", description="If checked you will need to add the amount manually", default=False)
+    auto_fxd_amount: IntProperty(name="Piece Amount", description="Fixed number of amount of pieces that will be added", default=1, min=1, max=200)
+    auto_add_empties: BoolProperty(name="Empty amount", description="If checked it will add the amount of empties bellow", default=False)
+    auto_empty_int: IntProperty(name="Empty amount", description="Amount of empties that will be added between each track piece", default=1, min=1, max=5)
     auto_allow_curve_scale: BoolProperty(name="Allow Curve Scale", description="If checked it will try to scale the curve so it perfectly fits a whole iteger amount of pieces", default=False)
-    auto_empty: BoolProperty(name="Add Empties", description="If checked it will add the amount of empties bellow", default=False)
-    auto_empty_int: IntProperty(name="Empty amount", description="Amount of empties that will be added between each track piece", default=False, min=1, max=5)
+    auto_all_curves: EnumProperty(items=get_curve_objects, name="Select A Curve")
+    auto_create_bbox: BoolProperty(name="Add BoundingVolume", description="Creates a BV around track", default=False)
 
     # User Attribute properties.py
     user_attribute_name: StringProperty(name="Name", description="Name of the User Attribute.")
@@ -218,14 +216,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
             ('string', "string", ""),
             ('scriptCallback', "scriptCallback", "")],
         default='boolean')
-
-    # Properties for Curve-Tools
-    curve_array_name: StringProperty(name="Array Name", description="Set array name", default="curveArray")
-    amount_curve: IntProperty(name="Static amount", description="Add empties on all curves with this amount", default=32, min=1)
-    distance_curve: FloatProperty(name="Distance", description="Add empties along curve by said distance", default=0.2, min=0.01)
-    use_amount: BoolProperty(name="Use Amount", description="When this is checked, it will use amount", default=True)
-    use_distance: BoolProperty(name="Use Distance", description="When this is checked, it will use distance", default=False)
-    use_pose2: BoolProperty(name="Use Pose 2", description="When this is checked, you will be able to use another set of curves.", default=False)
 
     # Motion Path From Curves
     pose_list: bpy.props.CollectionProperty(type=PoseItem)

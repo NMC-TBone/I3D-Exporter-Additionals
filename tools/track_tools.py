@@ -433,39 +433,3 @@ def scale_curve_to_integer(curve_name):
 
     # Exit edit mode
     bpy.ops.object.editmode_toggle()
-
-
-"""import bpy
-
-def scale_curve_to_integer(curve_object):
-    # Enter edit mode
-    bpy.ops.object.editmode_toggle()
-
-    # Select all control points
-    bpy.ops.curve.select_all(action='SELECT')
-
-    # Get the total length of the curve
-    length = curve_object.data.splines[0].calc_length(resolution=1024)
-    print(length)
-
-    # Round the length to the nearest whole number
-    # rounded_length = round(length)
-
-    # Calculate the scale factor
-    scale_factor = round(length) / length
-
-    # Apply the scale factor to the curve object
-    bpy.ops.transform.resize(value=(scale_factor, scale_factor, scale_factor))
-
-    # Exit edit mode
-    bpy.ops.object.editmode_toggle()
-
-# Example usage:
-# Select the curve object in Blender's 3D View
-# then run:
-bpy.ops.object.select_all(action='DESELECT')
-bpy.context.object.select_set(True)
-scale_curve_to_integer(bpy.context.object)"""
-
-
-
