@@ -12,7 +12,11 @@ from bpy.props import (
 
 def get_curve_objects(self, context):
     """ Returns enum elements of all Curves of the current Scene. """
-    return [(obj.name, obj.name, "") for obj in bpy.data.objects if obj.type == 'CURVE'] if bpy.data.objects else []
+    curve_objects = [obj for obj in bpy.data.objects if obj.type == 'CURVE']
+    if curve_objects:
+        return [(obj.name, obj.name, "") for obj in curve_objects]
+    else:
+        return [("None", "None", "")]
 
 
 class SubPoseItem(bpy.types.PropertyGroup):
