@@ -283,7 +283,7 @@ class I3DEA_PT_CalcAmount(I3deaTrackSetupAuto, Panel):
 
     def draw_header(self, context):
         i3dea = context.scene.i3dea
-        self.layout.prop(i3dea, "auto_calc_amount", text="")
+        self.layout.prop(i3dea, "auto_fixed_amount", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -293,8 +293,8 @@ class I3DEA_PT_CalcAmount(I3deaTrackSetupAuto, Panel):
         i3dea = context.scene.i3dea
 
         col = layout.column()
-        col.active = i3dea.auto_calc_amount
-        col.prop(i3dea, "auto_fxd_amount")
+        col.active = i3dea.auto_fixed_amount
+        col.prop(i3dea, "auto_fxd_amount_int")
 
 
 class I3DEA_PT_AddEmpties(I3deaTrackSetupAuto, Panel):
@@ -337,10 +337,16 @@ class I3DEA_PT_CreateAutoTrack(I3deaPanel, Panel):
         i3dea = context.scene.i3dea
 
         col = layout.column()
-        col.prop(i3dea, "auto_all_curves")
-        if i3dea.auto_all_curves:
+        # col.prop(i3dea, "auto_all_curves")
+        col.prop(i3dea, "auto_curve_object", text="Curve object", icon='OUTLINER_OB_CURVE')
+        if i3dea.auto_curve_object and not i3dea.auto_fixed_amount:
             col.prop(i3dea, "auto_allow_curve_scale")
+        else:
+            i3dea.property_unset("auto_allow_curve_scale")
         col.prop(i3dea, "auto_create_bbox")
+        col.prop(i3dea, "auto_name")
+        if not i3dea.auto_fixed_amount:
+            col.prop(i3dea, "auto_distance")
         col.operator("i3dea.automatic_track_creation", text="Create")
 
 

@@ -201,13 +201,20 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
             ('16', '4x4', "Create UVset 2 4x4")],
         default='4')
     auto_add_vmask: BoolProperty(name="Add Vmask Objects", description="Adds pieces ready for AO bake", default=False)
-    auto_calc_amount: BoolProperty(name="Fixed Amount", description="If checked you will need to add the amount manually", default=False)
-    auto_fxd_amount: IntProperty(name="Piece Amount", description="Fixed number of amount of pieces that will be added", default=1, min=1, max=200)
+    auto_fixed_amount: BoolProperty(name="Fixed Amount", description="If checked you will need to set the amount manually", default=False)
+    auto_fxd_amount_int: IntProperty(name="Piece Amount", description="Fixed number of amount of pieces that will be added", default=1, min=1, max=200)
     auto_add_empties: BoolProperty(name="Empty amount", description="If checked it will add the amount of empties bellow", default=False)
     auto_empty_int: IntProperty(name="Empty amount", description="Amount of empties that will be added between each track piece", default=1, min=1, max=5)
     auto_allow_curve_scale: BoolProperty(name="Allow Curve Scale", description="If checked it will try to scale the curve so it perfectly fits a whole iteger amount of pieces", default=False)
     auto_all_curves: EnumProperty(items=get_curve_objects, name="Select A Curve")
     auto_create_bbox: BoolProperty(name="Add BoundingVolume", description="Creates a BV around track", default=False)
+    auto_name: StringProperty(name="Custom name", description="Name of the track setup", default="myTrack")
+    auto_distance: FloatProperty(name="Distance between links", description="Distance between each link", default=0.2)
+    auto_curve_object: PointerProperty(
+        type=bpy.types.Object,
+        name="Curve Object",
+        description="Select a curve object",
+        poll=lambda self, obj: obj.type == 'CURVE')
 
     # User Attribute properties.py
     user_attribute_name: StringProperty(name="Name", description="Name of the User Attribute.")
