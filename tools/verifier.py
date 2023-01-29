@@ -18,6 +18,14 @@
 
 # Test the whole scene to check if there is any issues in the setup before export to i3d
 
+
+"""
+TODO:
+    - See if it's possible to do more with fill volume checker
+    - Make it possible to scale the curve to get an rounded value for the track amount
+"""
+
+
 import bpy
 from mathutils import Vector
 

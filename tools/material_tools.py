@@ -22,7 +22,7 @@ import bpy
 
 from ..helper_functions import check_i3d_exporter_type
 
-giants_i3d, stjerne_i3d, dcc, I3DRemoveAttributes = check_i3d_exporter_type()
+giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
 
 class I3DEA_OT_mirror_material(bpy.types.Operator):

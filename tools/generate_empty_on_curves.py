@@ -1,93 +1,161 @@
+import math
+
 import bpy
+from ..helper_functions import check_i3d_exporter_type, get_curve_length
+
+giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
 
-class I3DEA_OT_emties_along_curves(bpy.types.Operator):
-    bl_label = "Create empties along curves"
-    bl_idname = "i3dea.add_empties_curves"
-    bl_description = "Create empties evenly spread along selected curves"
-    bl_options = {'REGISTER', 'UNDO'}
+class PoseAddOperator(bpy.types.Operator):
+    bl_label = "Add Pose"
+    bl_idname = "i3dea.add_pose"
 
     def execute(self, context):
-        # Store the selected objects (curves)
-        selected_objects = [obj for obj in bpy.context.selected_objects if obj.type == 'CURVE']
-
-        # Create empty objects along selected curves
-        create_empties_on_curve(selected_objects, context.scene.i3dea.curve_array_name, num_empties=context.scene.i3dea.amount_curve)
-        self.report({'INFO'}, "Generated empties a long selected curves")
+        pose_count = context.scene.i3dea.pose_count
+        pose_list = context.scene.i3dea.pose_list
+        while True:
+            pose_count += 1
+            name = "pose" + str(pose_count)
+            existing = any(item.name == name for item in pose_list)
+            if not existing:
+                break
+        item = pose_list.add()
+        item.name = name
         return {'FINISHED'}
 
 
-def create_empty(empty_type='PLAIN_AXES', location=(0, 0, 0), name="empty"):
-    """Creates an empty object at the origin"""
-    bpy.ops.object.empty_add(type=empty_type, radius=0.25, location=location)
-    empty = bpy.context.object
-    empty.name = name
-    return empty
+class PoseRemoveOperator(bpy.types.Operator):
+    bl_label = "Remove Pose"
+    bl_idname = "i3dea.remove_pose"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.i3dea.pose_list
+
+    def execute(self, context):
+        pose_list = context.scene.i3dea.pose_list
+        index = max(0, len(pose_list) - 1)
+        pose_list.remove(index)
+        context.scene.i3dea.pose_count = max(0, context.scene.i3dea.pose_count - 1)
+        return {'FINISHED'}
 
 
-def create_empties_on_curve(selected_curves, hierarchy_name, num_empties=10):
-    """Creates empty objects along each selected curve object"""
-    # Create empty object "pose1"
-    hierarchy_empty = create_empty(name=hierarchy_name)
+class AddCurveOperator(bpy.types.Operator):
+    bl_label = "Add Curve"
+    bl_idname = "i3dea.add_curve"
 
-    # Create empty object "pose1"
-    pose1 = create_empty(name="pose1")
-    pose1.parent = hierarchy_empty
+    def execute(self, context):
+        pose_list = context.scene.i3dea.pose_list
+        selected_pose = pose_list[context.scene.i3dea.pose_count]
+        sub_pose_list = selected_pose.sub_pose_list
+        for obj in context.selected_objects:
+            if obj.type == 'CURVE':
+                if not any(sub_pose.curve == obj for sub_pose in sub_pose_list):
+                    sub_pose = sub_pose_list.add()
+                    sub_pose.curve = obj
+        return {'FINISHED'}
 
-    # Create empty object "pose2"
-    pose2 = create_empty(name="pose2")
-    pose2.parent = hierarchy_empty
 
-    num1, num2 = -1, -1
-    for obj in selected_curves:
-        # Create Y empties inside pose1 & pose2
-        # Set empty name based on curve name
-        if obj.name.startswith("pose1"):
-            num1 += 1
-            empty_name = f"pose1_Y_{num1:03d}"
-        elif obj.name.startswith("pose2"):
-            num2 += 1
-            empty_name = f"pose2_Y_{num2:03d}"
+class RemoveCurveOperator(bpy.types.Operator):
+    bl_label = "Remove Curve"
+    bl_idname = "i3dea.remove_curve"
+    remove_all: bpy.props.BoolProperty()
+
+    @classmethod
+    def poll(cls, context):
+        pose_list = context.scene.i3dea.pose_list
+        selected_pose = pose_list[context.scene.i3dea.pose_count]
+        return selected_pose.sub_pose_list
+
+    def execute(self, context):
+        pose_list = context.scene.i3dea.pose_list
+        selected_pose = pose_list[context.scene.i3dea.pose_count]
+
+        if self.remove_all:
+            selected_pose.sub_pose_list.clear()
         else:
-            empty_name = "empty"
-        y_empty = create_empty(name=empty_name)
+            sub_pose_list = selected_pose.sub_pose_list
+            index = selected_pose.sub_pose_count
+            sub_pose_list.remove(index)
+            selected_pose.sub_pose_count = min(max(0, index - 1), len(sub_pose_list) - 1)
+        return {'FINISHED'}
 
-        # Set object parent to the pose1 and pose2 empties
-        if obj.name.startswith("pose1"):
-            y_empty.parent = pose1
-        elif obj.name.startswith("pose2"):
-            y_empty.parent = pose2
 
-        for i in range(num_empties):
-            # Set empty name based on curve name
-            if obj.name.startswith("pose1"):
-                empty_name = f"pose1_X_{i:03d}"
-            elif obj.name.startswith("pose2"):
-                empty_name = f"pose2_X_{i:03d}"
-            else:
-                empty_name = "empty"
-            x_empty = create_empty(empty_type='ARROWS', name=empty_name)
+class I3DEA_OT_empties_along_curves(bpy.types.Operator):
+    bl_label = "Create empties along curves"
+    bl_idname = "i3dea.add_empties_curves"
+    bl_description = "Create empties evenly spread along selected curves"
+    bl_options = {'UNDO'}
 
-            # Set object constraint to follow curve
-            x_empty.constraints.new('FOLLOW_PATH')
-            x_empty.constraints['Follow Path'].target = obj
-            x_empty.constraints['Follow Path'].use_curve_radius = False
-            x_empty.constraints['Follow Path'].use_fixed_location = True
-            x_empty.constraints['Follow Path'].use_curve_follow = True
-            x_empty.constraints['Follow Path'].forward_axis = 'FORWARD_Y'
-            x_empty.constraints['Follow Path'].up_axis = 'UP_Z'
+    def __create_empty(self, empty_type='PLAIN_AXES', location=(0, 0, 0), name="empty"):
+        """Creates an empty object at the origin"""
+        bpy.ops.object.empty_add(type=empty_type, radius=0.25, location=location)
+        empty = bpy.context.object
+        empty.name = name
+        return empty
 
-            # Set object parent based on curve name
-            if obj.name.startswith("pose1"):
-                x_empty.parent = y_empty
-            elif obj.name.startswith("pose2"):
-                x_empty.parent = y_empty
+    def __create_empties_on_curve(self, hierarchy=""):
+        """Creates empty objects along each selected curve object"""
+        # Create empty object "pose1"
+        hierarchy_empty = self.__create_empty(name=hierarchy)
 
-            # Set offset factor for empty along curve
-            if bpy.context.scene.i3dea.use_amount:
-                x_empty.constraints['Follow Path'].offset_factor = i / (num_empties - 1)
-            elif bpy.context.scene.i3dea.use_distance:
-                x_empty.constraints['Follow Path'].offset_factor = i / (bpy.context.scene.i3dea.distance_curve - 1)
+        if giants_i3d:
+            hierarchy_empty['I3D_objectDataFilePath'] = hierarchy + ".dds"
+            hierarchy_empty['I3D_objectDataHierarchicalSetup'] = True
+            hierarchy_empty['I3D_objectDataHideFirstAndLastObject'] = True
+            hierarchy_empty['I3D_objectDataExportPosition'] = True
+            hierarchy_empty['I3D_objectDataExportOrientation'] = True
+            hierarchy_empty['I3D_objectDataExportScale'] = True
 
-            # Apply the constraint
-            bpy.ops.constraint.apply({'constraint': x_empty.constraints["Follow Path"]}, constraint='Follow Path')
+        # for curve in bpy.context.scene.i3dea.pose_list.sub_pose_list:
+        #     pass
+
+        for pose in bpy.context.scene.i3dea.pose_list:
+            pose_empty = self.__create_empty(name=pose.name)
+            pose_empty.parent = hierarchy_empty
+
+            # For AMOUNT_FIX
+            longest_curve_length = 0
+            for curve in pose.sub_pose_list:
+                curve_length = get_curve_length(curve.curve.name)
+                if curve_length > longest_curve_length:
+                    longest_curve_length = curve_length
+
+            for curve in pose.sub_pose_list:
+                curve_empty = self.__create_empty(name=curve.curve.name + "_Y")
+                curve_empty.parent = pose_empty
+                amount = 0
+                if bpy.context.scene.i3dea.motion_type == "AMOUNT_REL":
+                    amount = bpy.context.scene.i3dea.motion_amount_rel
+                elif bpy.context.scene.i3dea.motion_type == "DISTANCE":
+                    c_length = get_curve_length(curve.curve.name)
+                    amount = math.ceil(c_length / bpy.context.scene.i3dea.motion_distance)
+                elif bpy.context.scene.i3dea.motion_type == "AMOUNT_FIX":
+                    c_length = get_curve_length(curve.curve.name)
+                    distance = longest_curve_length / bpy.context.scene.i3dea.motion_amount_fix
+                    amount = math.ceil(c_length / distance)
+                for i in range(amount):
+                    x_empty = self.__create_empty(empty_type='ARROWS', name=f"{curve.curve.name}_X_{i:03d}")
+                    # Set object constraint to follow curve
+                    x_empty.constraints.new('FOLLOW_PATH')
+                    x_empty.constraints['Follow Path'].target = bpy.data.objects[curve.curve.name]
+                    x_empty.constraints['Follow Path'].use_curve_radius = False
+                    x_empty.constraints['Follow Path'].use_fixed_location = True
+                    x_empty.constraints['Follow Path'].use_curve_follow = True
+                    x_empty.constraints['Follow Path'].forward_axis = 'TRACK_NEGATIVE_Y'
+                    x_empty.constraints['Follow Path'].up_axis = 'UP_Z'
+
+                    # Set object parent based on curve name
+                    x_empty.parent = curve_empty
+
+                    # Set offset factor for empty along curve
+                    x_empty.constraints['Follow Path'].offset_factor = i / (amount - 1)
+
+                    # Apply the constraint
+                    bpy.ops.constraint.apply({'constraint': x_empty.constraints["Follow Path"]}, constraint='Follow Path')
+
+    def execute(self, context):
+        i3dea = context.scene.i3dea
+        self.__create_empties_on_curve(hierarchy=i3dea.motion_hierarchy_name)
+        self.report({'INFO'}, "Generated empties a long selected curves")
+        return {'FINISHED'}

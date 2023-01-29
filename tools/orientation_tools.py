@@ -30,11 +30,11 @@ class I3DEA_OT_copy_orientation(bpy.types.Operator):
     state: bpy.props.IntProperty()
 
     def execute(self, context):
-        def bakeTransformMatrix(matrix):
+        def bake_transform_matrix(matrix):
             return mathutils.Matrix.Rotation(math.radians(-90), 4, "X") @ matrix @ mathutils.Matrix.Rotation(math.radians(90), 4, "X")
 
         obj = bpy.context.object
-        m = bakeTransformMatrix(obj.matrix_local)
+        m = bake_transform_matrix(obj.matrix_local)
         orientation = "0 0 0"
 
         if 1 == self.state:

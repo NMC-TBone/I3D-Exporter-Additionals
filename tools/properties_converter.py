@@ -21,8 +21,8 @@ import bpy
 
 class I3DEA_OT_properties_converter(bpy.types.Operator):
     bl_idname = "i3dea.properties_converter"
-    bl_label = "Convert I3D properties"
-    bl_description = "Converts I3D properties from Stjerne exporter to Giants exporter"
+    bl_label = "Convert I3D properties.py.py"
+    bl_description = "Converts I3D properties.py.py from Stjerne exporter to Giants exporter"
     bl_options = {'REGISTER', 'UNDO'}
 
     properties = [('Giants', 'Stjerne')]
