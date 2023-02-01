@@ -20,7 +20,7 @@ def get_curve_objects(self, context):
 
 
 class SubPoseItem(bpy.types.PropertyGroup):
-    curve: bpy.props.PointerProperty(type=bpy.types.Object)
+    curve: bpy.props.StringProperty()
 
 
 class PoseItem(bpy.types.PropertyGroup):
@@ -210,11 +210,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     auto_create_bbox: BoolProperty(name="Add BoundingVolume", description="Creates a BV around track", default=False)
     auto_name: StringProperty(name="Custom name", description="Name of the track setup", default="myTrack")
     auto_distance: FloatProperty(name="Distance between links", description="Distance between each link", default=0.2)
-    auto_curve_object: PointerProperty(
-        type=bpy.types.Object,
-        name="Curve Object",
-        description="Select a curve object",
-        poll=lambda self, obj: obj.type == 'CURVE')
 
     # User Attribute properties.py
     user_attribute_name: StringProperty(name="Name", description="Name of the User Attribute.")

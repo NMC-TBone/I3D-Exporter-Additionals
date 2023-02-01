@@ -337,9 +337,8 @@ class I3DEA_PT_CreateAutoTrack(I3deaPanel, Panel):
         i3dea = context.scene.i3dea
 
         col = layout.column()
-        # col.prop(i3dea, "auto_all_curves")
-        col.prop(i3dea, "auto_curve_object", text="Curve object", icon='OUTLINER_OB_CURVE')
-        if i3dea.auto_curve_object and not i3dea.auto_fixed_amount:
+        col.prop(i3dea, "auto_all_curves")
+        if i3dea.auto_all_curves != "None" and not i3dea.auto_fixed_amount:
             col.prop(i3dea, "auto_allow_curve_scale")
         else:
             i3dea.property_unset("auto_allow_curve_scale")
@@ -387,7 +386,7 @@ class I3DEA_UL_SubPoseCurveList(UIList):
         curve_ob = item.curve
         curve_icon = 'OUTLINER_OB_CURVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(curve_ob, "name", text="", emboss=False, icon=curve_icon)
+            layout.label(text=str(curve_ob), translate=False, icon=curve_icon)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)

@@ -9,6 +9,7 @@ giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 class PoseAddOperator(bpy.types.Operator):
     bl_label = "Add Pose"
     bl_idname = "i3dea.add_pose"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         pose_count = context.scene.i3dea.pose_count
@@ -27,6 +28,7 @@ class PoseAddOperator(bpy.types.Operator):
 class PoseRemoveOperator(bpy.types.Operator):
     bl_label = "Remove Pose"
     bl_idname = "i3dea.remove_pose"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -43,6 +45,7 @@ class PoseRemoveOperator(bpy.types.Operator):
 class AddCurveOperator(bpy.types.Operator):
     bl_label = "Add Curve"
     bl_idname = "i3dea.add_curve"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         pose_list = context.scene.i3dea.pose_list
@@ -50,22 +53,26 @@ class AddCurveOperator(bpy.types.Operator):
         sub_pose_list = selected_pose.sub_pose_list
         for obj in context.selected_objects:
             if obj.type == 'CURVE':
-                if not any(sub_pose.curve == obj for sub_pose in sub_pose_list):
+                if not any(sub_pose.curve == obj.name for sub_pose in sub_pose_list):
                     sub_pose = sub_pose_list.add()
-                    sub_pose.curve = obj
+                    sub_pose.curve = obj.name
         return {'FINISHED'}
 
 
 class RemoveCurveOperator(bpy.types.Operator):
     bl_label = "Remove Curve"
     bl_idname = "i3dea.remove_curve"
+    bl_options = {'REGISTER', 'UNDO'}
     remove_all: bpy.props.BoolProperty()
 
     @classmethod
     def poll(cls, context):
         pose_list = context.scene.i3dea.pose_list
-        selected_pose = pose_list[context.scene.i3dea.pose_count]
-        return selected_pose.sub_pose_list
+        if pose_list:
+            selected_pose = pose_list[context.scene.i3dea.pose_count]
+            return selected_pose.sub_pose_list
+        else:
+            return False
 
     def execute(self, context):
         pose_list = context.scene.i3dea.pose_list
@@ -111,34 +118,35 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
         #     pass
 
         for pose in bpy.context.scene.i3dea.pose_list:
-            pose_empty = self.__create_empty(name=pose.name)
-            pose_empty.parent = hierarchy_empty
+            if pose.sub_pose_list:
+                pose_empty = self.__create_empty(name=pose.name)
+                pose_empty.parent = hierarchy_empty
 
             # For AMOUNT_FIX
             longest_curve_length = 0
             for curve in pose.sub_pose_list:
-                curve_length = get_curve_length(curve.curve.name)
+                curve_length = get_curve_length(curve.curve)
                 if curve_length > longest_curve_length:
                     longest_curve_length = curve_length
 
             for curve in pose.sub_pose_list:
-                curve_empty = self.__create_empty(name=curve.curve.name + "_Y")
+                curve_empty = self.__create_empty(name=curve.curve + "_Y")
                 curve_empty.parent = pose_empty
                 amount = 0
                 if bpy.context.scene.i3dea.motion_type == "AMOUNT_REL":
                     amount = bpy.context.scene.i3dea.motion_amount_rel
                 elif bpy.context.scene.i3dea.motion_type == "DISTANCE":
-                    c_length = get_curve_length(curve.curve.name)
+                    c_length = get_curve_length(curve.curve)
                     amount = math.ceil(c_length / bpy.context.scene.i3dea.motion_distance)
                 elif bpy.context.scene.i3dea.motion_type == "AMOUNT_FIX":
-                    c_length = get_curve_length(curve.curve.name)
+                    c_length = get_curve_length(curve.curve)
                     distance = longest_curve_length / bpy.context.scene.i3dea.motion_amount_fix
                     amount = math.ceil(c_length / distance)
                 for i in range(amount):
-                    x_empty = self.__create_empty(empty_type='ARROWS', name=f"{curve.curve.name}_X_{i:03d}")
+                    x_empty = self.__create_empty(empty_type='ARROWS', name=f"{curve.curve}_X_{i:03d}")
                     # Set object constraint to follow curve
                     x_empty.constraints.new('FOLLOW_PATH')
-                    x_empty.constraints['Follow Path'].target = bpy.data.objects[curve.curve.name]
+                    x_empty.constraints['Follow Path'].target = bpy.data.objects[curve.curve]
                     x_empty.constraints['Follow Path'].use_curve_radius = False
                     x_empty.constraints['Follow Path'].use_fixed_location = True
                     x_empty.constraints['Follow Path'].use_curve_follow = True
