@@ -29,14 +29,15 @@ TODO:
 import bpy
 from mathutils import Vector
 
+
 class I3DEA_OT_verify_scene(bpy.types.Operator):
     bl_idname = "i3dea.verify_scene"
     bl_label = "Verify Scene"
     bl_description = "Check the whole scene if there is something that may be wrong"
 
     def execute(self, context):
+        component_number = 1
         is_placeable = False
-        has_armature = False
         error_count = 0
         warning_count = 0
         info_count = 0
@@ -56,15 +57,20 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         print("VERIFY SCENE RESULTS")
         print("--------------------")
 
+        ignored_obj_names = set()
         for obj in bpy.data.objects:
             if obj.name.lower().endswith("_ignore"):
                 children_objs = get_children(obj.name)
-                if children_objs:
-                    for _ in children_objs:
-                        continue
+                ignored_obj_names.update(obj.name for obj in children_objs)
+
+        for obj in bpy.data.objects:
+            if obj.name in ignored_obj_names:
+                continue
 
             if obj.type != 'MESH':
                 continue
+
+            has_armature = False
             objs = obj.evaluated_get(dg)
             mesh = objs.to_mesh()
             poly_count += len(mesh.polygons)
@@ -96,9 +102,14 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
             if 'I3D_collision' in obj and obj['I3D_collision'] == 1:
                 if 'I3D_compound' in obj and obj['I3D_compound'] == 1 and 'I3D_trigger' in obj and obj['I3D_trigger'] == 0:
                     if obj.parent is None:
-                        if "_main_component" not in obj.name:
-                            print(f"Component: Object {obj.name} is marked as compound, but name convention is wrong. Should be x_main_component")
+                        if component_number == 1:
+                            expected_suffix = "_main_component1"
+                        else:
+                            expected_suffix = "_component" + str(component_number)
+                        if not obj.name.endswith(expected_suffix):
+                            print(f"Component: Object {obj.name} is marked as compound, but name convention is wrong. Should be {expected_suffix}")
                             warning_count += 1
+                        component_number += 1
 
                 if obj.scale != Vector((1, 1, 1)):
                     print(f"Scale: collision {obj.name} is not scaled 1 1 1, apply scale.")
@@ -117,7 +128,7 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
                     has_armature = True
 
             if has_armature and obj.modifiers and obj.modifiers[0].type != "ARMATURE":
-                print("Armature modifier: Object {} has armature modifier, but it's not first modifier in the list.")
+                print(f"Armature modifier: Object {obj.name} has armature modifier, but it's not first modifier in the list.")
                 warning_count += 1
 
         print("Errors:", error_count)
@@ -128,10 +139,12 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
 
 
 def get_children(parent_obj):
-    parent = bpy.data.objects[parent_obj]
     children = []
-    for obj in parent.children:
-        children.append(obj.name)
+    to_visit = [bpy.data.objects[parent_obj]]
+
+    while to_visit:
+        curr_ob = to_visit.pop()
+        children.extend(curr_ob.children)
+        to_visit.extend(curr_ob.children)
+
     return children
-
-
