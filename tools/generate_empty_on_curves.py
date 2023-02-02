@@ -121,6 +121,8 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
             if pose.sub_pose_list:
                 pose_empty = self.__create_empty(name=pose.name)
                 pose_empty.parent = hierarchy_empty
+            else:
+                pose_empty = None
 
             # For AMOUNT_FIX
             longest_curve_length = 0
