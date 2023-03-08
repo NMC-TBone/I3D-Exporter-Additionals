@@ -35,6 +35,11 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
             if context.scene.I3D_UIexportSettings.I3D_shaderFolderLocation == "":
                 self.report({'ERROR'}, "Shader Folder location is not set!")
                 return {'CANCELLED'}
+        if stjerne_i3d:
+            if context.preferences.addons['i3dio'].preferences.fs_data_path == "":
+                self.report({'ERROR'}, "FS Data Folder is not set!")
+                return {'CANCELLED'}
+
         material = bpy.data.materials.get("mirror_mat")
         if material:
             self.report({'ERROR'}, "Mirror Material already exists!")
@@ -46,10 +51,10 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
             material = bpy.data.materials.new(name="mirror_mat")
             material.use_nodes = True
             principled_node = material.node_tree.nodes.get('Principled BSDF')
-            principled_node.inputs[0].default_value = (0.0001, 0.0001, 0.0001, 1)
-            principled_node.inputs[6].default_value = 1
-            principled_node.inputs[7].default_value = 1
-            principled_node.inputs[9].default_value = 1
+            principled_node.inputs["Base Color"].default_value = (0, 0, 0, 1)
+            principled_node.inputs["Metallic"].default_value = 1
+            principled_node.inputs["Specular"].default_value = 1
+            principled_node.inputs["Roughness"].default_value = 1
             mirror_mat = bpy.data.materials.get('mirror_mat')
 
             for obj in bpy.context.selected_objects:
@@ -60,10 +65,12 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
                 if giants_i3d:
                     bpy.context.object.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
                     bpy.context.object.active_material['shadingRate'] = "1x1"
+                if stjerne_i3d:
+                    data_folder = context.preferences.addons['i3dio'].preferences.fs_data_path
+                    bpy.context.object.active_material.i3d_attributes.source = data_folder + "shaders\\mirrorShader.xml"
+
             self.report({'INFO'}, "Created material: mirror_mat")
             return {'FINISHED'}
-
-            # FIXME: i3d exporter currently doesn't export the mirror material correctly to i3d.
 
 
 class I3DEA_OT_remove_duplicate_material(bpy.types.Operator):
