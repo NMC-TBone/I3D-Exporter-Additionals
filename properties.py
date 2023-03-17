@@ -232,5 +232,5 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
                                            ('DISTANCE', 'Fixed Distance', "Places Objects in fixed equal distance")])
     motion_amount_rel: IntProperty(name="AmountRel", default=32)
     motion_amount_fix: IntProperty(name="AmountFix", default=32)
-    motion_distance: FloatProperty(name="AmountFix", default=0.2)
+    motion_distance: FloatProperty(name="AmountDis", default=0.2)
     motion_hierarchy_name: StringProperty(name="Array Name", default="curveArray")
