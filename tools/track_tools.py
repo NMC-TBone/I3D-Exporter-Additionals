@@ -234,22 +234,18 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
 
     def execute(self, context):
         i3dea = context.scene.i3dea
-        if not context.object:
+        sel_obj = context.object
+        if not sel_obj:
             self.report({'ERROR'}, "No selected object!")
             return {'CANCELLED'}
-        if not context.object.type == 'MESH':
+        if not sel_obj.type == 'MESH':
             self.report({'ERROR'}, "Selected object is not a mesh!")
             return {'CANCELLED'}
-        if not i3dea.auto_curve_object:
+        if i3dea.auto_all_curves == "None":
             self.report({'ERROR'}, "No curve chosen!")
             return {'CANCELLED'}
 
-        if i3dea.auto_name is "":
-            name = "myTrack"
-        else:
-            name = i3dea.auto_name
-
-        original_obj = context.object
+        name = i3dea.auto_name if i3dea.auto_name else "myTrack"
 
         if "zzz_data_ignore" not in bpy.data.objects:
             data_ignore = bpy.data.objects.new("zzz_data_ignore", None)
@@ -263,7 +259,7 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
         track_geo = bpy.data.objects.new(f"{name}Geo", None)
         bpy.context.collection.objects.link(track_geo)
         track_geo.empty_display_size = 0
-        track_geo.location = original_obj.location
+        track_geo.location = sel_obj.location
         track_geo.parent = track_main_parent
         track_geo.matrix_parent_inverse = track_main_parent.matrix_world.inverted()
 
@@ -276,22 +272,20 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
             track_geo['I3D_objectDataExportPosition'] = True
 
         if i3dea.auto_create_bbox:
-            create_bbox(i3dea.auto_curve_object.name, name, track_geo.name, original_obj.dimensions[0])
+            create_bbox(i3dea.auto_curve_object.name, name, track_geo.name, sel_obj.dimensions[0])
 
         if i3dea.auto_use_uvset:
-            second_uv = create_second_uv(original_obj, name, int(i3dea.auto_uvset_dropdown))
+            second_uv = create_second_uv(sel_obj, name, int(i3dea.auto_uvset_dropdown))
             if i3dea.auto_add_vmask:
                 vmask = vmask_bake_objs(second_uv, name)
                 vmask.parent = data_ignore
         else:
-            second_uv = create_second_uv(original_obj, name, int(i3dea.auto_uvset_dropdown), existing_uv=True)
+            second_uv = create_second_uv(sel_obj, name, int(i3dea.auto_uvset_dropdown), existing_uv=True)
 
         if not i3dea.auto_allow_curve_scale:
-            if i3dea.auto_fixed_amount:
-                amount = i3dea.auto_fxd_amount_int
-            else:
-                amount = get_curve_length(i3dea.auto_curve_object.name) / i3dea.auto_distance
-                amount = round(amount)
+            amount = i3dea.auto_fxd_amount_int if i3dea.auto_fixed_amount \
+                else round(get_curve_length(i3dea.auto_curve_object.name) / i3dea.auto_distance)
+
         else:
             amount = scale_curve_to_fit_distance(i3dea.auto_curve_object.name, i3dea.auto_distance)
 
@@ -304,8 +298,8 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
             create_empties(all_pieces, i3dea.auto_empty_int)
 
         i3dea.auto_curve_object.parent = data_ignore
-        original_obj.parent = data_ignore
-        original_obj.matrix_parent_inverse = data_ignore.matrix_world.inverted()
+        sel_obj.parent = data_ignore
+        sel_obj.matrix_parent_inverse = data_ignore.matrix_world.inverted()
         self.report({'INFO'}, "Full track setup created and ready for export!")
         return {'FINISHED'}
 
