@@ -20,7 +20,7 @@ bl_info = {
     "author": "T-Bone",
     "description": "Additionals For I3D Exporter",
     "blender": (3, 0, 0),
-    "version": (3, 0, 1),
+    "version": (3, 0, 2),
     "location": "View3D > UI > I3D Exporter Additionals",
     "warning": "",
     "category": "Game Engine"

@@ -45,8 +45,6 @@ class I3DEA_OT_create_user_attribute(bpy.types.Operator):
                         ui = obj.id_properties_ui(create_attr_name)
                         ui.update(description=create_attr_name)
                         ui.update(default=False)
-                        ui.update(min=False)
-                        ui.update(max=True)
                     elif attr_type == 'float':
                         obj[create_attr_name] = 0.0
                         ui = obj.id_properties_ui(create_attr_name)

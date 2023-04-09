@@ -199,7 +199,7 @@ class I3DEA_OT_visualization_del(bpy.types.Operator):
                     bpy.data.objects.remove(child)
                 bpy.data.objects.remove(obj)
                 self.report({'INFO'}, "Track Visualization deleted")
-        return {'FINISHED'}
+                return {'FINISHED'}
 
 
 class I3DEA_OT_make_uvset(bpy.types.Operator):
@@ -272,7 +272,7 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
             track_geo['I3D_objectDataExportPosition'] = True
 
         if i3dea.auto_create_bbox:
-            create_bbox(i3dea.auto_curve_object.name, name, track_geo.name, sel_obj.dimensions[0])
+            create_bbox(i3dea.auto_all_curves, name, track_geo.name, sel_obj.dimensions[0])
 
         if i3dea.auto_use_uvset:
             second_uv = create_second_uv(sel_obj, name, int(i3dea.auto_uvset_dropdown))
@@ -284,10 +284,10 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
 
         if not i3dea.auto_allow_curve_scale:
             amount = i3dea.auto_fxd_amount_int if i3dea.auto_fixed_amount \
-                else round(get_curve_length(i3dea.auto_curve_object.name) / i3dea.auto_distance)
+                else round(get_curve_length(i3dea.auto_all_curves) / i3dea.auto_distance)
 
         else:
-            amount = scale_curve_to_fit_distance(i3dea.auto_curve_object.name, i3dea.auto_distance)
+            amount = scale_curve_to_fit_distance(i3dea.auto_all_curves, i3dea.auto_distance)
 
         all_pieces = create_from_amount(second_uv, amount)
         for obj in all_pieces:
@@ -297,7 +297,7 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
         if i3dea.auto_add_empties:
             create_empties(all_pieces, i3dea.auto_empty_int)
 
-        i3dea.auto_curve_object.parent = data_ignore
+        bpy.data.objects[i3dea.auto_all_curves].parent = data_ignore
         sel_obj.parent = data_ignore
         sel_obj.matrix_parent_inverse = data_ignore.matrix_world.inverted()
         self.report({'INFO'}, "Full track setup created and ready for export!")
