@@ -25,7 +25,7 @@ def check_obj_type(obj):
 
 def apply_transforms(ob_name, use_loc=False, use_rot=False, use_scale=False, apply_all=False):
     """
-    Applies scale for object
+    Applies orientation for object
 
     https://blender.stackexchange.com/questions/159538/how-to-apply-all-transformations-to-an-object-at-low-level
     """

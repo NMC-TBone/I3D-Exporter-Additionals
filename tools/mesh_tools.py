@@ -225,6 +225,7 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
         mirror = None
         target = None
         for obj in bpy.context.selected_objects:
+            # Get each selected object type (3 in total)
             if obj.type == 'CAMERA':
                 camera = obj
             elif obj.type == 'MESH':
@@ -238,13 +239,14 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
             mirror_axis_target = bpy.data.objects.new("mirror_axis_target", None)
             bpy.context.collection.objects.link(mirror_axis_target)
 
+            # Calculate the mirror_axis_target location
             v1 = (mirror.location - camera.location).normalized()
             v2 = (mirror.location - target.location).normalized()
-
             v3 = v1 + v2
 
             mirror_axis_target.location = mirror.location - v3
 
+            # Using TRACK_TO constraint to correctly set up the orientation of the mirror
             mirror_axis_target.constraints.new('TRACK_TO')
             mirror_axis_target.constraints['Track To'].track_axis = 'TRACK_NEGATIVE_Z'
             mirror_axis_target.constraints['Track To'].up_axis = 'UP_Y'
@@ -265,19 +267,12 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
             mirror.select_set(False)
 
+            mirror_matrix = mirror.matrix_world.copy()
             if mirror_parent:
-                bpy.ops.object.select_all(action='DESELECT')
-                bpy.context.view_layer.objects.active = mirror_parent
-                mirror_parent.select_set(True)
-                mirror.select_set(True)
-                bpy.ops.object.parent_set(type='OBJECT', keep_transform=True)
-                mirror_parent.select_set(False)
+                mirror.parent = mirror_parent
             else:
-                bpy.ops.object.select_all(action='DESELECT')
-                bpy.context.view_layer.objects.active = mirror
-                mirror.select_set(True)
-                bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-                mirror.select_set(False)
+                mirror.parent = None
+            mirror.matrix_world = mirror_matrix
 
             bpy.data.objects.remove(mirror_axis_target)
 
