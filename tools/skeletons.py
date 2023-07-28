@@ -36,6 +36,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
     bl_description = "Creates the selected skeleton from the dropdown menu."
     bl_options = {'REGISTER', 'UNDO'}
 
+    # create a new create_skel_node function with better setup
     def create_skel_node(self, name, parent, display_handle=False, translate=(0, 0, 0), rotation=(0, 0, 0)):
         bpy.ops.object.empty_add(radius=0)
         node = bpy.context.active_object
@@ -48,6 +49,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         if display_handle:
             self.set_display_handle(node)
         return node
+
+    def create_skel_nodes(self, list):
+        for element in list:
+            self.create_skel_node(element.name, element.parent)
 
     def set_display_handle(self, node):
         node = bpy.context.object
@@ -84,8 +89,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         cabin = self.create_skel_node("5_cabin_REPLACE_WITH_MESH", vehicle_vis)
         steering_base = self.create_skel_node("1_steeringBase", cabin)
         steering_wheel = self.create_skel_node("steeringWheel_REPLACE_WITH_MESH", steering_base)
-        self.create_skel_node("playerRightHandTarget", steering_wheel, True, translate=(-0.189, 0.023, 0.03), rotation=(math.radians(-4.70569), math.radians(-50.8809), math.radians(-7.47474)))
-        self.create_skel_node("playerLeftHandTarget", steering_wheel, True, translate=(0.189, 0.023, 0.03), rotation=(math.radians(-16.3303), math.radians(50.8809), math.radians(-7.47473)))
+        self.create_skel_node("playerRightHandTarget", steering_wheel, True, translate=(-0.189, 0.023, 0.03),
+                              rotation=(math.radians(-4.70569), math.radians(-50.8809), math.radians(-7.47474)))
+        self.create_skel_node("playerLeftHandTarget", steering_wheel, True, translate=(
+            0.189, 0.023, 0.03), rotation=(math.radians(-16.3303), math.radians(50.8809), math.radians(-7.47473)))
         seat = self.create_skel_node("2_seat_REPLACE_WITH_MESH", cabin)
         self.create_skel_node("playerSkin", seat, True)
         self.create_skel_node("3_lights_cabin", cabin)
@@ -177,11 +184,15 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         player_root = bpy.context.active_object
         player_root.name = 'playerRoot'
         self.create_skel_node("player_skin", player_root, True)
-        self.create_skel_node("player_rightFoot", player_root, True, translate=(-0.184, -0.393, -0.514), rotation=(0, 0, math.radians(10)))
-        self.create_skel_node("player_leftFoot", player_root, True, translate=(0.184, -0.393, -0.514), rotation=(0, 0, math.radians(-10)))
+        self.create_skel_node("player_rightFoot", player_root, True,
+                              translate=(-0.184, -0.393, -0.514), rotation=(0, 0, math.radians(10)))
+        self.create_skel_node("player_leftFoot", player_root, True, translate=(
+            0.184, -0.393, -0.514), rotation=(0, 0, math.radians(-10)))
         if steering_wheel is not None and steering_wheel is not False:
-            self.create_skel_node("playerRightHandTarget", player_root, True, translate=(-0.188, -0.022, 0.03), rotation=(math.radians(-10.518), math.radians(51.12), math.radians(-4.708)))
-            self.create_skel_node("playerLeftHandTarget", player_root, True, translate=(0.189, -0.023, 0.03), rotation=(math.radians(-10.518), math.radians(-51.12), math.radians(-4.708)))
+            self.create_skel_node("playerRightHandTarget", player_root, True, translate=(-0.188, -0.022, 0.03),
+                                  rotation=(math.radians(-10.518), math.radians(51.12), math.radians(-4.708)))
+            self.create_skel_node("playerLeftHandTarget", player_root, True, translate=(
+                0.189, -0.023, 0.03), rotation=(math.radians(-10.518), math.radians(-51.12), math.radians(-4.708)))
         return player_root
 
     def create_lights(self):
@@ -196,13 +207,20 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         # (self, name, parent, coneAngle, range, dropOff, rgb, translate=(0, 0, 0), rotation=(0, 0, 0), castShadowMap=False)
         # Maya
         # (self, name, parent, coneAngle, intensity, dropOff, rgb, locatorScale=50, rotation=['0deg', '0deg', '0deg'], translation=[0, 0, 0], castShadowMap=False, depthMapBias=0.001, depthMapResolution=256)
-        self.create_light('frontLightLow', default_lights, math.radians(80), 20, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, 0))
-        self.create_light('highBeamLow', default_lights, math.radians(70), 30, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
-        front_light_high = self.create_light('frontLightHigh', default_lights, math.radians(70), 25, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, math.radians(8)))
-        self.create_light('frontLightHigh1', front_light_high, math.radians(70), 25, 0.6, (0.85, 0.85, 1), rotation=(0, math.radians(16), 0))
-        high_beam_high = self.create_light('highBeamHigh', default_lights, math.radians(30), 60, 0.5, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(5)))
-        self.create_light('highBeamHigh2', high_beam_high, math.radians(30), 60, 0.5, (0.85, 0.85, 1), rotation=(0, math.radians(10), 0))
-        self.create_light('licensePlateLightHigh', default_lights, 120, 0.5, 2, (1, 1, 1), rotation=(math.radians(90), 0, 0))
+        self.create_light('frontLightLow', default_lights, math.radians(80), 20,
+                          0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, 0))
+        self.create_light('highBeamLow', default_lights, math.radians(70), 30,
+                          0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
+        front_light_high = self.create_light('frontLightHigh', default_lights, math.radians(
+            70), 25, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-75), 0, math.radians(8)))
+        self.create_light('frontLightHigh1', front_light_high, math.radians(
+            70), 25, 0.6, (0.85, 0.85, 1), rotation=(0, math.radians(16), 0))
+        high_beam_high = self.create_light('highBeamHigh', default_lights, math.radians(
+            30), 60, 0.5, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(5)))
+        self.create_light('highBeamHigh2', high_beam_high, math.radians(30), 60,
+                          0.5, (0.85, 0.85, 1), rotation=(0, math.radians(10), 0))
+        self.create_light('licensePlateLightHigh', default_lights, 120, 0.5,
+                          2, (1, 1, 1), rotation=(math.radians(90), 0, 0))
         bpy.ops.object.light_add(type='POINT')
         point_light = bpy.context.object.data
         point_light.name = "interiorScreenLight"
@@ -210,29 +228,42 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         point_light.color = (0.59, 0.653079, 1)
         bpy.context.active_object.parent = default_lights
         work_lights = self.create_skel_node("4_workLights", lights_group)
-        self.create_light('workLightFrontLow', work_lights, math.radians(130), 20, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
-        work_light_front_high1 = self.create_light('workLightFrontHigh', work_lights, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-65), 0, math.radians(15)))
-        self.create_light('workLightFrontHigh2', work_light_front_high1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(0, math.radians(30), 0))
+        self.create_light('workLightFrontLow', work_lights, math.radians(130), 20,
+                          0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0))
+        work_light_front_high1 = self.create_light('workLightFrontHigh', work_lights, math.radians(
+            90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-65), 0, math.radians(15)))
+        self.create_light('workLightFrontHigh2', work_light_front_high1, math.radians(90),
+                          25, 0.4, (0.85, 0.85, 1), rotation=(0, math.radians(30), 0))
         # work lights back
-        self.create_light('workLightBackLow', work_lights, math.radians(130), 20, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, 0))
-        work_light_back_high1 = self.create_light('workLightBackHigh', work_lights, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, math.radians(-20)))
-        self.create_light('workLightBackHigh2', work_light_back_high1, math.radians(90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(5.41377), math.radians(37.1585), math.radians(16.0129)))
+        self.create_light('workLightBackLow', work_lights, math.radians(130), 20,
+                          0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, 0))
+        work_light_back_high1 = self.create_light('workLightBackHigh', work_lights, math.radians(
+            90), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(70), 0, math.radians(-20)))
+        self.create_light('workLightBackHigh2', work_light_back_high1, math.radians(90), 25, 0.4,
+                          (0.85, 0.85, 1), rotation=(math.radians(5.41377), math.radians(37.1585), math.radians(16.0129)))
         # backlights
         back_lights = self.create_skel_node("5_backLights", lights_group)
-        back_lights_high1 = self.create_light('backLightsHigh', back_lights, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, math.radians(-180)))
-        self.create_light('backLightsHigh2', back_lights_high1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(0, 0, 0))
+        back_lights_high1 = self.create_light('backLightsHigh', back_lights, math.radians(
+            130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(-75), 0, math.radians(-180)))
+        self.create_light('backLightsHigh2', back_lights_high1, math.radians(130),
+                          2.5, 0.4, (0.5, 0, 0), rotation=(0, 0, 0))
         # turn lights
         turn_lights = self.create_skel_node("6_turnLights", lights_group)
-        turn_light_left_front = self.create_light('turnLightLeftFront', turn_lights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
-        self.create_light('turnLightLeftBack', turn_light_left_front, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(0, 0, 0))
-        turn_light_right_front = self.create_light('turnLightRightFront', turn_lights, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
-        self.create_light('turnLightRightBack', turn_light_right_front, math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(0, 0, 0))
+        turn_light_left_front = self.create_light('turnLightLeftFront', turn_lights, math.radians(
+            120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, math.radians(-180)))
+        self.create_light('turnLightLeftBack', turn_light_left_front, math.radians(120),
+                          4, 0.6, (0.31, 0.14, 0), rotation=(0, 0, 0))
+        turn_light_right_front = self.create_light('turnLightRightFront', turn_lights, math.radians(
+            120), 4, 0.6, (0.31, 0.14, 0), rotation=(math.radians(75), 0, 0))
+        self.create_light('turnLightRightBack', turn_light_right_front,
+                          math.radians(120), 4, 0.6, (0.31, 0.14, 0), rotation=(0, 0, 0))
         # beacon lights
         beacon_lights = self.create_skel_node("7_beaconLights", lights_group)
         self.create_skel_node("beaconLight1", beacon_lights)
         # reverse lights
         reverse_lights = self.create_skel_node("8_reverseLights", lights_group)
-        reverse_light1 = self.create_light('reverseLightHigh', reverse_lights, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
+        reverse_light1 = self.create_light('reverseLightHigh', reverse_lights, math.radians(
+            130), 2.5, 0.6, (0.9, 0.9, 1), rotation=(math.radians(75), 0, 0))
         self.create_light('reverseLightHigh2', reverse_light1, math.radians(130), 2.5, 0.6, (0.9, 0.9, 1))
         bpy.ops.object.select_grouped(type='PARENT')
         bpy.ops.object.select_grouped(type='PARENT')
@@ -249,22 +280,32 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_skel_node("4_connectionHoses", attacher_joint_group)
         if not is_harvester:
             # attacherjointbackrot
-            attacher_joint_back_rot = self.create_skel_node("attacherJointBackRot", tools, rotation=(math.radians(13), 0, math.radians(-180)))
-            attacher_joint_back_rot2 = self.create_skel_node("attacherJointBackRot2", attacher_joint_back_rot, translate=(0, -1, 0), rotation=(math.radians(13), 0, math.radians(-180)))
-            self.create_skel_node("attacherJointBack", attacher_joint_back_rot2, True, rotation=(0, 0, math.radians(-90)))
+            attacher_joint_back_rot = self.create_skel_node(
+                "attacherJointBackRot", tools, rotation=(math.radians(13), 0, math.radians(-180)))
+            attacher_joint_back_rot2 = self.create_skel_node("attacherJointBackRot2", attacher_joint_back_rot, translate=(
+                0, -1, 0), rotation=(math.radians(13), 0, math.radians(-180)))
+            self.create_skel_node("attacherJointBack", attacher_joint_back_rot2,
+                                  True, rotation=(0, 0, math.radians(-90)))
             # attacherjointbackbottomarm
-            attacher_joint_back_arm_bottom = self.create_skel_node("attacherJointBackArmBottom", tools, rotation=(math.radians(13), 0, math.radians(-180)))
-            attacher_joint_back_arm_bottom_trans = self.create_skel_node("attacherJointBackArmBottomTrans_REPLACE_WITH_MESH", attacher_joint_back_arm_bottom)
-            self.create_skel_node("referencePointBackBottom", attacher_joint_back_arm_bottom_trans, translate=(0, -1, 0))
+            attacher_joint_back_arm_bottom = self.create_skel_node(
+                "attacherJointBackArmBottom", tools, rotation=(math.radians(13), 0, math.radians(-180)))
+            attacher_joint_back_arm_bottom_trans = self.create_skel_node(
+                "attacherJointBackArmBottomTrans_REPLACE_WITH_MESH", attacher_joint_back_arm_bottom)
+            self.create_skel_node("referencePointBackBottom",
+                                  attacher_joint_back_arm_bottom_trans, translate=(0, -1, 0))
             # attacherjointbacktoparm
             self.create_skel_node("attacherJointBackArmTop", tools, rotation=(math.radians(67), 0, 0))
         # attacherjointfrontrot
-        attacher_joint_front_rot = self.create_skel_node("attacherJointFrontRot", tools, rotation=(math.radians(-13), 0, 0))
-        attacher_joint_front_rot2 = self.create_skel_node("attacherJointFrontRot2", attacher_joint_front_rot, translate=(0, -1, 0), rotation=(math.radians(13), 0, 0))
+        attacher_joint_front_rot = self.create_skel_node(
+            "attacherJointFrontRot", tools, rotation=(math.radians(-13), 0, 0))
+        attacher_joint_front_rot2 = self.create_skel_node(
+            "attacherJointFrontRot2", attacher_joint_front_rot, translate=(0, -1, 0), rotation=(math.radians(13), 0, 0))
         self.create_skel_node("attacherJointFront", attacher_joint_front_rot2, True, rotation=(0, 0, math.radians(90)))
         # attacherjointfrontbottomarm
-        attacher_joint_front_arm_bottom = self.create_skel_node("attacherJointFrontArmBottom", tools, rotation=(math.radians(-26), 0, 0))
-        attacher_joint_front_arm_bottom_trans = self.create_skel_node("attacherJointFrontArmBottomTrans_REPLACE_WITH_MESH", attacher_joint_front_arm_bottom)
+        attacher_joint_front_arm_bottom = self.create_skel_node(
+            "attacherJointFrontArmBottom", tools, rotation=(math.radians(-26), 0, 0))
+        attacher_joint_front_arm_bottom_trans = self.create_skel_node(
+            "attacherJointFrontArmBottomTrans_REPLACE_WITH_MESH", attacher_joint_front_arm_bottom)
         self.create_skel_node("referencePointFrontBottom", attacher_joint_front_arm_bottom_trans, translate=(0, -1, 0))
         # attacherjointfronttoparm
         self.create_skel_node("attacherJointFrontArmTop", tools, True, rotation=(math.radians(-40), 0, 0))
@@ -295,11 +336,16 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         lights = self.create_skel_node("lights", traffic_vehicle)
         self.create_skel_node("staticLights", lights)
         real_lights = self.create_skel_node("realLights", lights)
-        self.create_light('frontLightLow', real_lights, math.radians(80), 20, 0.6, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, 0), translate=(0, -3.5, 0.6), cast_shadow_map=False)
-        front_light_high1 = self.create_light('frontLightHigh1', real_lights, math.radians(70), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(8)), translate=(-0.5, -3.5, 0.6))
-        self.create_light('frontLightHigh2', front_light_high1, math.radians(70), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(-8)), translate=(0.5, -3.5, 0.6))
-        self.create_light('backLightHigh1', front_light_high1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(160), 0, 0), translate=(-0.5, 1, 0.8))
-        self.create_light('backLightHigh2', front_light_high1, math.radians(130), 2.5, 0.4, (0.5, 0, 0), rotation=(math.radians(160), 0, 0), translate=(0.5, 1, 0.8))
+        self.create_light('frontLightLow', real_lights, math.radians(80), 20, 0.6, (0.85, 0.85, 1),
+                          rotation=(math.radians(-80), 0, 0), translate=(0, -3.5, 0.6), cast_shadow_map=False)
+        front_light_high1 = self.create_light('frontLightHigh1', real_lights, math.radians(
+            70), 25, 0.4, (0.85, 0.85, 1), rotation=(math.radians(-80), 0, math.radians(8)), translate=(-0.5, -3.5, 0.6))
+        self.create_light('frontLightHigh2', front_light_high1, math.radians(70), 25, 0.4, (0.85, 0.85, 1),
+                          rotation=(math.radians(-80), 0, math.radians(-8)), translate=(0.5, -3.5, 0.6))
+        self.create_light('backLightHigh1', front_light_high1, math.radians(130), 2.5, 0.4,
+                          (0.5, 0, 0), rotation=(math.radians(160), 0, 0), translate=(-0.5, 1, 0.8))
+        self.create_light('backLightHigh2', front_light_high1, math.radians(130), 2.5, 0.4,
+                          (0.5, 0, 0), rotation=(math.radians(160), 0, 0), translate=(0.5, 1, 0.8))
         self.create_skel_node("trafficCollisionNode", traffic_vehicle)
         self.create_skel_node("driver_TO_BE_REPLACED", traffic_vehicle)
         self.create_skel_node("vehicle_vis", traffic_vehicle)
@@ -411,8 +457,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         test_area3_start = self.create_skel_node("testArea3Start", test_areas, True)
         self.create_skel_node("testArea3End", test_area3_start, True, translate=(1, -1, 0))
         tip_occlusion_update_areas = self.create_skel_node("6_tipOcclusionUpdateAreas", parent)
-        tip_occlusion_update_area1_start = self.create_skel_node("tipOcclusionUpdateArea1Start", tip_occlusion_update_areas, True)
-        self.create_skel_node("tipOcclusionUpdateArea1End", tip_occlusion_update_area1_start, True, translate=(1, -1, 0))
+        tip_occlusion_update_area1_start = self.create_skel_node(
+            "tipOcclusionUpdateArea1Start", tip_occlusion_update_areas, True)
+        self.create_skel_node("tipOcclusionUpdateArea1End",
+                              tip_occlusion_update_area1_start, True, translate=(1, -1, 0))
         self.create_trigger("7_infoTrigger", 1048576, "100000", parent, size=(10, 10, 5))
         visuals = self.create_skel_node("8_visuals", parent)
         self.create_skel_node("winter", visuals)
