@@ -111,7 +111,7 @@ prop_conversion_map = {
 class I3DEA_OT_properties_converter(bpy.types.Operator):
     bl_idname = "i3dea.properties_converter"
     bl_label = "Convert I3D properties"
-    bl_description = "Converts I3D properties from Stjerne exporter to Giants exporter"
+    bl_description = "Converts I3D properties from Stjerneidioten I3D exporter to Giants I3D Exporter"
     bl_options = {'REGISTER', 'UNDO'}
 
     reversed = {v: k for k, v in prop_conversion_map.items()}
@@ -182,7 +182,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         mg_list = [(s, string_to_int[s]) for s in unique_strings]
         return mg_list
 
-    def convert_obj_props(self, context, obj, forward=True, merge_groups=None) -> int:
+    def convert_obj_props(self, context, obj, forward=True, merge_groups=None, delete_props=False) -> int:
         """
         Converts the obj properties from the Stjerne I3D Exporter to the Giants I3D Exporter
         :param context: The context of the scene
@@ -212,9 +212,19 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
 
                 obj[giants] = obj.data[stjerne[1]][stjerne[2]]
                 props_conv += 1
+        if delete_props:
+            if 'i3d_attributes' in obj:
+                del obj['i3d_attributes']
+            if 'i3d_mapping' in obj:
+                del obj['i3d_mapping']
+            if obj.type == 'MESH':
+                if 'i3d_attributes' in obj.data:
+                    del obj.data['i3d_attributes']
+                if 'i3d_merge_group' in obj:
+                    del obj['i3d_merge_group']
         return props_conv
 
-    def convert_user_attr(self, context, obj) -> int:
+    def convert_user_attr(self, context, obj, delete_props=False) -> int:
         count = 0
         if 'i3d_user_attributes' in obj and 'attribute_list' in obj['i3d_user_attributes']:
             for attr in obj['i3d_user_attributes']['attribute_list']:
@@ -229,31 +239,71 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         attr_type = 'data_integer'
                     case _:
                         attr_type = 'data_boolean'
+
                 giants_attr = f"userAttribute_{attr_type.removeprefix('data_')}_{attr['name']}"
-                obj[giants_attr] = attr[attr_type]
-                count += 1
+
+                # If attribute data is not provided, set it to default value
+                if attr_type not in attr:
+                    if attr_type == 'data_boolean':
+                        attr[attr_type] = False
+                    elif attr_type in ['data_float', 'data_integer']:
+                        attr[attr_type] = 0
+                    elif attr_type in ['data_string', 'data_scriptCallback']:
+                        attr[attr_type] = ""
+
+                    obj[giants_attr] = attr[attr_type]
+                    count += 1
+        if delete_props and 'i3d_user_attributes' in obj:
+            del obj['i3d_user_attributes']
         return count
 
-    def convert_light_props(self, context, obj) -> int:
+    def convert_light_props(self, context, obj, delete_props=False) -> int:
         count = 0
-        if 'i3d_attributes' in obj.data and obj.data['i3d_attributes'] != {}:
-            for attr in obj.data['i3d_attributes']:
-                if attr == 'type_of_light':
-                    obj['I3D_lightType'] = obj.data['i3d_attributes'][attr]
-                    count += 1
-                elif attr == 'light_color':
-                    obj['I3D_lightColor'] = obj.data['i3d_attributes'][attr]
-                    count += 1
+        if 'i3d_attributes' not in obj.data:
+            return count
+        else:
+            i3d_attributes = obj.data['i3d_attributes']
 
+        prop_mapping = {
+            'type_of_light': 'type',
+            'color': 'color',
+            'range': 'cutoff_distance',
+            'cast_shadow_map': 'use_shadow'
+        }
+
+        for key, value in i3d_attributes.items():
+            if "_tracking" not in key:
+                tracking_key = f"{key}_tracking"
+                if tracking_key in i3d_attributes and not i3d_attributes[tracking_key]:
+                    if key in prop_mapping:
+                        if key == 'type_of_light':
+                            if value == 0:
+                                value = 'POINT'
+                            elif value == 1:
+                                value = 'SPOT'
+                            elif value == 2:
+                                value = 'SUN'
+                            else:
+                                print(f"Light type {value} not handled")
+                        setattr(obj.data, prop_mapping[key], value)
+                        count += 1
+                    else:
+                        print(f"Key {key} with value {value} not handled")
+
+            if "drop_off" in key:
+                obj.data.spot_blend = 5.0 / value
+                count += 1
+        if delete_props and 'i3d_attributes' in obj.data:
+            del obj.data['i3d_attributes']
         return count
 
-    def convert_material_props(self, context, mat):
+    def convert_material_props(self, context, mat) -> int:
         """
         Converts the material properties from Stjerne to Giants
         :param context: The context of the scene
         :param mat: The material props to convert
         """
-
+        count = 0
         keys = list(mat.keys())
         for attr in keys:
             # Check if its the correct mat property
@@ -263,13 +313,13 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                     if 'Farming Simulator 19' in source:
                         source = source.replace('Farming Simulator 19', 'Farming Simulator 22')
                     mat['customShader'] = source
-                    # print(f"Source: {source}")
+                    count += 1
                 # Get the variation index
                 variation_idx = mat[attr].get('variation')
                 if variation_idx:
                     variation_name = mat[attr]['variations'][variation_idx].get('name')
                     mat['customShaderVariation'] = variation_name
-                    # print(f"Variation: {variation_name}")
+                    count += 1
                 shader_params = mat[attr].get('shader_parameters')
                 if shader_params:
                     # Loop over all the shader parameters
@@ -290,6 +340,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         new_property_name = f"customParameter_{param_name}"
                         data_string = " ".join(str(i) for i in data)
                         mat[new_property_name] = data_string
+                        count += 1
                 shader_textures = mat[attr].get('shader_textures')
                 if shader_textures:
                     for tex in shader_textures:
@@ -299,43 +350,49 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         if tex_source != tex_default_source:
                             new_property_name = f"customTexture_{tex_name}"
                             mat[new_property_name] = tex_source
+                            count += 1
+        return count
 
     def convert_node_structure(self, context, mat):
-        if mat.node_tree:
-            bsdf = None
-            tex_node = None
-            sep_color_node = None
+        if mat.node_tree is None:
+            print(f"Material: {mat.name} does not have a node tree")
+            return
 
-            # find the Principled BSDF and Glossmap nodes
-            for node in mat.node_tree.nodes:
-                if node.name == 'Principled BSDF':
-                    bsdf = node
-                elif node.name == 'Glossmap':
-                    if node.type == 'TEX_IMAGE':
-                        tex_node = node
-                    elif node.type == 'SEPARATE_COLOR':
-                        sep_color_node = node
-                        if sep_color_node.inputs['Color'].is_linked:
-                            tex_node = sep_color_node.inputs['Color'].links[0].from_node
-                            if tex_node.type != 'TEX_IMAGE':
-                                tex_node = None
+        bsdf = None
+        tex_node = None
+        sep_color_node = None
 
-            # if we didn't find the Principled BSDF node return
-            if not bsdf:
-                print(f"No Principled BSDF node found in material: {mat.name}")
-                return
+        # find the Principled BSDF and Glossmap nodes
+        for node in mat.node_tree.nodes:
+            if node.name == 'Principled BSDF':
+                bsdf = node
+            elif node.name == 'Glossmap':
+                if node.type == 'TEX_IMAGE':
+                    tex_node = node
+                elif node.type == 'SEPARATE_COLOR':
+                    sep_color_node = node
+                    if sep_color_node.inputs['Color'].is_linked:
+                        tex_node = sep_color_node.inputs['Color'].links[0].from_node
+                        if tex_node.type != 'TEX_IMAGE':
+                            tex_node = None
 
-            # if we didn't find the Glossmap node return
-            if not tex_node:
-                print(f"No Glossmap node found in material: {mat.name}")
-                return
+        # if no Principled BSDF node return
+        if not bsdf:
+            print(f"No Principled BSDF node found in material: {mat.name}")
+            return
 
-            # if both nodes are found, link them together
-            mat.node_tree.links.new(bsdf.inputs['Specular'], tex_node.outputs['Color'])
-            if sep_color_node:
-                mat.node_tree.nodes.remove(sep_color_node)
+        # if no Glossmap node return
+        if not tex_node:
+            print(f"No Glossmap node found in material: {mat.name}")
+            return
+
+        # if both nodes are found, link them together
+        mat.node_tree.links.new(bsdf.inputs['Specular'], tex_node.outputs['Color'])
+        if sep_color_node:
+            mat.node_tree.nodes.remove(sep_color_node)
 
     def execute(self, context):
+        i3dea = context.scene.i3dea
         total_props_conv = 0
         # Get the merge groups from the objects
         merge_groups = [mg['i3d_merge_group']['group_id'] for mg in bpy.data.objects if mg.type == 'MESH' and
@@ -343,22 +400,22 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         mg['i3d_merge_group']['group_id'] != '']
         mg_list = self.mg_string_to_int(context, merge_groups)
 
-        """Things to add for ui/options:
-        - Option to convert material properties
-        - Option to convert node structure
-        - Option to convert user attributes"""
-
+        delete_props = False
+        if i3dea.delete_old_props:
+            delete_props = True
         for obj in bpy.data.objects:
-            total_props_conv += self.convert_obj_props(context, obj, True, mg_list)
-            # if context.convert_user_attr:
-            total_props_conv += self.convert_user_attr(context, obj)
+            total_props_conv += self.convert_obj_props(context, obj, True, mg_list, delete_props)
+            if i3dea.convert_user_attr:
+                total_props_conv += self.convert_user_attr(context, obj, delete_props)
             if obj.type == 'LIGHT':
-                total_props_conv += self.convert_light_props(context, obj)
+                total_props_conv += self.convert_light_props(context, obj, delete_props)
 
-        # if context.convert_mat_props:
-        for mat in bpy.data.materials:
-            self.convert_material_props(context, mat)
-            # if context.convet_nodes:
-            self.convert_node_structure(context, mat)
+        if i3dea.convert_materials:
+            for mat in bpy.data.materials:
+                if mat.name == 'Dots Stroke':
+                    continue
+                total_props_conv += self.convert_material_props(context, mat)
+                if i3dea.convert_nodes:
+                    self.convert_node_structure(context, mat)
         self.report({'INFO'}, f"{total_props_conv} props converted")
         return {'FINISHED'}

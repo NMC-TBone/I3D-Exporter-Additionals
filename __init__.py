@@ -88,6 +88,7 @@ classes = [
     # UI classes
     ui.I3DEA_PT_MainPanel,
     ui.I3DEA_PT_GeneralTools,
+    ui.I3DEA_PT_PropConverter,
     ui.I3DEA_PT_UserAttributes,
     ui.I3DEA_PT_Skeletons,
     ui.I3DEA_PT_MaterialTools,

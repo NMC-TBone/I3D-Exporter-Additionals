@@ -364,3 +364,50 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default="",
         subtype='DIR_PATH'
     )
+
+    # Properties converter
+    convert_materials: BoolProperty(
+        name="Convert Material Properties",
+        description="Convert material properties",
+        default=True
+    )
+
+    convert_nodes: BoolProperty(
+        name="Convert Material Nodes",
+        description="Convert material nodes to match Giants node tree structure (it will set specular image texture "
+                    "directly to specular channel)",
+        default=True
+    )
+
+    convert_user_attr: BoolProperty(
+        name="Convert User Attributes",
+        description="Convert material nodes to match Giants node tree structure (it will set specular image texture \
+                    directly to specular channel)",
+        default=True
+    )
+
+    convert_lights: BoolProperty(
+        name="Convert Light Properties",
+        description="Convert light properties",
+        default=True
+    )
+
+    delete_old_props: BoolProperty(
+        name="Delete Old Properties",
+        description="Enable this option to delete all properties from the stjerneidioten exporter."
+                    "WARNING: this action is irreversible and properties cannot be recovered once deleted",
+        default=False
+    )
+
+    convert_prop_types: EnumProperty(
+        name="Settings",
+        options={'ENUM_FLAG'},
+        items=(('MATERIAL', "Material", ""),
+                   ('NODE_STRUCTURE', "Node Structure", ""),
+                   ('USER_ATTR', "User Attributes", ""),
+                   ('LIGHT', "Light", ""),
+                   ('DELETE', "Delete", ""),
+                   ),
+            description="Which kind of object to export",
+            default={'MATERIAL', 'NODE_STRUCTURE', 'USER_ATTR', 'LIGHT', 'DELETE'},
+        )
