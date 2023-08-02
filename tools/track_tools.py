@@ -23,7 +23,7 @@ import math
 import mathutils
 from mathutils import Vector, Matrix
 
-from ..helper_functions import check_i3d_exporter_type, check_obj_type, get_curve_length
+from ..helper_functions import check_i3d_exporter_type, get_curve_length
 
 giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 
@@ -336,15 +336,16 @@ def create_second_uv(original_obj, name, amount, existing_uv=False):
         uv2 = bm.loops.layers.uv[1]
         uv1 = bm.loops.layers.uv[0]
 
-        for bm_vert in bm.verts:
-            for link_loop in bm_vert.link_loops:
-                uv2_data = link_loop[uv2]
-                uv1_data = link_loop[uv1]
-                scale_matrix = mathutils.Matrix.Diagonal((1 / grid_size, 1 / grid_size))
-                uv2_data.uv = uv1_data.uv @ scale_matrix
-                pos = divmod(i, grid_size)
-                uv2_data.uv[0] = uv2_data.uv[0] + (pos[1] / grid_size)
-                uv2_data.uv[1] = uv2_data.uv[1] + (1 - ((pos[0] + 1) / grid_size))
+        if not existing_uv:
+            for bm_vert in bm.verts:
+                for link_loop in bm_vert.link_loops:
+                    uv2_data = link_loop[uv2]
+                    uv1_data = link_loop[uv1]
+                    scale_matrix = mathutils.Matrix.Diagonal((1 / grid_size, 1 / grid_size))
+                    uv2_data.uv = uv1_data.uv @ scale_matrix
+                    pos = divmod(i, grid_size)
+                    uv2_data.uv[0] = uv2_data.uv[0] + (pos[1] / grid_size)
+                    uv2_data.uv[1] = uv2_data.uv[1] + (1 - ((pos[0] + 1) / grid_size))
         bm.to_mesh(new_obj.data)
         new_objs.append(new_obj)
 

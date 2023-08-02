@@ -15,12 +15,15 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+from . import ui
+
+
 bl_info = {
     "name": "I3D Exporter Additionals",
     "author": "T-Bone",
     "description": "Additionals For I3D Exporter",
-    "blender": (3, 0, 0),
-    "version": (3, 0, 2),
+    "blender": (3, 5, 0),
+    "version": (3, 1, 0),
     "location": "View3D > UI > I3D Exporter Additionals",
     "warning": "",
     "category": "Game Engine"
@@ -30,11 +33,11 @@ if "bpy" in locals():
     import importlib
     importlib.reload(helper_functions)
     importlib.reload(properties)
-    importlib.reload(new_ui)
+    importlib.reload(ui)
     importlib.reload(tools)
 else:
     import bpy
-    from . import properties, new_ui
+    from . import properties
     from .tools import (
         assets_importer,
         orientation_tools,
@@ -45,6 +48,7 @@ else:
         user_attributes,
         verifier,
         generate_empty_on_curves,
+        properties_converter,
     )
 
 classes = [
@@ -79,25 +83,27 @@ classes = [
     user_attributes.I3DEA_OT_create_user_attribute,
     user_attributes.I3DEA_OT_delete_user_attribute,
     verifier.I3DEA_OT_verify_scene,
+    properties_converter.I3DEA_OT_properties_converter,
 
     # UI classes
-    new_ui.I3DEA_PT_MainPanel,
-    new_ui.I3DEA_PT_GeneralTools,
-    new_ui.I3DEA_PT_UserAttributes,
-    new_ui.I3DEA_PT_Skeletons,
-    new_ui.I3DEA_PT_MaterialTools,
-    new_ui.I3DEA_PT_AssetImporter,
-    new_ui.I3DEA_PT_TrackTools,
-    new_ui.I3DEA_PT_TrackSetup,
-    new_ui.I3DEA_PT_CreateUvSet,
-    new_ui.I3DEA_PT_CalcAmount,
-    new_ui.I3DEA_PT_AddEmpties,
-    new_ui.I3DEA_PT_CreateAutoTrack,
-    new_ui.I3DEA_PT_TrackVisualization,
-    new_ui.I3DEA_UL_PoseList,
-    new_ui.I3DEA_UL_SubPoseCurveList,
-    new_ui.I3DEA_PT_ArrayHierarchy,
-    new_ui.I3DEA_PT_SubArrayHierarchy,
+    ui.I3DEA_PT_MainPanel,
+    ui.I3DEA_PT_GeneralTools,
+    ui.I3DEA_PT_PropConverter,
+    ui.I3DEA_PT_UserAttributes,
+    ui.I3DEA_PT_Skeletons,
+    ui.I3DEA_PT_MaterialTools,
+    ui.I3DEA_PT_AssetImporter,
+    ui.I3DEA_PT_TrackTools,
+    ui.I3DEA_PT_TrackSetup,
+    ui.I3DEA_PT_CreateUvSet,
+    ui.I3DEA_PT_CalcAmount,
+    ui.I3DEA_PT_AddEmpties,
+    ui.I3DEA_PT_CreateAutoTrack,
+    ui.I3DEA_PT_TrackVisualization,
+    ui.I3DEA_UL_PoseList,
+    ui.I3DEA_UL_SubPoseCurveList,
+    ui.I3DEA_PT_ArrayHierarchy,
+    ui.I3DEA_PT_SubArrayHierarchy,
 ]
 
 
