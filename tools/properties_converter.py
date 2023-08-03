@@ -156,10 +156,20 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
             return 1
 
     def _handle_merge_group(self, obj, stjerne, merge_groups):
+        count = 0
         for mg, new_id in merge_groups:
             if mg == obj[stjerne[0]][stjerne[1]]:
-                obj['I3D_mergeGroup'] = new_id
-        return 1
+                # +1 because the mg in starts at 1. 0 = no mg
+                obj['I3D_mergeGroup'] = new_id+1
+                count += 1
+                if 'is_root' in obj[stjerne[0]] and obj[stjerne[0]]['is_root']:
+                    obj['I3D_mergeGroupRoot'] = obj[stjerne[0]]['is_root']
+                    bv_str = 'bounding_volume_object'
+                    if bv_str in obj.data['i3d_attributes'] and obj.data['i3d_attributes'][bv_str]:
+                        bv_obj = obj.data['i3d_attributes'][bv_str]
+                        # new_id+1 because the merge group BV preset starts at 1
+                        bv_obj['I3D_boundingVolume'] = f'MERGEGROUP_{new_id+1}'
+        return count
 
     def _handle_other_cases(self, obj, giants, stjerne):
         obj[giants] = obj[stjerne[0]][stjerne[1]]
