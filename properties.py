@@ -367,27 +367,26 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
 
     # Properties converter
     convert_materials: BoolProperty(
-        name="Convert Material Properties",
+        name="Material Properties",
         description="Convert material properties",
         default=True
     )
 
     convert_nodes: BoolProperty(
-        name="Convert Material Nodes",
+        name="Material Nodes",
         description="Convert material nodes to match Giants node tree structure (it will set specular image texture "
                     "directly to specular channel)",
         default=True
     )
 
     convert_user_attr: BoolProperty(
-        name="Convert User Attributes",
-        description="Convert material nodes to match Giants node tree structure (it will set specular image texture \
-                    directly to specular channel)",
+        name="User Attributes",
+        description="Convert user attributes",
         default=True
     )
 
     convert_lights: BoolProperty(
-        name="Convert Light Properties",
+        name="Light Properties",
         description="Convert light properties",
         default=True
     )
