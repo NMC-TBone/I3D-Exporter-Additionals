@@ -31,7 +31,8 @@ class I3DEA_OT_copy_orientation(bpy.types.Operator):
 
     def execute(self, context):
         def bake_transform_matrix(matrix):
-            return mathutils.Matrix.Rotation(math.radians(-90), 4, "X") @ matrix @ mathutils.Matrix.Rotation(math.radians(90), 4, "X")
+            return mathutils.Matrix.Rotation(math.radians(-90), 4, "X") @ \
+                matrix @ mathutils.Matrix.Rotation(math.radians(90), 4, "X")
 
         obj = bpy.context.object
         m = bake_transform_matrix(obj.matrix_local)
@@ -39,14 +40,14 @@ class I3DEA_OT_copy_orientation(bpy.types.Operator):
 
         if 1 == self.state:
             t = m.to_translation()[:]
-            orientation = "%g %g %g" % t
+            orientation = "{0:.3f} {1:.3f} {2:.3f}".format(*t)
 
         elif 2 == self.state:
             r = m.to_euler("XYZ")
             r = (math.degrees(r.x) if (r.x > 1e-6 or r.x < -1e-6) else 0,
                  math.degrees(r.y) if (r.y > 1e-6 or r.y < -1e-6) else 0,
                  math.degrees(r.z) if (r.z > 1e-6 or r.z < -1e-6) else 0)
-            orientation = "%g %g %g" % r
+            orientation = "{0:.3f} {1:.3f} {2:.3f}".format(*r)
 
         bpy.context.window_manager.clipboard = orientation
         self.report({'INFO'}, f'{orientation} from {obj.name} copied to clipboard')

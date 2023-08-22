@@ -1,5 +1,3 @@
-from calendar import c
-import bpy
 from bpy.types import Panel, UIList
 from .helper_functions import check_i3d_exporter_type
 
@@ -68,11 +66,6 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
             row.operator("i3dea.ignore", text="Add Suffix _ignore")
             row = col.row(align=True)
             row.operator("i3dea.verify_scene", text="Verify Scene")
-            # row = col.row(align=True)
-            # box = row.box()
-            # row.operator("i3dea.properties_converter", text="Convert Properties")
-            # row.prop(context.scene.i3dea, "skeletons_dropdown", text="")
-            # bpy.types.I3DEA_PT_PropConverterSub.draw(self, context)
 
 
 class I3DEA_PT_PropConverter(I3deaPanel, Panel):
@@ -113,7 +106,7 @@ class I3DEA_PT_PropConverter(I3deaPanel, Panel):
         subcol2.prop(i3dea, "delete_old_props", toggle=True,
                      icon='CHECKBOX_HLT' if i3dea.delete_old_props else 'CHECKBOX_DEHLT')
 
-        col.operator("i3dea.properties_converter", text="Convert Properties")
+        col.operator("i3dea.properties_converter", text="Convert Properties", icon='FILE_REFRESH')
 
 
 class I3DEA_PT_UserAttributes(I3deaPanel, Panel):

@@ -44,7 +44,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         if material:
             self.report({'ERROR'}, "Mirror Material already exists!")
             return {'CANCELLED'}
-        if not bpy.context.active_object.type == "MESH":
+        if not bpy.context.object.type == "MESH":
             self.report({'ERROR'}, "Selected Object is not a mesh!")
             return {'CANCELLED'}
         else:
@@ -189,7 +189,8 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                         material.i3d_attributes.source = shader_loc
 
                 if not material.i3d_attributes.source:
-                    self.report({'ERROR'}, "Something went wrong with this obj/mat: " + loop_obj.name + ' | ' + loop_obj.active_material.name)
+                    self.report({'ERROR'}, "Something went wrong with this obj/mat: " + loop_obj.name + ' | '
+                                + loop_obj.active_material.name)
                     continue
                 else:
                     if bpy.context.scene.i3dea.mask_map_box:
