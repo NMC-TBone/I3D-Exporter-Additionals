@@ -44,7 +44,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         if material:
             self.report({'ERROR'}, "Mirror Material already exists!")
             return {'CANCELLED'}
-        if not bpy.context.active_object.type == "MESH":
+        if not bpy.context.object.type == "MESH":
             self.report({'ERROR'}, "Selected Object is not a mesh!")
             return {'CANCELLED'}
         else:
@@ -116,13 +116,21 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
             img_tex_spec.location = (-510, 80)
             if context.scene.i3dea.normal_texture_path:
                 try:
-                    img_tex_normal.image = bpy.data.images.load(context.scene.i3dea.normal_texture_path)
+                    existing_img = bpy.data.images.get(context.scene.i3dea.normal_texture_path.split("\\")[-1])
+                    if not existing_img:
+                        img_tex_normal.image = bpy.data.images.load(context.scene.i3dea.normal_texture_path)
+                    else:
+                        img_tex_normal.image = existing_img
                     img_tex_normal.image.colorspace_settings.name = 'Non-Color'
                 except Exception as e:
                     print(e)
             if context.scene.i3dea.spec_texture_path:
                 try:
-                    img_tex_spec.image = bpy.data.images.load(context.scene.i3dea.spec_texture_path)
+                    existing_img = bpy.data.images.get(context.scene.i3dea.spec_texture_path.split("\\")[-1])
+                    if not existing_img:
+                        img_tex_spec.image = bpy.data.images.load(context.scene.i3dea.spec_texture_path)
+                    else:
+                        img_tex_spec.image = existing_img
                 except Exception as e:
                     print(e)
 
@@ -142,10 +150,13 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                     mat.shadow_method = 'CLIP'
                 if context.scene.i3dea.diffuse_texture_path:
                     try:
-                        img_tex_diffuse.image = bpy.data.images.load(context.scene.i3dea.diffuse_texture_path)
+                        existing_img = bpy.data.images.get(context.scene.i3dea.diffuse_texture_path.split("\\")[-1])
+                        if not existing_img:
+                            img_tex_diffuse.image = bpy.data.images.load(context.scene.i3dea.diffuse_texture_path)
+                        else:
+                            img_tex_diffuse.image = existing_img
                     except Exception as e:
                         print(e)
-                        # print("something went wrong when adding file to: ", img_tex_diffuse)
             self.report({'INFO'}, mat_name + " created")
 
         for obj in bpy.context.selected_objects:
@@ -189,7 +200,8 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                         material.i3d_attributes.source = shader_loc
 
                 if not material.i3d_attributes.source:
-                    self.report({'ERROR'}, "Something went wrong with this obj/mat: " + loop_obj.name + ' | ' + loop_obj.active_material.name)
+                    self.report({'ERROR'}, "Something went wrong with this obj/mat: " + loop_obj.name + ' | '
+                                + loop_obj.active_material.name)
                     continue
                 else:
                     if bpy.context.scene.i3dea.mask_map_box:

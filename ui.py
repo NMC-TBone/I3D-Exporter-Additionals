@@ -1,5 +1,3 @@
-from calendar import c
-import bpy
 from bpy.types import Panel, UIList
 from .helper_functions import check_i3d_exporter_type
 
@@ -68,11 +66,6 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
             row.operator("i3dea.ignore", text="Add Suffix _ignore")
             row = col.row(align=True)
             row.operator("i3dea.verify_scene", text="Verify Scene")
-            # row = col.row(align=True)
-            # box = row.box()
-            # row.operator("i3dea.properties_converter", text="Convert Properties")
-            # row.prop(context.scene.i3dea, "skeletons_dropdown", text="")
-            # bpy.types.I3DEA_PT_PropConverterSub.draw(self, context)
 
 
 class I3DEA_PT_PropConverter(I3deaPanel, Panel):
@@ -90,12 +83,11 @@ class I3DEA_PT_PropConverter(I3deaPanel, Panel):
         giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         i3dea = context.scene.i3dea
         layout = self.layout
-        # layout.use_property_split = True
-        # layout.use_property_decorate = False
+        layout.use_property_split = False
+        layout.use_property_decorate = False
         col = layout.column(align=True)
         box = col.box()
-        # row = col.row(align=False)
-        box.label(text="Settings")
+        box.label(text="Convert Settings")
         subcol = box.column(align=True)
         subcol.prop(i3dea, "convert_user_attr", toggle=True,
                     icon='CHECKBOX_HLT' if i3dea.convert_user_attr else 'CHECKBOX_DEHLT')
@@ -114,21 +106,7 @@ class I3DEA_PT_PropConverter(I3deaPanel, Panel):
         subcol2.prop(i3dea, "delete_old_props", toggle=True,
                      icon='CHECKBOX_HLT' if i3dea.delete_old_props else 'CHECKBOX_DEHLT')
 
-        # box.column().prop(i3dea, "convert_prop_types")
-        col.operator("i3dea.properties_converter", text="Convert Properties")
-
-        col = layout.column(align=False)
-        col = layout.column(align=False)
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        col = layout.column(heading="Convert Settings")
-        
-        # In case I regret the above code
-        """ col.prop(i3dea, "convert_user_attr", text="User Attributes")
-        col.prop(i3dea, "convert_materials", text="Material Properties", toggle=False,)
-        if i3dea.convert_materials:
-            col.prop(i3dea, "convert_nodes", text="Moterial Nodes", toggle=False)
-        col.operator("i3dea.properties_converter", text="Convert Properties") """
+        col.operator("i3dea.properties_converter", text="Convert Properties", icon='FILE_REFRESH')
 
 
 class I3DEA_PT_UserAttributes(I3deaPanel, Panel):

@@ -74,4 +74,3 @@ class I3DEA_OT_delete_user_attribute(bpy.types.Operator):
             del obj[self.attribute_name]
 
         return {'FINISHED'}
-

@@ -30,7 +30,7 @@ prop_conversion_map = {
         ("I3D_compoundChild"): ("i3d_attributes", "rigid_body_type", "compound_child"),
         ("I3D_collision"): ("i3d_attributes", "collision"),
         ("I3D_collisionMask"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_solverIterationCount"): ("i3d_attributes", "collision_mask"),
+        # ("I3D_solverIterationCount"): ("i3d_attributes", "collision_mask"), # Not part of stjerne exporter
         ("I3D_restitution"): ("i3d_attributes", "restitution"),
         ("I3D_staticFriction"): ("i3d_attributes", "static_friction"),
         ("I3D_dynamicFriction"): ("i3d_attributes", "dynamic_friction"),
@@ -38,7 +38,7 @@ prop_conversion_map = {
         ("I3D_angularDamping"): ("i3d_attributes", "angular_damping"),
         ("I3D_density"): ("i3d_attributes", "density"),
 
-        # ("I3D_ccd"): ("i3d_attributes", "collision_mask"),
+        # ("I3D_ccd"): ("i3d_attributes", "collision_mask"), # Not part of stjerne exporter
         ("I3D_trigger"): ("i3d_attributes", "trigger"),
         ("I3D_splitType"): ("i3d_attributes", "split_type"),
         ("I3D_splitMinU"): ("i3d_attributes", "split_uvs"),
@@ -46,6 +46,8 @@ prop_conversion_map = {
         ("I3D_splitMaxU"): ("i3d_attributes", "split_uvs"),
         ("I3D_splitMaxV"): ("i3d_attributes", "split_uvs"),
         ("I3D_splitUvWorldScale"): ("i3d_attributes", "split_uvs"),
+
+        # Its added in a dev verison of stjerne exporter, so not necessary to add it here
         # ("I3D_joint"): ("i3d_attributes", "collision_mask"),
         # ("I3D_projection"): ("i3d_attributes", "collision_mask"),
         # ("I3D_projDistance"): ("i3d_attributes", "collision_mask"),
@@ -60,19 +62,20 @@ prop_conversion_map = {
         # ("I3D_breakableJoint"): ("i3d_attributes", "collision_mask"),
         # ("I3D_jointBreakForce"): ("i3d_attributes", "collision_mask"),
         # ("I3D_jointBreakTorque"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_visibility"): ("i3d_attributes", "collision_mask"),
+
         ("I3D_oc"): ("data", "i3d_attributes", "is_occluder"),
         ("I3D_castsShadows"): ("data", "i3d_attributes", "casts_shadows"),
         ("I3D_receiveShadows"): ("data", "i3d_attributes", "receive_shadows"),
         ("I3D_nonRenderable"): ("data", "i3d_attributes", "non_renderable"),
         ("I3D_clipDistance"): ("i3d_attributes", "clip_distance"),
-        # ("I3D_objectMask"): ("i3d_attributes", "collision_mask"),
+        ("I3D_objectMask"): ("i3d_attributes", "object_mask"),
         ("I3D_navMeshMask"): ("data", "i3d_attributes", "nav_mesh_mask"),
         ("I3D_decalLayer"): ("data", "i3d_attributes", "decal_layer"),
         ("I3D_mergeGroup"): ("i3d_merge_group", "group_id"),
         ("I3D_mergeGroupRoot"): ("i3d_merge_group", "is_root"),
-        # ("I3D_boundingVolume"): ("data", "i3d_attributes", "bounding_volume_object"),
+        # ("I3D_boundingVolume"): ("data", "i3d_attributes", "bounding_volume_object"), Handled in merge group function
         ("I3D_cpuMesh"): ("data", "i3d_attributes", "cpu_mesh"),
+        # Not part of stjerne exporter
         # ("I3D_mergeChildren"): ("i3d_attributes", "collision_mask"),
         # ("I3D_mergeChildrenFreezeRotation"): ("i3d_attributes", "collision_mask"),
         # ("I3D_mergeChildrenFreezeTranslation"): ("i3d_attributes", "collision_mask"),
@@ -83,8 +86,6 @@ prop_conversion_map = {
         ("I3D_lod1"): ("i3d_attributes", "lod_distance"),
         ("I3D_lod2"): ("i3d_attributes", "lod_distance"),
         ("I3D_lod3"): ("i3d_attributes", "lod_distance"),
-
-        # ("I3D_alphaBlending"): ("i3d_attributes", "collision_mask"),
 
         ("I3D_minuteOfDayStart"): ("i3d_attributes", "minute_of_day_start"),
         ("I3D_minuteOfDayEnd"): ("i3d_attributes", "minute_of_day_end"),
@@ -97,14 +98,6 @@ prop_conversion_map = {
         # ("I3D_renderInvisible"): ("i3d_attributes", "collision_mask"),
         # ("I3D_visibleShaderParam"): ("i3d_attributes", "collision_mask"),
         # ("I3D_forceVisibilityCondition"): ("i3d_attributes", "collision_mask"),
-
-        # Export settings
-        # ("I3D_UIexportSettings", "I3D_exportApplyModifiers"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_UIexportSettings", "I3D_exportLights"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_UIexportSettings", "I3D_exportShapes"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_UIexportSettings", "I3D_exportMergeGroups"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_UIexportSettings", "I3D_exportSkinWeigths"): ("i3d_attributes", "collision_mask"),
-
     }
 
 
@@ -155,15 +148,35 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                 obj[f'I3D_lod{i}'] = lod
             return 1
 
-    def _handle_merge_group(self, obj, stjerne, merge_groups):
+    def _handle_merge_group(self, obj, giants, stjerne, merge_groups):
+        count = 0
         for mg, new_id in merge_groups:
             if mg == obj[stjerne[0]][stjerne[1]]:
-                obj['I3D_mergeGroup'] = new_id
-        return 1
+                obj[giants] = new_id
+                count += 1
+                bv_str = 'bounding_volume_object'
+                if 'i3d_attributes' in obj.data and bv_str in \
+                        obj.data['i3d_attributes'] and obj.data['i3d_attributes'][bv_str]:
+                    bv_obj = obj.data['i3d_attributes'][bv_str]
+                    bv_obj['I3D_boundingVolume'] = f'MERGEGROUP_{new_id}'
+                    count += 1
+        if 'is_root' == stjerne[1]:
+            obj[giants] = obj[stjerne[0]][stjerne[1]]
+            count += 1
+
+        return count
 
     def _handle_other_cases(self, obj, giants, stjerne):
-        obj[giants] = obj[stjerne[0]][stjerne[1]]
-        return 1
+        count = 0
+        if "collision_mask" == stjerne[1]:
+            obj[giants] = int(obj[stjerne[0]][stjerne[1]], 16)
+            count += 1
+        elif "object_mask" == stjerne[1]:
+            obj[giants] = int(obj[stjerne[0]][stjerne[1]], 16)
+        else:
+            obj[giants] = obj[stjerne[0]][stjerne[1]]
+            count += 1
+        return count
 
     def mg_string_to_int(self, context, merge_groups) -> list:
         """
@@ -176,7 +189,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         unique_strings = list(dict.fromkeys(merge_groups))
 
         # Create a dictionary mapping each string to a unique integer
-        string_to_int = {s: i for i, s in enumerate(unique_strings)}
+        string_to_int = {s: i+1 for i, s in enumerate(unique_strings)}
 
         # Create the new list with tuples, each tuple contains the string and its corresponding integer
         mg_list = [(s, string_to_int[s]) for s in unique_strings]
@@ -204,7 +217,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         props_conv += self._handle_lod_distance(obj, stjerne)
                     else:
                         if "group_id" in obj[stjerne[0]]:
-                            props_conv += self._handle_merge_group(obj, stjerne, merge_groups)
+                            props_conv += self._handle_merge_group(obj, giants, stjerne, merge_groups)
                         else:
                             props_conv += self._handle_other_cases(obj, giants, stjerne)
             elif isinstance(stjerne, tuple) and obj.type == 'MESH' and \
@@ -329,16 +342,19 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         # Get different float values from the shader parameters
                         if param_type == 0:
                             data = param.get('data_float_1')
+                            data_string = str(data)  # Directly convert the float to a string
                         elif param_type == 1:
                             data = param.get('data_float_2')
+                            data_string = " ".join(str(i) for i in data)
                         elif param_type == 2:
                             data = param.get('data_float_3')
+                            data_string = " ".join(str(i) for i in data)
                         elif param_type == 3:
                             data = param.get('data_float_4')
+                            data_string = " ".join(str(i) for i in data)
 
                         # Set the new property name and value
                         new_property_name = f"customParameter_{param_name}"
-                        data_string = " ".join(str(i) for i in data)
                         mat[new_property_name] = data_string
                         count += 1
                 shader_textures = mat[attr].get('shader_textures')
