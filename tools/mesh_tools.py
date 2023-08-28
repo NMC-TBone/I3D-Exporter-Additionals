@@ -100,7 +100,7 @@ class I3DEA_OT_ignore(bpy.types.Operator):
 class I3DEA_OT_xml_config(bpy.types.Operator):
     bl_idname = "i3dea.xml_config"
     bl_label = "Enable export to i3dMappings"
-    bl_description = "When you run this all selected objects will be setup to export to i3dMappings and set the object name as Node ID"
+    bl_description = "This add i3dMappings to all selected objects and set the object name as Node ID"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -278,4 +278,76 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
 
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
+        return {'FINISHED'}
+
+
+class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
+    bl_idname = "i3dea.convert_skinnedmesh"
+    bl_label = "Convert Skinned Mesh"
+    bl_description = "Converts selected skinned mesh object armatures to new structure"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def get_all_armatures(self, obj):
+        return [mod.object for mod in obj.modifiers if mod.type == "ARMATURE"]
+
+    def join_armatures(self, obj, armatures):
+        first_armature = armatures[0]
+        for mod in obj.modifiers:
+            if mod.type == 'ARMATURE' and mod.object == first_armature:
+                mod.vertex_group = ""
+                break
+
+        for mod in obj.modifiers:
+            if mod.type == 'ARMATURE' and mod.object in armatures[1:]:
+                obj.modifiers.remove(mod)
+
+        with bpy.context.temp_override(active_object=first_armature, selected_editable_objects=armatures):
+            first_armature.select_set(True)
+            bpy.ops.object.join()
+
+        bpy.context.view_layer.objects.active = first_armature
+        return first_armature
+
+    def set_child_of_constraints(self, armature):
+        bpy.ops.object.mode_set(mode='POSE')
+        for pose_bone in armature.pose.bones:
+            child_of_constraints = [c for c in pose_bone.constraints if c.type == 'CHILD_OF']
+            if not child_of_constraints:
+                print(f"No 'Child Of' constraint found on bone: {pose_bone.name}")
+                continue
+
+            constraint_name = child_of_constraints[0].name
+
+            armature.data.bones.active = armature.data.bones[pose_bone.name]
+            try:
+                bpy.ops.constraint.childof_set_inverse(constraint=constraint_name, owner='BONE')
+            except Exception as e:
+                print(f"Failed to set inverse for bone: {pose_bone.name}. Error: {e}")
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    def execute(self, context):
+        obj = context.object
+        all_armatures = self.get_all_armatures(obj)
+
+        if not all_armatures:
+            self.report({'ERROR'}, f"{obj.name} doesn't have armature modifiers")
+            return {'CANCELLED'}
+
+        if len(all_armatures) <= 1:
+            self.report({'ERROR'}, f"{obj.name} doesn't have more than one armature modifier")
+            return {'CANCELLED'}
+
+        first_armature = all_armatures[0]
+
+        for armature in all_armatures:
+            armature.pose.bones[0].constraints.new("CHILD_OF").target = armature.parent
+
+        first_armature = self.join_armatures(obj, all_armatures)
+        self.set_child_of_constraints(first_armature)
+
+        skinned_mesh = bpy.data.objects.get("skinnedMeshes") or bpy.data.objects.get("skinnedMesh")
+        if skinned_mesh:
+            first_armature.parent = skinned_mesh
+        self.report({'INFO'}, "Successfully converted skinned mesh")
         return {'FINISHED'}

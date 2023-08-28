@@ -68,6 +68,7 @@ classes = [
     mesh_tools.I3DEA_OT_mirror_orientation,
     mesh_tools.I3DEA_OT_xml_config,
     mesh_tools.I3DEA_OT_fill_volume,
+    mesh_tools.I3DEA_OT_convert_skinnedmesh,
     generate_empty_on_curves.PoseAddOperator,
     generate_empty_on_curves.PoseRemoveOperator,
     generate_empty_on_curves.AddCurveOperator,

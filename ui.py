@@ -66,6 +66,7 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
             row.operator("i3dea.ignore", text="Add Suffix _ignore")
             row = col.row(align=True)
             row.operator("i3dea.verify_scene", text="Verify Scene")
+            row.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
 
 
 class I3DEA_PT_PropConverter(I3deaPanel, Panel):
