@@ -71,10 +71,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         return self.create_vehicle_attacher_joints(False)
 
     def create_base_vec(self, is_harvester):
-        self.create_vehicle_component("vehicleName_main_component1", "vehicleName_main_component1")
+        self.create_vehicle_component("1:vehicleName_main_component1", "vehicleName_main_component1")
         vehicle = bpy.context.active_object
-        vehicle_vis = self.create_skel_node("1_vehicleName_root(REPLACE_WITH_MESH)", vehicle)
-        self.create_skel_node("1_wheels", vehicle_vis)
+        vehicle_vis = self.create_skel_node("1:vehicleName_root(REPLACE_WITH_MESH)", vehicle)
+        self.create_skel_node("1:wheels", vehicle_vis)
         cameras = ""
         if is_harvester:
             cameras = self.create_cameras_harvester()
@@ -85,26 +85,26 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_lights()
         create_lights = bpy.context.active_object
         create_lights.parent = vehicle_vis
-        self.create_skel_node("4_exitPoint", vehicle_vis)
-        cabin = self.create_skel_node("5_cabin_REPLACE_WITH_MESH", vehicle_vis)
-        steering_base = self.create_skel_node("1_steeringBase", cabin)
+        self.create_skel_node("4:exitPoint", vehicle_vis)
+        cabin = self.create_skel_node("5:cabin_REPLACE_WITH_MESH", vehicle_vis)
+        steering_base = self.create_skel_node("1:steeringBase", cabin)
         steering_wheel = self.create_skel_node("steeringWheel_REPLACE_WITH_MESH", steering_base)
         self.create_skel_node("playerRightHandTarget", steering_wheel, True, translate=(-0.189, 0.023, 0.03),
                               rotation=(math.radians(-4.70569), math.radians(-50.8809), math.radians(-7.47474)))
         self.create_skel_node("playerLeftHandTarget", steering_wheel, True, translate=(
             0.189, 0.023, 0.03), rotation=(math.radians(-16.3303), math.radians(50.8809), math.radians(-7.47473)))
-        seat = self.create_skel_node("2_seat_REPLACE_WITH_MESH", cabin)
+        seat = self.create_skel_node("2:seat_REPLACE_WITH_MESH", cabin)
         self.create_skel_node("playerSkin", seat, True)
-        self.create_skel_node("3_lights_cabin", cabin)
-        self.create_skel_node("4_wipers", cabin)
-        self.create_skel_node("5_dashboards", cabin)
-        self.create_skel_node("6_levers", cabin)
-        self.create_skel_node("7_pedals", cabin)
-        character_targets = self.create_skel_node("8_characterTargets", cabin, False)
+        self.create_skel_node("3:lights_cabin", cabin)
+        self.create_skel_node("4:wipers", cabin)
+        self.create_skel_node("5:dashboards", cabin)
+        self.create_skel_node("6:levers", cabin)
+        self.create_skel_node("7:pedals", cabin)
+        character_targets = self.create_skel_node("8:characterTargets", cabin, False)
         self.create_skel_node("playerRightFootTarget", character_targets, True)
         self.create_skel_node("playerLeftFootTarget", character_targets, True)
-        self.create_skel_node("9_mirrors_cabin", cabin)
-        self.create_skel_node("10_visuals_cabin", cabin)
+        self.create_skel_node("9:mirrors_cabin", cabin)
+        self.create_skel_node("10:visuals_cabin", cabin)
         attacher_joints = None
         if is_harvester:
             attacher_joints = self.create_vehicle_attacher_joints(True)
@@ -112,7 +112,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
             attacher_joints = self.create_vehicle_attacher_joints(False)
         attacher_joints = bpy.context.active_object
         attacher_joints.parent = vehicle_vis
-        ai = self.create_skel_node("7_ai", vehicle_vis)
+        ai = self.create_skel_node("7:ai", vehicle_vis)
         self.create_skel_node("aiCollisionTrigger_REPLACE_WITH_MESH", ai)
         exhaust_particles = None
         if is_harvester:
@@ -123,9 +123,9 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_skel_node("exhaustParticle2", exhaust_particles, True)
         if is_harvester:
             self.create_skel_node("movingParts", vehicle_vis)
-        self.create_skel_node("9_hydraulics", vehicle_vis)
-        self.create_skel_node("10_mirrors", vehicle_vis)
-        self.create_skel_node("11_configurations", vehicle_vis)
+        self.create_skel_node("9:hydraulics", vehicle_vis)
+        self.create_skel_node("10:mirrors", vehicle_vis)
+        self.create_skel_node("11:configurations", vehicle_vis)
         if is_harvester:
             self.create_skel_node("fillVolume", vehicle_vis)
             work_areas = self.create_skel_node("workAreas", vehicle_vis)
@@ -137,9 +137,9 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
             self.create_skel_node("workAreaChopperStart", work_area_chopper)
             self.create_skel_node("workAreaChopperWidth", work_area_chopper)
             self.create_skel_node("workAreaChopperHeight", work_area_chopper)
-        self.create_skel_node("12_visuals", vehicle_vis)
-        self.create_skel_node("2_skinnedMeshes", vehicle)
-        self.create_skel_node("3_collisions", vehicle)
+        self.create_skel_node("12:visuals", vehicle_vis)
+        self.create_skel_node("2:skinnedMeshes", vehicle)
+        self.create_skel_node("3:collisions", vehicle)
         return vehicle
 
     def create_base_tool(self):
@@ -153,7 +153,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_skel_node("support", attachable)
         self.create_skel_node("connectionHoses", attachable)
         self.create_skel_node("wheelChocks", attachable)
-        self.create_skel_node("2_wheels", vehicle_vis)
+        self.create_skel_node("2:wheels", vehicle_vis)
         self.create_lights()
         create_lights = bpy.context.active_object
         create_lights.parent = vehicle_vis
@@ -163,8 +163,8 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_skel_node("workAreaStart", work_area)
         self.create_skel_node("workAreaWidth", work_area)
         self.create_skel_node("workAreaHeight", work_area)
-        self.create_skel_node("7_effects", vehicle_vis)
-        ai = self.create_skel_node("8_ai", vehicle_vis)
+        self.create_skel_node("7:effects", vehicle_vis)
+        ai = self.create_skel_node("8:ai", vehicle_vis)
         ai_markers = self.create_skel_node("aiMarkers", ai)
         self.create_skel_node("aiMarkerLeft", ai_markers)
         self.create_skel_node("aiMarkerRight", ai_markers)
@@ -174,9 +174,9 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_skel_node("sizeMarkerRight", size_markers)
         self.create_skel_node("sizeMarkerBack", size_markers)
         self.create_skel_node("aiCollisionNode", ai)
-        self.create_skel_node("9_visuals", vehicle_vis)
-        self.create_skel_node("2_skinnedMeshes", tool)
-        self.create_skel_node("3_collisions", tool)
+        self.create_skel_node("9:visuals", vehicle_vis)
+        self.create_skel_node("2:skinnedMeshes", tool)
+        self.create_skel_node("3:collisions", tool)
         return tool
 
     def create_player(self, steering_wheel=None):
@@ -198,11 +198,11 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
     def create_lights(self):
         bpy.ops.object.empty_add(radius=0)
         lights_group = bpy.context.active_object
-        lights_group.name = '3_lights'
-        self.create_skel_node("1_sharedLights", lights_group)
-        self.create_skel_node("2_staticLights", lights_group)
+        lights_group.name = '3:lights'
+        self.create_skel_node("1:sharedLights", lights_group)
+        self.create_skel_node("2:staticLights", lights_group)
         # default lights
-        default_lights = self.create_skel_node("3_defaultLights", lights_group)
+        default_lights = self.create_skel_node("3:defaultLights", lights_group)
         # Blender
         # (self, name, parent, coneAngle, range, dropOff, rgb, translate=(0, 0, 0), rotation=(0, 0, 0), castShadowMap=False)
         # Maya
@@ -273,11 +273,11 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
     def create_vehicle_attacher_joints(self, is_harvester):
         bpy.ops.object.empty_add(radius=0)
         attacher_joint_group = bpy.context.active_object
-        attacher_joint_group.name = '6_attacherJoints'
-        tools = self.create_skel_node("1_tools", attacher_joint_group)
-        trailers = self.create_skel_node("2_trailers", attacher_joint_group)
-        ptos = self.create_skel_node("3_ptos", attacher_joint_group)
-        self.create_skel_node("4_connectionHoses", attacher_joint_group)
+        attacher_joint_group.name = '6:attacherJoints'
+        tools = self.create_skel_node("1:tools", attacher_joint_group)
+        trailers = self.create_skel_node("2:trailers", attacher_joint_group)
+        ptos = self.create_skel_node("3:ptos", attacher_joint_group)
+        self.create_skel_node("4:connectionHoses", attacher_joint_group)
         if not is_harvester:
             # attacherjointbackrot
             attacher_joint_back_rot = self.create_skel_node(

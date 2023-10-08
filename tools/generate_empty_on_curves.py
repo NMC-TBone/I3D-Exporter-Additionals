@@ -101,7 +101,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
         empty.name = name
         return empty
 
-    def __create_empties_on_curve(self, hierarchy=""):
+    def __create_empties_on_curve(self, hierarchy="curveArray"):
         """Creates empty objects along each selected curve object"""
         # Create empty object "pose1"
         hierarchy_empty = self.__create_empty(name=hierarchy)
@@ -113,9 +113,6 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
             hierarchy_empty['I3D_objectDataExportPosition'] = True
             hierarchy_empty['I3D_objectDataExportOrientation'] = True
             hierarchy_empty['I3D_objectDataExportScale'] = True
-
-        # for curve in bpy.context.scene.i3dea.pose_list.sub_pose_list:
-        #     pass
 
         for pose in bpy.context.scene.i3dea.pose_list:
             if pose.sub_pose_list:
@@ -146,25 +143,28 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                     amount = math.ceil(c_length / distance)
                 for i in range(amount):
                     x_empty = self.__create_empty(empty_type='ARROWS', name=f"{curve.curve}_X_{i:03d}")
-                    # Set object constraint to follow curve
-                    x_empty.constraints.new('FOLLOW_PATH')
-                    x_empty.constraints['Follow Path'].target = bpy.data.objects[curve.curve]
-                    x_empty.constraints['Follow Path'].use_curve_radius = False
-                    x_empty.constraints['Follow Path'].use_fixed_location = True
-                    x_empty.constraints['Follow Path'].use_curve_follow = True
-                    x_empty.constraints['Follow Path'].forward_axis = 'TRACK_NEGATIVE_Y'
-                    x_empty.constraints['Follow Path'].up_axis = 'UP_Z'
-
-                    # Set object parent based on curve name
                     x_empty.parent = curve_empty
 
+                    # Set object constraint to follow curve
+                    follow_path = x_empty.constraints.new('FOLLOW_PATH')
+                    follow_path.target = bpy.data.objects[curve.curve]
+                    follow_path.use_curve_radius = False
+                    follow_path.use_fixed_location = True
+                    follow_path.use_curve_follow = True
+                    follow_path.forward_axis = 'TRACK_NEGATIVE_Y'
+                    follow_path.up_axis = 'UP_Z'
+
                     # Set offset factor for empty along curve
-                    x_empty.constraints['Follow Path'].offset_factor = i / (amount - 1)
+                    follow_path.offset_factor = i / (amount - 1)
 
                     # Apply the constraint
-                    bpy.ops.constraint.apply({'constraint': x_empty.constraints["Follow Path"]}, constraint='Follow Path')
+                    bpy.ops.constraint.followpath_path_animate(constraint="Follow Path", owner='OBJECT')
+                    x_empty.matrix_basis = x_empty.matrix_local
+                    x_empty.constraints.remove(x_empty.constraints['Follow Path'])
 
     def execute(self, context):
+        if bpy.context.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
         i3dea = context.scene.i3dea
         self.__create_empties_on_curve(hierarchy=i3dea.motion_hierarchy_name)
         self.report({'INFO'}, "Generated empties a long selected curves")

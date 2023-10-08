@@ -30,47 +30,46 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
     bl_label = "Add Mirror Material"
     bl_description = "Adds mirror_mat to materials"
 
+    def create_mirror_material(self):
+        material = bpy.data.materials.new(name="mirror_mat")
+        material.use_nodes = True
+        principled_node = material.node_tree.nodes.get('Principled BSDF')
+        principled_node.inputs["Base Color"].default_value = (0.000001, 0.000001, 0.000001, 1)
+        principled_node.inputs["Metallic"].default_value = 1
+        principled_node.inputs["Specular"].default_value = 1
+        principled_node.inputs["Roughness"].default_value = 1
+        return material
+
     def execute(self, context):
-        if giants_i3d:
-            if context.scene.I3D_UIexportSettings.I3D_shaderFolderLocation == "":
-                self.report({'ERROR'}, "Shader Folder location is not set!")
-                return {'CANCELLED'}
         if stjerne_i3d:
             if context.preferences.addons['i3dio'].preferences.fs_data_path == "":
                 self.report({'ERROR'}, "FS Data Folder is not set!")
                 return {'CANCELLED'}
 
-        material = bpy.data.materials.get("mirror_mat")
-        if material:
+        if bpy.data.materials.get("mirror_mat"):
             self.report({'ERROR'}, "Mirror Material already exists!")
             return {'CANCELLED'}
+
         if not bpy.context.object.type == "MESH":
             self.report({'ERROR'}, "Selected Object is not a mesh!")
             return {'CANCELLED'}
-        else:
-            material = bpy.data.materials.new(name="mirror_mat")
-            material.use_nodes = True
-            principled_node = material.node_tree.nodes.get('Principled BSDF')
-            principled_node.inputs["Base Color"].default_value = (0, 0, 0, 1)
-            principled_node.inputs["Metallic"].default_value = 1
-            principled_node.inputs["Specular"].default_value = 1
-            principled_node.inputs["Roughness"].default_value = 1
-            mirror_mat = bpy.data.materials.get('mirror_mat')
 
-            for obj in bpy.context.selected_objects:
-                obj.active_material_index = 0
-                for i in range(len(obj.material_slots)):
-                    bpy.ops.object.material_slot_remove()
-                obj.data.materials.append(mirror_mat)
-                if giants_i3d:
-                    bpy.context.object.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
-                    bpy.context.object.active_material['shadingRate'] = "1x1"
-                if stjerne_i3d:
-                    data_folder = context.preferences.addons['i3dio'].preferences.fs_data_path
-                    bpy.context.object.active_material.i3d_attributes.source = data_folder + "shaders\\mirrorShader.xml"
+        mirror_mat = self.create_mirror_material()
 
-            self.report({'INFO'}, "Created material: mirror_mat")
-            return {'FINISHED'}
+        for obj in context.selected_objects:
+            while obj.material_slots:
+                bpy.ops.object.material_slot_remove({'object': obj})
+            obj.data.materials.append(mirror_mat)
+
+            if giants_i3d:
+                obj.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
+                obj.active_material['shadingRate'] = "1x1"
+            if stjerne_i3d:
+                data_folder = context.preferences.addons['i3dio'].preferences.fs_data_path
+                obj.active_material.i3d_attributes.source = data_folder + "shaders\\mirrorShader.xml"
+
+        self.report({'INFO'}, "Created material: mirror_mat")
+        return {'FINISHED'}
 
 
 class I3DEA_OT_remove_duplicate_material(bpy.types.Operator):
@@ -214,13 +213,3 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                             material.i3d_attributes.shader_textures[1].source = dirt
 
         return {'FINISHED'}
-
-
-def register():
-    bpy.types.Material.custom_shader = bpy.props.StringProperty(
-        name='customShader',
-    )
-
-
-def unregister():
-    del bpy.types.Material.custom_shader

@@ -224,8 +224,8 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
         camera = None
         mirror = None
         target = None
+
         for obj in bpy.context.selected_objects:
-            # Get each selected object type (3 in total)
             if obj.type == 'CAMERA':
                 camera = obj
             elif obj.type == 'MESH':
@@ -234,50 +234,23 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
                 target = obj
 
         if camera and mirror and target:
-            mirror_parent = mirror.parent if mirror.parent else None
+            original_location = mirror.location.copy()
 
-            mirror_axis_target = bpy.data.objects.new("mirror_axis_target", None)
-            bpy.context.collection.objects.link(mirror_axis_target)
+            # Calculate the orientation of the mirror based on the camera and target
+            dir_camera_to_mirror = (mirror.location - camera.location).normalized()
+            dir_target_to_mirror = (mirror.location - target.location).normalized()
+            blended_direction = (dir_camera_to_mirror + dir_target_to_mirror).normalized()
 
-            # Calculate the mirror_axis_target location
-            v1 = (mirror.location - camera.location).normalized()
-            v2 = (mirror.location - target.location).normalized()
-            v3 = v1 + v2
+            # Compute the rotation matrix from the blended direction
+            rotation_matrix = blended_direction.to_track_quat('-Z', 'Y').to_matrix().to_4x4()
+            mirror.matrix_world = rotation_matrix @ mirror.matrix_world
+            mirror.data.transform(rotation_matrix.inverted())
 
-            mirror_axis_target.location = mirror.location - v3
-
-            # Using TRACK_TO constraint to correctly set up the orientation of the mirror
-            mirror_axis_target.constraints.new('TRACK_TO')
-            mirror_axis_target.constraints['Track To'].track_axis = 'TRACK_NEGATIVE_Z'
-            mirror_axis_target.constraints['Track To'].up_axis = 'UP_Y'
-            mirror_axis_target.constraints['Track To'].target = mirror
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.context.view_layer.objects.active = mirror_axis_target
-            mirror_axis_target.select_set(True)
-            bpy.ops.constraint.apply(constraint="Track To", owner='OBJECT')
-            mirror_axis_target.select_set(False)
-
-            matrix_world = mirror.matrix_world.copy()
-            mirror.parent = mirror_axis_target
-            mirror.matrix_parent_inverse = Matrix.Identity(4)
-            mirror.matrix_world = matrix_world
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.context.view_layer.objects.active = mirror
-            mirror.select_set(True)
-            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-            mirror.select_set(False)
-
-            mirror_matrix = mirror.matrix_world.copy()
-            if mirror_parent:
-                mirror.parent = mirror_parent
-            else:
-                mirror.parent = None
-            mirror.matrix_world = mirror_matrix
-
-            bpy.data.objects.remove(mirror_axis_target)
+            mirror.location = original_location
 
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
+
         return {'FINISHED'}
 
 
