@@ -111,20 +111,21 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
 
     def _handle_rigid_body_type(self, obj, stjerne):
         rigid_type = obj[stjerne[0]][stjerne[1]]
-        if rigid_type == 1:
-            obj['I3D_static'] = True
-        elif rigid_type == 2:
-            obj['I3D_dynamic'] = True
-        elif rigid_type == 3:
-            obj['I3D_kinematic'] = True
-        elif rigid_type == 4:
-            obj['I3D_compoundChild'] = True
-        else:
-            # In case the enumprop is none and giants exporter has a set value
-            obj['I3D_static'] = False
-            obj['I3D_dynamic'] = False
-            obj['I3D_kinematic'] = False
-            obj['I3D_compoundChild'] = False
+        match rigid_type:
+            case 1:
+                obj['I3D_static'] = True
+            case 2:
+                obj['I3D_dynamic'] = True
+            case 3:
+                obj['I3D_kinematic'] = True
+            case 4:
+                obj['I3D_compoundChild'] = True
+            case _:
+                # In case the enumprop is none and giants exporter has a set value
+                obj['I3D_static'] = False
+                obj['I3D_dynamic'] = False
+                obj['I3D_kinematic'] = False
+                obj['I3D_compoundChild'] = False
         return 1
 
     def _handle_split_uvs(self, obj, stjerne):
@@ -135,7 +136,8 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         obj['I3D_splitUvWorldScale'] = obj[stjerne[0]][stjerne[1]][4]
         return 1
 
-    def _handle_lod_distance(self, obj, stjerne):
+    def _handle_lod_distance(self, obj, giants, stjerne):
+        print(f"lod_distance: {obj[stjerne[0]][stjerne[1]]}, {obj.name}, giants: {giants}")
         if obj[stjerne[0]][stjerne[1]]:
             obj['I3D_lod'] = True
             splitted = obj[stjerne[0]][stjerne[1]].split()
@@ -143,9 +145,10 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
             # loop to set the correct lod distance from stjerne exporter to giants exporter
             # Max 4 lod distances allowed in giants exporter (lod0 should be 0)
             for i, lod in enumerate(splitted):
+                print(f"lod{i}", lod)
                 if i == 4:
                     break
-                obj[f'I3D_lod{i}'] = lod
+                obj[f'I3D_lod{i}'] = float(lod)
             return 1
 
     def _handle_merge_group(self, obj, giants, stjerne, merge_groups):
@@ -166,16 +169,45 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
 
         return count
 
+    def _handle_new_merge_group(self, obj, context):
+        count = 0
+        # Access the new merge groups list
+        merge_groups = context.scene['i3dio_merge_groups']
+
+        # Get the index of the merge group for the current object
+        merge_group_index = obj.get("i3d_merge_group_index", -1)
+
+        adjusted_index = merge_group_index + 1
+
+        # Check if the index is valid
+        if 0 <= merge_group_index < len(merge_groups):
+            merge_group_info = merge_groups[merge_group_index]
+            # Set the I3D_mergeGroup property
+            # Assuming you want to set some identifier or name of the merge group
+            obj["I3D_mergeGroup"] = adjusted_index  # Modify this based on how you identify merge groups
+            count += 1
+
+            # Check if the current object is the root of the merge group
+            if obj == merge_group_info.get('root', None):
+                obj["I3D_mergeGroupRoot"] = True
+                count += 1
+                if hasattr(obj.data, 'i3d_attributes') and 'bounding_volume_object' in obj.data['i3d_attributes']:
+                    bv_obj = obj.data['i3d_attributes']['bounding_volume_object']
+                    bv_obj['I3D_boundingVolume'] = f'MERGEGROUP_{merge_group_info["id"]}'
+                    count += 1
+        return count
+
     def _handle_other_cases(self, obj, giants, stjerne):
         count = 0
-        if "collision_mask" == stjerne[1]:
-            obj[giants] = int(obj[stjerne[0]][stjerne[1]], 16)
-            count += 1
-        elif "object_mask" == stjerne[1]:
-            obj[giants] = int(obj[stjerne[0]][stjerne[1]], 16)
-        else:
-            obj[giants] = obj[stjerne[0]][stjerne[1]]
-            count += 1
+        match stjerne[1]:
+            case "collision_mask":
+                obj[giants] = str(int(obj[stjerne[0]][stjerne[1]], 16))
+                count += 1
+            case "object_mask":
+                obj[giants] = str(int(obj[stjerne[0]][stjerne[1]], 16))
+            case _:
+                obj[giants] = obj[stjerne[0]][stjerne[1]]
+                count += 1
         return count
 
     def mg_string_to_int(self, context, merge_groups) -> list:
@@ -214,7 +246,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                     elif stjerne[1] == "split_uvs":
                         props_conv += self._handle_split_uvs(obj, stjerne)
                     elif stjerne[1] == "lod_distance":
-                        props_conv += self._handle_lod_distance(obj, stjerne)
+                        props_conv += self._handle_lod_distance(obj, giants, stjerne)
                     else:
                         if "group_id" in obj[stjerne[0]]:
                             props_conv += self._handle_merge_group(obj, giants, stjerne, merge_groups)
@@ -225,6 +257,8 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
 
                 obj[giants] = obj.data[stjerne[1]][stjerne[2]]
                 props_conv += 1
+        if "i3d_merge_group_index" in obj and "i3dio_merge_groups" in context.scene:
+            props_conv += self._handle_new_merge_group(obj, context)
         if delete_props:
             if 'i3d_attributes' in obj:
                 del obj['i3d_attributes']
@@ -301,7 +335,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                         setattr(obj.data, prop_mapping[key], value)
                         count += 1
                     else:
-                        print(f"Key {key} with value {value} not handled")
+                        print(f"Key {key} with value {value} on obj {obj.name} not handled")
 
             if "drop_off" in key:
                 obj.data.spot_blend = 5.0 / value
@@ -403,7 +437,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
             return
 
         # if both nodes are found, link them together
-        mat.node_tree.links.new(bsdf.inputs['Specular'], tex_node.outputs['Color'])
+        mat.node_tree.links.new(bsdf.inputs['Specular IOR Level'], tex_node.outputs['Color'])
         if sep_color_node:
             mat.node_tree.nodes.remove(sep_color_node)
 
