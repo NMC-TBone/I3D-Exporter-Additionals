@@ -22,7 +22,7 @@ import bpy
 import bmesh
 import math
 
-from mathutils import Matrix, Vector
+from mathutils import Vector
 
 
 class I3DEA_OT_remove_doubles(bpy.types.Operator):
@@ -247,11 +247,12 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
             mirror.data.transform(rotation_matrix.inverted())
 
             mirror.location = original_location
+            self.report({'INFO'}, f"Mirror orientation set for {mirror.name}")
+            return {'FINISHED'}
 
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
-
-        return {'FINISHED'}
+            return {'CANCELLED'}
 
 
 class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
