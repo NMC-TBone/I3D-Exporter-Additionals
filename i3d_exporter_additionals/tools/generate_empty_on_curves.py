@@ -128,8 +128,9 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
             curve_lengths = {curve.curve: get_curve_length(curve.curve) for curve in pose.sub_pose_list}
             longest_curve_length = max(curve_lengths.values(), default=0)
 
-            for curve in pose.sub_pose_list:
-                curve_empty = self.__create_empty(name=f"{curve.curve}_Y")
+            for ind, curve in enumerate(pose.sub_pose_list):
+                split_name = curve.curve.split('.')[0]
+                curve_empty = self.__create_empty(name=f"{split_name}_Y_{ind:03d}")
                 curve_empty.parent = pose_empty
                 c_length = curve_lengths[curve.curve]
                 amount = 0
@@ -141,7 +142,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                     distance = longest_curve_length / bpy.context.scene.i3dea.motion_amount_fix
                     amount = math.ceil(c_length / distance)
                 for i in range(amount):
-                    x_empty = self.__create_empty(empty_type='ARROWS', name=f"{curve.curve}_X_{i:03d}")
+                    x_empty = self.__create_empty(empty_type='ARROWS', name=f"{split_name}_X_{i:03d}")
                     x_empty.parent = curve_empty
 
                     # Set object constraint to follow curve
