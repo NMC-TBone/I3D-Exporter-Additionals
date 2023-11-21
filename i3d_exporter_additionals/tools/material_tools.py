@@ -66,7 +66,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
                 obj.active_material['shadingRate'] = "1x1"
             if stjerne_i3d:
                 data_folder = context.preferences.addons['i3dio'].preferences.fs_data_path
-                obj.active_material.i3d_attributes.source = data_folder + "shaders\\mirrorShader.xml"
+                obj.active_material.i3d_attributes.source = f"{data_folder}shaders\\mirrorShader.xml"
 
         self.report({'INFO'}, "Created material: mirror_mat")
         return {'FINISHED'}

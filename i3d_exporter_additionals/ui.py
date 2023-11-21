@@ -476,6 +476,7 @@ class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
             row.operator("i3dea.remove_curve", text="Remove", icon='REMOVE').remove_all = False
 
             box = layout.box()
+            box.enabled = bool(selected_pose.sub_pose_list)
             box_col = box.column(align=True)
             box_col.label(text="Settings for array creation")
             box_row = box_col.row(align=True)
