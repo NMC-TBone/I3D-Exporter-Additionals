@@ -1,4 +1,4 @@
-# i3d_exporter_additionals
+# I3D Exporter Additionals
 
 
 ## Description
