@@ -21,34 +21,48 @@
 import bpy
 import math
 import mathutils
+import numpy as np
 
 
 class I3DEA_OT_copy_orientation(bpy.types.Operator):
     bl_idname = "i3dea.copy_orientation"
     bl_label = "Copy Orientation"
-    bl_description = "Copy selected object orientation to clipboard"
+    bl_description = "Copy Location/Rotation from active object to clipboard in Giants Editor format"
     state: bpy.props.IntProperty()
 
-    def execute(self, context):
-        def bake_transform_matrix(matrix):
-            return mathutils.Matrix.Rotation(math.radians(-90), 4, "X") @ \
-                matrix @ mathutils.Matrix.Rotation(math.radians(90), 4, "X")
+    @staticmethod
+    def transform_matrix(matrix):
+        rotation_minus90_x = np.array([
+            [1, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, -1, 0, 0],
+            [0, 0, 0, 1]])
+        rotation_plus90_x = np.array([
+            [1, 0, 0, 0],
+            [0, 0, -1, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, 1]])
+        return mathutils.Matrix(rotation_minus90_x.tolist()) @ matrix @ mathutils.Matrix(rotation_plus90_x.tolist())
 
-        obj = bpy.context.object
-        m = bake_transform_matrix(obj.matrix_local)
+    def execute(self, context):
+        obj = context.object
+
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+
+        transformed_matrix = self.transform_matrix(obj.matrix_local)
         orientation = "0 0 0"
 
-        if 1 == self.state:
-            t = m.to_translation()[:]
-            orientation = "{0:.3f} {1:.3f} {2:.3f}".format(*t)
+        if self.state == 1:
+            t = transformed_matrix.to_translation()[:]
+            orientation = " ".join("0" if abs(x) < 1e-6 else "{:.6f}".format(x) for x in t)
 
-        elif 2 == self.state:
-            r = m.to_euler("XYZ")
-            r = (math.degrees(r.x) if (r.x > 1e-6 or r.x < -1e-6) else 0,
-                 math.degrees(r.y) if (r.y > 1e-6 or r.y < -1e-6) else 0,
-                 math.degrees(r.z) if (r.z > 1e-6 or r.z < -1e-6) else 0)
-            orientation = "{0:.3f} {1:.3f} {2:.3f}".format(*r)
+        elif self.state == 2:
+            r = transformed_matrix.to_euler("XYZ")
+            r = [math.degrees(x) for x in r]
+            orientation = " ".join("0" if abs(x) < 1e-6 else "{:.6f}".format(x) for x in r)
 
-        bpy.context.window_manager.clipboard = orientation
-        self.report({'INFO'}, f'{orientation} from {obj.name} copied to clipboard')
+        context.window_manager.clipboard = orientation
+        self.report({'INFO'}, f'Orientation "{orientation}" from "{obj.name}" copied to clipboard')
         return {'FINISHED'}
