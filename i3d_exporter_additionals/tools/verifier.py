@@ -48,6 +48,8 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         info_count = 0
         total_object_count = 0
         total_poly_count = 0
+        merge_group_members = {}
+        bounding_volumes = {}
 
         dg = bpy.context.evaluated_depsgraph_get()
 
@@ -74,14 +76,13 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
             mesh = bpy.data.meshes.new_from_object(eval_obj)
             poly_count = len(mesh.polygons)
 
-            is_non_renderable = obj.get('I3D_nonRenderable', 0) == 1
+            is_non_renderable = obj.get('I3D_nonRenderable', False) is True
             merge_group = obj.get('I3D_mergeGroup', 0)
-
+            merge_group_root = obj.get('I3D_mergeGroupRoot', False)
+            bounding_volume = obj.get('I3D_boundingVolume', '')
             if poly_count > 0 and not is_non_renderable and merge_group == 0:
                 total_object_count += 1
-                print(total_poly_count, "before")
                 total_poly_count += poly_count
-                print(total_poly_count, "after")
 
                 if len([o for o in bpy.data.objects if o.data == mesh]) > 1:
                     self.report({'WARNING'}, f"Multiple shapes defined for {obj.name}!")
@@ -89,7 +90,19 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
 
             bpy.data.meshes.remove(mesh)
 
-            if 'I3D_static' in obj and obj['I3D_static'] == 1 and not is_placeable:
+            if merge_group > 0:
+                member_count, has_root_object = merge_group_members.get(merge_group, (0, False))
+                # Update the member count and root object flag
+                merge_group_members[merge_group] = (member_count + 1, has_root_object or merge_group_root)
+
+                merge_group_name = f"MERGEGROUP_{merge_group}"
+                if merge_group_name not in bounding_volumes:
+                    bounding_volumes[merge_group_name] = False
+
+            if bounding_volume not in ['', 'None']:
+                bounding_volumes[bounding_volume] = True
+
+            if obj.get("I3D_static", False) is True and not is_placeable:
                 print(f"RigidBody: {obj.name} is marked as static!")
                 info_count += 1
 
@@ -111,7 +124,7 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
                 info_count += 1
 
             if 'fillvolume' in name_lower:
-                if obj.get('I3D_cpuMesh') == 0:
+                if obj.get('I3D_cpuMesh', False) is False:
                     print(f"FillVolume: {obj.name} is not marked as CPU-Mesh!")
                     warning_count += 1
 
@@ -140,7 +153,8 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
                     warning_count += 1
 
             if has_armature and obj.modifiers and obj.modifiers[0].type != "ARMATURE":
-                print(f"Armature modifier: Object {obj.name} has armature modifier, but it's not first modifier in the list.")
+                print(f"Armature modifier: Object {obj.name} "
+                      "has armature modifier, but it's not first modifier in the list.")
                 warning_count += 1
 
         if total_poly_count > MAX_POLY_COUNT:
@@ -151,6 +165,22 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
             print(f"Object count: {total_object_count} mesh objects is very high This cause performance issues. "
                   "consider merging some objects")
             error_count += 1
+
+        if merge_group_members:
+            for merge_group, (member_count, has_root_object) in merge_group_members.items():
+                if member_count > MAX_MERGE_GROUP_MEMBERS:
+                    print(f"Merge group: {merge_group} has {member_count} members. "
+                          f"Max allowed is {MAX_MERGE_GROUP_MEMBERS}. Consider splitting it into multiple merge groups")
+                    warning_count += 1
+                if not has_root_object:
+                    print(f"Merge group: {merge_group} has no root object. First member will be set as root.")
+                    warning_count += 1
+
+        if bounding_volumes:
+            for bv, used in bounding_volumes.items():
+                if not used:
+                    print(f"No bounding-volume defined for {bv}. Bounding volume will be automatically calculated")
+                    warning_count += 1
 
         print("Errors:", error_count)
         print("Warnings:", warning_count)
