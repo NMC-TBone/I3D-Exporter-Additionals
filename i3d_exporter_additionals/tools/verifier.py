@@ -18,16 +18,12 @@
 
 # Test the whole scene to check if there is any issues in the setup before export to i3d
 
-
-"""
-TODO:
-    - See if it's possible to do more with fill volume checker
-    - Make it possible to scale the curve to get an rounded value for the track amount
-"""
-
-
 import bpy
 from mathutils import Vector
+
+MAX_OBJECT_COUNT = 150
+MAX_POLY_COUNT = 200000
+MAX_MERGE_GROUP_MEMBERS = 60
 
 
 class I3DEA_OT_verify_scene(bpy.types.Operator):
@@ -35,21 +31,23 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
     bl_label = "Verify Scene"
     bl_description = "Check the whole scene if there is something that may be wrong"
 
+    def check_placeable(self, obj):
+        if "placeable" in obj.name.lower():
+            return True
+        for mat in obj.material_slots:
+            if 'customShader' in mat.material:
+                if "placeableShader" or "buildingShader" in mat.material['customShader']:
+                    return True
+        return False
+
     def execute(self, context):
         component_number = 1
-        is_placeable = False
+        is_placeable = any(self.check_placeable(obj) for obj in bpy.data.objects)
         error_count = 0
         warning_count = 0
         info_count = 0
-        poly_count = 0
-
-        for obj in bpy.data.objects:
-            if "placeable" in obj.name.lower():
-                is_placeable = True
-            for mat in obj.material_slots:
-                if 'customShader' in mat.material:
-                    if "placeableShader" or "buildingShader" in mat.material['customShader']:
-                        is_placeable = True
+        total_object_count = 0
+        total_poly_count = 0
 
         dg = bpy.context.evaluated_depsgraph_get()
 
@@ -69,53 +67,71 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
 
             if obj.type != 'MESH':
                 continue
+            name_lower = obj.name.lower()
+            has_armature = any(mo.type == "ARMATURE" for mo in obj.modifiers)
 
-            has_armature = False
-            objs = obj.evaluated_get(dg)
-            mesh = objs.to_mesh()
-            poly_count += len(mesh.polygons)
+            eval_obj = obj.evaluated_get(dg)
+            mesh = bpy.data.meshes.new_from_object(eval_obj)
+            poly_count = len(mesh.polygons)
 
-            # if poly_count > 0 and ('I3D_nonRenderable' and 'I3D_mergeGroup' in obj) and (obj['I3D_nonRenderable'] and obj['I3D_mergeGroup'] == 0):
-            #     print("Multiple shapes defined!")
+            is_non_renderable = obj.get('I3D_nonRenderable', 0) == 1
+            merge_group = obj.get('I3D_mergeGroup', 0)
+
+            if poly_count > 0 and not is_non_renderable and merge_group == 0:
+                total_object_count += 1
+                print(total_poly_count, "before")
+                total_poly_count += poly_count
+                print(total_poly_count, "after")
+
+                if len([o for o in bpy.data.objects if o.data == mesh]) > 1:
+                    self.report({'WARNING'}, f"Multiple shapes defined for {obj.name}!")
+                    warning_count += 1
+
+            bpy.data.meshes.remove(mesh)
 
             if 'I3D_static' in obj and obj['I3D_static'] == 1 and not is_placeable:
                 print(f"RigidBody: {obj.name} is marked as static!")
                 info_count += 1
 
-            if 'I3D_nonRenderable' and 'I3D_mergeGroup' and 'I3D_clipDistance' and 'I3D_boundingVolume' in obj and obj['I3D_nonRenderable'] == 0 and obj['I3D_mergeGroup'] == 0 and obj['I3D_clipDistance'] == 0 and obj['I3D_boundingVolume'] == '':
+            clip_distance_conditions = [('I3D_nonRenderable', lambda v: v == 0),
+                                        ('I3D_mergeGroup', lambda v: v == 0),
+                                        ('I3D_clipDistance', lambda v: v == 0),
+                                        ('I3D_boundingVolume', lambda v: v == '')]
+
+            if all(key in obj and condition(obj[key]) for key, condition in clip_distance_conditions):
                 print(f"ClipDistance: {obj.name} has no clip distance set. This causes performance issues!")
                 info_count += 1
 
-            if 'decal' in obj.name.lower() and 'I3D_decalLayer' in obj and obj['I3D_decalLayer'] == 0:
-                print(f"DecalLayer: {obj.name}, has decal layer set to 0")
+            decal_layer = obj.get('I3D_decalLayer', 0)
+            if 'decal' in name_lower and decal_layer == 0:
+                print(f"Decal Layer: {obj.name}, has decal layer set to 0")
+                info_count += 1
+            elif decal_layer > 0 and 'decal' not in name_lower:
+                print("Decal Layer: Nodes have to be pre-/postfixed by 'decal' if decalLayer-attribute > 0")
                 info_count += 1
 
-            if ("decal" in obj.name.lower() == -1) and 'I3D_decalLayer' in obj and obj['I3D_decalLayer'] != 0:
-                print("DecalLayer: Nodes have to be pre-/postfixed by 'decal' if decalLayer-attribute > 0")
-                info_count += 1
-
-            if 'fillvolume' in obj.name.lower() != -1:
-                if 'I3D_cpuMesh' in obj and obj['I3D_cpuMesh'] == 0:
-                    print(f"FillVolume {obj.name} is not marked as CPU-Mesh!")
+            if 'fillvolume' in name_lower:
+                if obj.get('I3D_cpuMesh') == 0:
+                    print(f"FillVolume: {obj.name} is not marked as CPU-Mesh!")
                     warning_count += 1
 
-            if 'I3D_collision' in obj and obj['I3D_collision'] == 1:
-                if 'I3D_compound' in obj and obj['I3D_compound'] == 1 and 'I3D_trigger' in obj and obj['I3D_trigger'] == 0:
-                    if obj.parent is None:
-                        if component_number == 1:
-                            expected_suffix = "_main_component1"
-                        else:
-                            expected_suffix = "_component" + str(component_number)
-                        if not obj.name.endswith(expected_suffix):
-                            print(f"Component: Object {obj.name} is marked as compound, but name convention is wrong. Should be {expected_suffix}")
-                            warning_count += 1
-                        component_number += 1
+            collision = obj.get('I3D_collision', False)
+            compound = obj.get('I3D_compound', False)
+            trigger = obj.get('I3D_trigger', False)
+            if collision is True:
+                if compound is True and trigger is False and obj.parent is None:
+                    expected_suffix = "_main_component1" if component_number == 1 else f"_component{component_number}"
+                    if not obj.name.endswith(expected_suffix):
+                        print(f"Component: Object {obj.name} is marked as compound, "
+                              f"but name convention is wrong. Should be {expected_suffix}")
+                        warning_count += 1
+                    component_number += 1
 
                 if obj.scale != Vector((1, 1, 1)):
                     print(f"Scale: collision {obj.name} is not scaled 1 1 1, apply scale.")
                     warning_count += 1
 
-            if 'effect' in obj.name.lower():
+            if 'effect' in name_lower:
                 if not obj.data.color_attributes:
                     print(f"EffectMesh: {obj.name}, is a effect but doesn't have a Vertex Color layer")
                     warning_count += 1
@@ -123,18 +139,26 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
                     print(f"EffectMesh: {obj.name}, is a effect but doesn't have 2 UV layers")
                     warning_count += 1
 
-            for mo in obj.modifiers:
-                if mo.type == "ARMATURE":
-                    has_armature = True
-
             if has_armature and obj.modifiers and obj.modifiers[0].type != "ARMATURE":
                 print(f"Armature modifier: Object {obj.name} has armature modifier, but it's not first modifier in the list.")
                 warning_count += 1
 
+        if total_poly_count > MAX_POLY_COUNT:
+            print(f"Poly count: {total_poly_count} is very high. This cause performance issues. Try to reduce it")
+            error_count += 1
+
+        if total_object_count > MAX_OBJECT_COUNT:
+            print(f"Object count: {total_object_count} mesh objects is very high This cause performance issues. "
+                  "consider merging some objects")
+            error_count += 1
+
         print("Errors:", error_count)
         print("Warnings:", warning_count)
         print("Info:", info_count)
-        # print("Poly count:", poly_count)
+        print("Poly count:", total_poly_count)
+        print("Object count:", total_object_count)
+        self.report({'INFO'}, f'Errors: {error_count}, Warnings: {warning_count}, Info: {info_count} '
+                    '(check console for details))')
         return {'FINISHED'}
 
 
