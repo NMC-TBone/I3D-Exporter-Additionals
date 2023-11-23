@@ -22,7 +22,7 @@ import bpy
 import bmesh
 import math
 
-from mathutils import Matrix, Vector
+from mathutils import Vector
 
 
 class I3DEA_OT_remove_doubles(bpy.types.Operator):
@@ -100,7 +100,7 @@ class I3DEA_OT_ignore(bpy.types.Operator):
 class I3DEA_OT_xml_config(bpy.types.Operator):
     bl_idname = "i3dea.xml_config"
     bl_label = "Enable export to i3dMappings"
-    bl_description = "When you run this all selected objects will be setup to export to i3dMappings and set the object name as Node ID"
+    bl_description = "This add i3dMappings to all selected objects and set the object name as Node ID"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -224,8 +224,8 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
         camera = None
         mirror = None
         target = None
+
         for obj in bpy.context.selected_objects:
-            # Get each selected object type (3 in total)
             if obj.type == 'CAMERA':
                 camera = obj
             elif obj.type == 'MESH':
@@ -234,48 +234,94 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
                 target = obj
 
         if camera and mirror and target:
-            mirror_parent = mirror.parent if mirror.parent else None
+            original_location = mirror.location.copy()
 
-            mirror_axis_target = bpy.data.objects.new("mirror_axis_target", None)
-            bpy.context.collection.objects.link(mirror_axis_target)
+            # Calculate the orientation of the mirror based on the camera and target
+            dir_camera_to_mirror = (mirror.location - camera.location).normalized()
+            dir_target_to_mirror = (mirror.location - target.location).normalized()
+            blended_direction = (dir_camera_to_mirror + dir_target_to_mirror).normalized()
 
-            # Calculate the mirror_axis_target location
-            v1 = (mirror.location - camera.location).normalized()
-            v2 = (mirror.location - target.location).normalized()
-            v3 = v1 + v2
+            # Compute the rotation matrix from the blended direction
+            rotation_matrix = blended_direction.to_track_quat('-Z', 'Y').to_matrix().to_4x4()
+            mirror.matrix_world = rotation_matrix @ mirror.matrix_world
+            mirror.data.transform(rotation_matrix.inverted())
 
-            mirror_axis_target.location = mirror.location - v3
-
-            # Using TRACK_TO constraint to correctly set up the orientation of the mirror
-            mirror_axis_target.constraints.new('TRACK_TO')
-            mirror_axis_target.constraints['Track To'].track_axis = 'TRACK_NEGATIVE_Z'
-            mirror_axis_target.constraints['Track To'].up_axis = 'UP_Y'
-            mirror_axis_target.constraints['Track To'].target = mirror
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.context.view_layer.objects.active = mirror_axis_target
-            mirror_axis_target.select_set(True)
-            bpy.ops.constraint.apply(constraint="Track To", owner='OBJECT')
-            mirror_axis_target.select_set(False)
-
-            matrix_world = mirror.matrix_world.copy()
-            mirror.parent = mirror_axis_target
-            mirror.matrix_parent_inverse = Matrix.Identity(4)
-            mirror.matrix_world = matrix_world
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.context.view_layer.objects.active = mirror
-            mirror.select_set(True)
-            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-            mirror.select_set(False)
-
-            mirror_matrix = mirror.matrix_world.copy()
-            if mirror_parent:
-                mirror.parent = mirror_parent
-            else:
-                mirror.parent = None
-            mirror.matrix_world = mirror_matrix
-
-            bpy.data.objects.remove(mirror_axis_target)
+            mirror.location = original_location
+            self.report({'INFO'}, f"Mirror orientation set for {mirror.name}")
+            return {'FINISHED'}
 
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
+            return {'CANCELLED'}
+
+
+class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
+    bl_idname = "i3dea.convert_skinnedmesh"
+    bl_label = "Convert Skinned Mesh"
+    bl_description = "Converts selected skinned mesh object armatures to new structure"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def get_all_armatures(self, obj):
+        return [mod.object for mod in obj.modifiers if mod.type == "ARMATURE"]
+
+    def join_armatures(self, obj, armatures):
+        first_armature = armatures[0]
+        for mod in obj.modifiers:
+            if mod.type == 'ARMATURE' and mod.object == first_armature:
+                mod.vertex_group = ""
+                break
+
+        for mod in obj.modifiers:
+            if mod.type == 'ARMATURE' and mod.object in armatures[1:]:
+                obj.modifiers.remove(mod)
+
+        with bpy.context.temp_override(active_object=first_armature, selected_editable_objects=armatures):
+            first_armature.select_set(True)
+            bpy.ops.object.join()
+
+        bpy.context.view_layer.objects.active = first_armature
+        return first_armature
+
+    def set_child_of_constraints(self, armature):
+        bpy.ops.object.mode_set(mode='POSE')
+        for pose_bone in armature.pose.bones:
+            child_of_constraints = [c for c in pose_bone.constraints if c.type == 'CHILD_OF']
+            if not child_of_constraints:
+                print(f"No 'Child Of' constraint found on bone: {pose_bone.name}")
+                continue
+
+            constraint_name = child_of_constraints[0].name
+
+            armature.data.bones.active = armature.data.bones[pose_bone.name]
+            try:
+                bpy.ops.constraint.childof_set_inverse(constraint=constraint_name, owner='BONE')
+            except Exception as e:
+                print(f"Failed to set inverse for bone: {pose_bone.name}. Error: {e}")
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    def execute(self, context):
+        obj = context.object
+        all_armatures = self.get_all_armatures(obj)
+
+        if not all_armatures:
+            self.report({'ERROR'}, f"{obj.name} doesn't have armature modifiers")
+            return {'CANCELLED'}
+
+        if len(all_armatures) <= 1:
+            self.report({'ERROR'}, f"{obj.name} doesn't have more than one armature modifier")
+            return {'CANCELLED'}
+
+        first_armature = all_armatures[0]
+
+        for armature in all_armatures:
+            armature.pose.bones[0].constraints.new("CHILD_OF").target = armature.parent
+
+        first_armature = self.join_armatures(obj, all_armatures)
+        self.set_child_of_constraints(first_armature)
+
+        skinned_mesh = bpy.data.objects.get("skinnedMeshes") or bpy.data.objects.get("skinnedMesh")
+        if skinned_mesh:
+            first_armature.parent = skinned_mesh
+        self.report({'INFO'}, "Successfully converted skinned mesh")
         return {'FINISHED'}

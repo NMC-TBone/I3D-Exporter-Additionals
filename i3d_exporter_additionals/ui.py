@@ -66,6 +66,7 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
             row.operator("i3dea.ignore", text="Add Suffix _ignore")
             row = col.row(align=True)
             row.operator("i3dea.verify_scene", text="Verify Scene")
+            row.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
 
 
 class I3DEA_PT_PropConverter(I3deaPanel, Panel):
@@ -475,6 +476,7 @@ class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
             row.operator("i3dea.remove_curve", text="Remove", icon='REMOVE').remove_all = False
 
             box = layout.box()
+            box.enabled = bool(selected_pose.sub_pose_list)
             box_col = box.column(align=True)
             box_col.label(text="Settings for array creation")
             box_row = box_col.row(align=True)
