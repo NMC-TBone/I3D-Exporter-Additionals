@@ -18,6 +18,7 @@
 
 # material_tools.py includes different material tools
 
+from math import e
 import bpy
 
 from ..helper_functions import check_i3d_exporter_type
@@ -36,7 +37,10 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         principled_node = material.node_tree.nodes.get('Principled BSDF')
         principled_node.inputs["Base Color"].default_value = (0.000001, 0.000001, 0.000001, 1)
         principled_node.inputs["Metallic"].default_value = 1
-        principled_node.inputs["Specular"].default_value = 1
+        if bpy.app.version >= (4, 0, 0):
+            principled_node.inputs["Specular IOR Level"].default_value = 1
+        else:
+            principled_node.inputs["Specular"].default_value = 1
         principled_node.inputs["Roughness"].default_value = 1
         return material
 
@@ -50,15 +54,14 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
             self.report({'ERROR'}, "Mirror Material already exists!")
             return {'CANCELLED'}
 
-        if not bpy.context.object.type == "MESH":
+        if not context.object.type == "MESH":
             self.report({'ERROR'}, "Selected Object is not a mesh!")
             return {'CANCELLED'}
 
         mirror_mat = self.create_mirror_material()
 
         for obj in context.selected_objects:
-            while obj.material_slots:
-                bpy.ops.object.material_slot_remove({'object': obj})
+            obj.data.materials.clear()
             obj.data.materials.append(mirror_mat)
 
             if giants_i3d:
