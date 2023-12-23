@@ -70,17 +70,17 @@ class I3DEA_OT_remove_doubles(bpy.types.Operator):
 class I3DEA_OT_mesh_name(bpy.types.Operator):
     bl_idname = "i3dea.mesh_name"
     bl_label = "Set Mesh Name"
-    bl_description = "Take the Object Names --> Mesh Data name"
+    bl_description = "Take the Object Name --> Mesh Data name"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def meshName(self, context):
+    def mesh_name(self, context):
         objects = bpy.data.objects
         for obj in objects:
-            if obj.data and obj.data.users == 1:
-                obj.data.name = obj.name
+            if obj.type == "MESH" and obj.data and obj.data.users == 1:
+                obj.data.name = obj.name.split(":")[-1]
 
     def execute(self, context):
-        self.meshName(context)
+        self.mesh_name(context)
         return {'FINISHED'}
 
 
@@ -92,8 +92,8 @@ class I3DEA_OT_ignore(bpy.types.Operator):
 
     def execute(self, context):
         objects = bpy.context.selected_objects
-        for (i, o) in enumerate(objects):
-            o.name = "{}_ignore".format(o.name)
+        for obj in enumerate(objects):
+            obj.name = f"{obj.name}_ignore"
         return {'FINISHED'}
 
 
@@ -104,7 +104,7 @@ class I3DEA_OT_xml_config(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        for obj in bpy.context.selected_objects:
+        for obj in context.selected_objects:
             obj["I3D_XMLconfigBool"] = 1
             obj["I3D_XMLconfigID"] = obj.name
         return {'FINISHED'}
