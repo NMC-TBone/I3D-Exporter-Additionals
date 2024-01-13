@@ -67,6 +67,7 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         self.total_poly_count = 0
         self.merge_group_members = {}
         self.bounding_volumes = {}
+        self.component_number = 1
         self.messages = []
 
     def _add_message(self, type, content):
@@ -86,7 +87,6 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
                 self._check_mesh_object(obj, context, dg, is_placeable)
 
     def _check_mesh_object(self, obj, context, dg, is_placeable):
-        component_number = 1
         has_armature = any(mo.type == "ARMATURE" for mo in obj.modifiers)
 
         eval_obj = obj.evaluated_get(dg)
@@ -144,11 +144,12 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         trigger = obj.get('I3D_trigger', False)
         if collision is True:
             if compound is True and trigger is False and obj.parent is None:
-                expected_suffix = "_main_component1" if component_number == 1 else f"_component{component_number}"
+                expected_suffix = "_main_component1" \
+                    if self.component_number == 1 else f"_component{self.component_number}"
+                self.component_number += 1
                 if not obj.name.endswith(expected_suffix):
                     self._add_message('WARNING', f"Component: Object {obj.name} is marked as compound, "
                                       f"but name convention is wrong. Should be {expected_suffix}")
-                component_number += 1
 
             if obj.scale != Vector((1, 1, 1)):
                 self._add_message('WARNING, 'f"Scale: collision {obj.name} is not scaled 1 1 1, apply scale.")
