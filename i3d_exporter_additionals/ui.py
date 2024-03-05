@@ -3,7 +3,7 @@ from .helper_functions import check_i3d_exporter_type, is_blend_saved
 
 
 class I3DEA_UL_pose_curves(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, data, item, icon, active_data, active_propname, index):
         curve_ob = item.curve
         curve_icon = 'OUTLINER_OB_CURVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -47,8 +47,8 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
     bl_parent_id = 'I3DEA_PT_MainPanel'
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+    def draw(self, _context):
+        giants_i3d, _stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -76,7 +76,7 @@ class I3DEA_PT_PropConverter(I3deaPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         return giants_i3d
 
@@ -117,8 +117,8 @@ class I3DEA_PT_UserAttributes(I3deaPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(cls, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+    def poll(cls, _context):
+        giants_i3d, _stjerne_i3d = check_i3d_exporter_type()
         return giants_i3d
 
     def draw(self, context):
@@ -413,7 +413,7 @@ class I3DEA_PT_TrackVisualization(I3deaPanel, Panel):
 
 
 class I3DEA_UL_PoseList(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name)
         elif self.layout_type == 'GRID':
