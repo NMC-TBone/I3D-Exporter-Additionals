@@ -183,9 +183,7 @@ class I3DEA_PT_MaterialTools(I3deaPanel, Panel):
         box = layout.box()
         box_col = box.column(align=True)
         box_col.label(text="Material operators")
-        box_col.label(text="Mirror material is currently not possible to export with I3D Exporter")
         box_row = box_col.row(align=True)
-
         box_row.operator("i3dea.mirror_material", text="Add Mirror Material")
         box_row.operator("i3dea.remove_duplicate_material", text="Remove Duplicate Materials")
 
