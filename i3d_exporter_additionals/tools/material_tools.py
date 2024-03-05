@@ -29,6 +29,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
     bl_idname = "i3dea.mirror_material"
     bl_label = "Add Mirror Material"
     bl_description = "Adds mirror_mat to materials"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def create_mirror_material(self):
         material = bpy.data.materials.new(name="mirror_mat")
@@ -78,6 +79,7 @@ class I3DEA_OT_remove_duplicate_material(bpy.types.Operator):
     bl_idname = "i3dea.remove_duplicate_material"
     bl_label = "Remove Duplicate Materials"
     bl_description = "Removes all duplicated/not assigned materials"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -97,6 +99,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
     bl_idname = "i3dea.setup_material"
     bl_label = "Make Material"
     bl_description = "Set up a material with all the material nodes correctly connected"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         mat_name = bpy.context.scene.i3dea.material_name
