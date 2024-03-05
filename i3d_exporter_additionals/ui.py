@@ -32,7 +32,7 @@ class I3DEA_PT_MainPanel(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_MainPanel'
     bl_label = 'I3D Exporter Additionals'
 
-    def draw(self, context):
+    def draw(self, _context):
         giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
         if giants_i3d and stjerne_i3d:
@@ -77,7 +77,7 @@ class I3DEA_PT_PropConverter(I3deaPanel, Panel):
 
     @classmethod
     def poll(cls, _context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+        giants_i3d, _stjerne_i3d = check_i3d_exporter_type()
         return giants_i3d
 
     def draw(self, context):

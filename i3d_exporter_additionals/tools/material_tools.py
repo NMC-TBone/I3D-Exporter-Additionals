@@ -101,76 +101,86 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
     bl_description = "Set up a material with all the material nodes correctly connected"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        mat_name = context.scene.i3dea.material_name
+    def create_material(self, mat_name):
         mat = bpy.data.materials.get(mat_name)
         if not mat:
             mat = bpy.data.materials.new(name=mat_name)
             mat.use_nodes = True
-            nodes = mat.node_tree.nodes
-            links = mat.node_tree.links
-            principled = nodes.get("Principled BSDF")
-            normal = nodes.new("ShaderNodeNormalMap")
-            img_tex_normal = nodes.new("ShaderNodeTexImage")
-            img_tex_spec = nodes.new("ShaderNodeTexImage")
-            normal.location = (-210, -250)
-            img_tex_normal.location = (-510, -250)
-            links.new(normal.outputs["Normal"], principled.inputs["Normal"])
-            links.new(img_tex_normal.outputs["Color"], normal.inputs["Color"])
-            img_tex_spec.location = (-510, 80)
-            if context.scene.i3dea.normal_texture_path:
-                try:
-                    existing_img = bpy.data.images.get(context.scene.i3dea.normal_texture_path.split("\\")[-1])
-                    if not existing_img:
-                        img_tex_normal.image = bpy.data.images.load(context.scene.i3dea.normal_texture_path)
-                    else:
-                        img_tex_normal.image = existing_img
-                    img_tex_normal.image.colorspace_settings.name = 'Non-Color'
-                except Exception as e:
-                    print(e)
-            if context.scene.i3dea.spec_texture_path:
-                try:
-                    existing_img = bpy.data.images.get(context.scene.i3dea.spec_texture_path.split("\\")[-1])
-                    if not existing_img:
-                        img_tex_spec.image = bpy.data.images.load(context.scene.i3dea.spec_texture_path)
-                    else:
-                        img_tex_spec.image = existing_img
-                except Exception as e:
-                    print(e)
+        return mat
 
-            if giants_i3d:
-                links.new(img_tex_spec.outputs["Color"], principled.inputs["Specular"])
-            if stjerne_i3d:
-                sep_rgb = nodes.new("ShaderNodeSeparateRGB")
-                sep_rgb.location = (-210, 90)
-                links.new(img_tex_spec.outputs["Color"], sep_rgb.inputs["Image"])
-            if context.scene.i3dea.diffuse_box:
-                img_tex_diffuse = nodes.new("ShaderNodeTexImage")
-                img_tex_diffuse.location = (-510, 310)
-                links.new(img_tex_diffuse.outputs["Color"], principled.inputs["Base Color"])
-                if context.scene.i3dea.alpha_box:
-                    links.new(img_tex_diffuse.outputs["Alpha"], principled.inputs["Alpha"])
-                    mat.blend_method = 'CLIP'
-                    mat.shadow_method = 'CLIP'
-                if context.scene.i3dea.diffuse_texture_path:
-                    try:
-                        existing_img = bpy.data.images.get(context.scene.i3dea.diffuse_texture_path.split("\\")[-1])
-                        if not existing_img:
-                            img_tex_diffuse.image = bpy.data.images.load(context.scene.i3dea.diffuse_texture_path)
-                        else:
-                            img_tex_diffuse.image = existing_img
-                    except Exception as e:
-                        print(e)
-            self.report({'INFO'}, mat_name + " created")
+    def load_image_to_node(self, node, image_path, color_space='sRGB'):
+        if image_path == "":
+            return
+        try:
+            image_name = image_path.split("\\")[-1]
+            existing_img = bpy.data.images.get(image_name)
+            if not existing_img:
+                node.image = bpy.data.images.load(image_path)
+            else:
+                node.image = existing_img
+            node.image.colorspace_settings.name = color_space
+        except Exception as e:
+            print(f"Failed to load image {image_path}: {e}")
 
+    def setup_normal_map(self, nodes, links, image_path):
+        normal = nodes.new("ShaderNodeNormalMap")
+        img_tex_normal = nodes.new("ShaderNodeTexImage")
+        normal.location = (-210, -250)
+        img_tex_normal.location = (-510, -250)
+        links.new(normal.outputs["Normal"], nodes.get("Principled BSDF").inputs["Normal"])
+        links.new(img_tex_normal.outputs["Color"], normal.inputs["Color"])
+        self.load_image_to_node(img_tex_normal, image_path, 'Non-Color')
+
+    def setup_specular_map(self, nodes, links, image_path):
+        img_tex_spec = nodes.new("ShaderNodeTexImage")
+        img_tex_spec.location = (-510, 32)
+        if giants_i3d:
+            if bpy.app.version >= (4, 0, 0):
+                links.new(img_tex_spec.outputs["Color"], nodes.get("Principled BSDF").inputs["Specular IOR Level"])
+            else:
+                links.new(img_tex_spec.outputs["Color"], nodes.get("Principled BSDF").inputs["Specular"])
+        elif stjerne_i3d:
+            sep_rgb = nodes.new("ShaderNodeSeparateRGB")
+            sep_rgb.name = "Glossmap"
+            sep_rgb.location = (-210, 90)
+            links.new(img_tex_spec.outputs["Color"], sep_rgb.inputs["Image"])
+        self.load_image_to_node(img_tex_spec, image_path, 'Non-Color')
+
+    def setup_diffuse_map(self, nodes, links, image_path, use_alpha):
+        img_tex_diffuse = nodes.new("ShaderNodeTexImage")
+        img_tex_diffuse.location = (-510, 310)
+        links.new(img_tex_diffuse.outputs["Color"], nodes.get("Principled BSDF").inputs["Base Color"])
+        if use_alpha:
+            links.new(img_tex_diffuse.outputs["Alpha"], nodes.get("Principled BSDF").inputs["Alpha"])
+        self.load_image_to_node(img_tex_diffuse, image_path)
+
+    def apply_material_to_selected(self, context, mat):
+        applied_count = 0
         for obj in context.selected_objects:
-            if obj.type != "MESH":
-                continue
-            obj.data.materials.clear()
-            obj.data.materials.append(mat)
+            if obj.type == "MESH":
+                obj.data.materials.clear()
+                obj.data.materials.append(mat)
+                applied_count += 1
+        return applied_count
 
-        if len(context.selectable_objects) > 0:
-            self.report({'INFO'}, mat_name + " applied to selected objects")
+    def execute(self, context):
+        i3dea = context.scene.i3dea
+        mat = self.create_material(i3dea.material_name)
+        nodes = mat.node_tree.nodes
+        links = mat.node_tree.links
+
+        self.setup_normal_map(nodes, links, i3dea.normal_texture_path)
+        self.setup_specular_map(nodes, links, i3dea.spec_texture_path)
+
+        if i3dea.diffuse_box:
+            self.setup_diffuse_map(nodes, links, i3dea.diffuse_texture_path, i3dea.alpha_box)
+
+        applied_amount = self.apply_material_to_selected(context, mat)
+
+        if applied_amount > 0:
+            self.report({'INFO'}, f"{i3dea.material_name} applied to selected objects")
+        else:
+            self.report({'INFO'}, f"{i3dea.material_name} created")
 
         return {'FINISHED'}
 
