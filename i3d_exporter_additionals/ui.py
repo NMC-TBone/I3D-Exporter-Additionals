@@ -1,5 +1,5 @@
 from bpy.types import Panel, UIList
-from .helper_functions import check_i3d_exporter_type
+from .helper_functions import check_i3d_exporter_type, is_blend_saved
 
 
 class I3DEA_UL_pose_curves(UIList):
@@ -483,14 +483,18 @@ class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
 
             box_row.prop(i3dea, "motion_type", expand=True)
             box_row = box_col.row(align=True)
-            box_row.prop(i3dea, "motion_amount_rel")
-            box_row.prop(i3dea, "motion_amount_fix")
+            box_row.prop(i3dea, "motion_uniform")
+            box_row.prop(i3dea, "motion_adaptive")
             box_row.prop(i3dea, "motion_distance")
             box_row = box_col.row()
             box_row.label(text="")
             box_row = box_col.row(align=True)
             box_row.prop(i3dea, "motion_hierarchy_name")
             box_row = box_col.row(align=True)
+            if not is_blend_saved():
+                box_row.label(text="Save blend file to enable save location", icon='ERROR')
+            box_row = box_col.row(align=True)
+            box_row.enabled = is_blend_saved()
             box_row.prop(i3dea, "motion_save_location")
             box_row = box_col.row(align=True)
             box_row.operator("i3dea.add_empties_curves", text="Create")

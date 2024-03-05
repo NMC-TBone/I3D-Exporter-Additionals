@@ -20,85 +20,85 @@ import bpy
 
 
 prop_conversion_map = {
-        ("I3D_XMLconfigBool"): ("i3d_mapping", "is_mapped"),
-        ("I3D_XMLconfigID"): ("i3d_mapping", "mapping_name"),
+    ("I3D_XMLconfigBool"): ("i3d_mapping", "is_mapped"),
+    ("I3D_XMLconfigID"): ("i3d_mapping", "mapping_name"),
 
-        ("I3D_static"): ("i3d_attributes", "rigid_body_type", "static"),
-        ("I3D_dynamic"): ("i3d_attributes", "rigid_body_type", "dynamic"),
-        ("I3D_kinematic"): ("i3d_attributes", "rigid_body_type", "kinematic"),
-        ("I3D_compound"): ("i3d_attributes", "rigid_body_type", "compound"),
-        ("I3D_compoundChild"): ("i3d_attributes", "rigid_body_type", "compound_child"),
-        ("I3D_collision"): ("i3d_attributes", "collision"),
-        ("I3D_collisionMask"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_solverIterationCount"): ("i3d_attributes", "collision_mask"), # Not part of stjerne exporter
-        ("I3D_restitution"): ("i3d_attributes", "restitution"),
-        ("I3D_staticFriction"): ("i3d_attributes", "static_friction"),
-        ("I3D_dynamicFriction"): ("i3d_attributes", "dynamic_friction"),
-        ("I3D_linearDamping"): ("i3d_attributes", "linear_damping"),
-        ("I3D_angularDamping"): ("i3d_attributes", "angular_damping"),
-        ("I3D_density"): ("i3d_attributes", "density"),
+    ("I3D_static"): ("i3d_attributes", "rigid_body_type", "static"),
+    ("I3D_dynamic"): ("i3d_attributes", "rigid_body_type", "dynamic"),
+    ("I3D_kinematic"): ("i3d_attributes", "rigid_body_type", "kinematic"),
+    ("I3D_compound"): ("i3d_attributes", "rigid_body_type", "compound"),
+    ("I3D_compoundChild"): ("i3d_attributes", "rigid_body_type", "compound_child"),
+    ("I3D_collision"): ("i3d_attributes", "collision"),
+    ("I3D_collisionMask"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_solverIterationCount"): ("i3d_attributes", "collision_mask"), # Not part of stjerne exporter
+    ("I3D_restitution"): ("i3d_attributes", "restitution"),
+    ("I3D_staticFriction"): ("i3d_attributes", "static_friction"),
+    ("I3D_dynamicFriction"): ("i3d_attributes", "dynamic_friction"),
+    ("I3D_linearDamping"): ("i3d_attributes", "linear_damping"),
+    ("I3D_angularDamping"): ("i3d_attributes", "angular_damping"),
+    ("I3D_density"): ("i3d_attributes", "density"),
 
-        # ("I3D_ccd"): ("i3d_attributes", "collision_mask"), # Not part of stjerne exporter
-        ("I3D_trigger"): ("i3d_attributes", "trigger"),
-        ("I3D_splitType"): ("i3d_attributes", "split_type"),
-        ("I3D_splitMinU"): ("i3d_attributes", "split_uvs"),
-        ("I3D_splitMinV"): ("i3d_attributes", "split_uvs"),
-        ("I3D_splitMaxU"): ("i3d_attributes", "split_uvs"),
-        ("I3D_splitMaxV"): ("i3d_attributes", "split_uvs"),
-        ("I3D_splitUvWorldScale"): ("i3d_attributes", "split_uvs"),
+    # ("I3D_ccd"): ("i3d_attributes", "collision_mask"), # Not part of stjerne exporter
+    ("I3D_trigger"): ("i3d_attributes", "trigger"),
+    ("I3D_splitType"): ("i3d_attributes", "split_type"),
+    ("I3D_splitMinU"): ("i3d_attributes", "split_uvs"),
+    ("I3D_splitMinV"): ("i3d_attributes", "split_uvs"),
+    ("I3D_splitMaxU"): ("i3d_attributes", "split_uvs"),
+    ("I3D_splitMaxV"): ("i3d_attributes", "split_uvs"),
+    ("I3D_splitUvWorldScale"): ("i3d_attributes", "split_uvs"),
 
-        # Its added in a dev verison of stjerne exporter, so not necessary to add it here
-        # ("I3D_joint"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_projection"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_projDistance"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_projAngle"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_xAxisDrive"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_yAxisDrive"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_zAxisDrive"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_drivePos"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_driveForceLimit"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_driveSpring"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_driveDamping"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_breakableJoint"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_jointBreakForce"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_jointBreakTorque"): ("i3d_attributes", "collision_mask"),
+    # Its added in a dev verison of stjerne exporter, so not necessary to add it here
+    # ("I3D_joint"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_projection"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_projDistance"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_projAngle"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_xAxisDrive"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_yAxisDrive"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_zAxisDrive"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_drivePos"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_driveForceLimit"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_driveSpring"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_driveDamping"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_breakableJoint"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_jointBreakForce"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_jointBreakTorque"): ("i3d_attributes", "collision_mask"),
 
-        ("I3D_oc"): ("data", "i3d_attributes", "is_occluder"),
-        ("I3D_castsShadows"): ("data", "i3d_attributes", "casts_shadows"),
-        ("I3D_receiveShadows"): ("data", "i3d_attributes", "receive_shadows"),
-        ("I3D_nonRenderable"): ("data", "i3d_attributes", "non_renderable"),
-        ("I3D_clipDistance"): ("i3d_attributes", "clip_distance"),
-        ("I3D_objectMask"): ("i3d_attributes", "object_mask"),
-        ("I3D_navMeshMask"): ("data", "i3d_attributes", "nav_mesh_mask"),
-        ("I3D_decalLayer"): ("data", "i3d_attributes", "decal_layer"),
-        ("I3D_mergeGroup"): ("i3d_merge_group", "group_id"),
-        ("I3D_mergeGroupRoot"): ("i3d_merge_group", "is_root"),
-        # ("I3D_boundingVolume"): ("data", "i3d_attributes", "bounding_volume_object"), Handled in merge group function
-        ("I3D_cpuMesh"): ("data", "i3d_attributes", "cpu_mesh"),
-        # Not part of stjerne exporter
-        # ("I3D_mergeChildren"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_mergeChildrenFreezeRotation"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_mergeChildrenFreezeTranslation"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_mergeChildrenFreezeScale"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_objectDataFilePath"): ("i3d_attributes", "collision_mask"),
+    ("I3D_oc"): ("data", "i3d_attributes", "is_occluder"),
+    ("I3D_castsShadows"): ("data", "i3d_attributes", "casts_shadows"),
+    ("I3D_receiveShadows"): ("data", "i3d_attributes", "receive_shadows"),
+    ("I3D_nonRenderable"): ("data", "i3d_attributes", "non_renderable"),
+    ("I3D_clipDistance"): ("i3d_attributes", "clip_distance"),
+    ("I3D_objectMask"): ("i3d_attributes", "object_mask"),
+    ("I3D_navMeshMask"): ("data", "i3d_attributes", "nav_mesh_mask"),
+    ("I3D_decalLayer"): ("data", "i3d_attributes", "decal_layer"),
+    ("I3D_mergeGroup"): ("i3d_merge_group", "group_id"),
+    ("I3D_mergeGroupRoot"): ("i3d_merge_group", "is_root"),
+    # ("I3D_boundingVolume"): ("data", "i3d_attributes", "bounding_volume_object"), Handled in merge group function
+    ("I3D_cpuMesh"): ("data", "i3d_attributes", "cpu_mesh"),
+    # Not part of stjerne exporter
+    # ("I3D_mergeChildren"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_mergeChildrenFreezeRotation"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_mergeChildrenFreezeTranslation"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_mergeChildrenFreezeScale"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_objectDataFilePath"): ("i3d_attributes", "collision_mask"),
 
-        ("I3D_lod"): ("i3d_attributes", "lod_distance"),
-        ("I3D_lod1"): ("i3d_attributes", "lod_distance"),
-        ("I3D_lod2"): ("i3d_attributes", "lod_distance"),
-        ("I3D_lod3"): ("i3d_attributes", "lod_distance"),
+    ("I3D_lod"): ("i3d_attributes", "lod_distance"),
+    ("I3D_lod1"): ("i3d_attributes", "lod_distance"),
+    ("I3D_lod2"): ("i3d_attributes", "lod_distance"),
+    ("I3D_lod3"): ("i3d_attributes", "lod_distance"),
 
-        ("I3D_minuteOfDayStart"): ("i3d_attributes", "minute_of_day_start"),
-        ("I3D_minuteOfDayEnd"): ("i3d_attributes", "minute_of_day_end"),
-        ("I3D_dayOfYearStart"): ("i3d_attributes", "day_of_year_start"),
-        ("I3D_dayOfYearEnd"): ("i3d_attributes", "day_of_year_end"),
-        ("I3D_weatherMask"): ("i3d_attributes", "weather_required_mask"),
-        # ("I3D_viewerSpacialityMask"): ("i3d_attributes", "collision_mask"),
-        ("I3D_weatherPreventMask"): ("i3d_attributes", "weather_prevent_mask"),
-        # ("I3D_viewerSpacialityPreventMask"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_renderInvisible"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_visibleShaderParam"): ("i3d_attributes", "collision_mask"),
-        # ("I3D_forceVisibilityCondition"): ("i3d_attributes", "collision_mask"),
-    }
+    ("I3D_minuteOfDayStart"): ("i3d_attributes", "minute_of_day_start"),
+    ("I3D_minuteOfDayEnd"): ("i3d_attributes", "minute_of_day_end"),
+    ("I3D_dayOfYearStart"): ("i3d_attributes", "day_of_year_start"),
+    ("I3D_dayOfYearEnd"): ("i3d_attributes", "day_of_year_end"),
+    ("I3D_weatherMask"): ("i3d_attributes", "weather_required_mask"),
+    # ("I3D_viewerSpacialityMask"): ("i3d_attributes", "collision_mask"),
+    ("I3D_weatherPreventMask"): ("i3d_attributes", "weather_prevent_mask"),
+    # ("I3D_viewerSpacialityPreventMask"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_renderInvisible"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_visibleShaderParam"): ("i3d_attributes", "collision_mask"),
+    # ("I3D_forceVisibilityCondition"): ("i3d_attributes", "collision_mask"),
+}
 
 
 class I3DEA_OT_properties_converter(bpy.types.Operator):
@@ -221,7 +221,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         unique_strings = list(dict.fromkeys(merge_groups))
 
         # Create a dictionary mapping each string to a unique integer
-        string_to_int = {s: i+1 for i, s in enumerate(unique_strings)}
+        string_to_int = {s: i + 1 for i, s in enumerate(unique_strings)}
 
         # Create the new list with tuples, each tuple contains the string and its corresponding integer
         mg_list = [(s, string_to_int[s]) for s in unique_strings]
@@ -445,14 +445,15 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         i3dea = context.scene.i3dea
         total_props_conv = 0
         # Get the merge groups from the objects
-        merge_groups = [mg['i3d_merge_group']['group_id'] for mg in bpy.data.objects if mg.type == 'MESH' and
-                        'i3d_merge_group' in mg and 'group_id' in mg['i3d_merge_group'] and
-                        mg['i3d_merge_group']['group_id'] != '']
+        merge_groups = []
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and 'i3d_merge_group' in obj:
+                i3d_merge_group = obj['i3d_merge_group']
+                if 'group_id' in i3d_merge_group and i3d_merge_group['group_id'] != '':
+                    merge_groups.append(i3d_merge_group['group_id'])
         mg_list = self.mg_string_to_int(context, merge_groups)
 
-        delete_props = False
-        if i3dea.delete_old_props:
-            delete_props = True
+        delete_props = True if i3dea.delete_old_props else False
         for obj in bpy.data.objects:
             total_props_conv += self.convert_obj_props(context, obj, True, mg_list, delete_props)
             if i3dea.convert_user_attr:
