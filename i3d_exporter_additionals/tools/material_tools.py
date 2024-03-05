@@ -102,7 +102,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        mat_name = bpy.context.scene.i3dea.material_name
+        mat_name = context.scene.i3dea.material_name
         mat = bpy.data.materials.get(mat_name)
         if not mat:
             mat = bpy.data.materials.new(name=mat_name)
@@ -144,11 +144,11 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                 sep_rgb = nodes.new("ShaderNodeSeparateRGB")
                 sep_rgb.location = (-210, 90)
                 links.new(img_tex_spec.outputs["Color"], sep_rgb.inputs["Image"])
-            if bpy.context.scene.i3dea.diffuse_box:
+            if context.scene.i3dea.diffuse_box:
                 img_tex_diffuse = nodes.new("ShaderNodeTexImage")
                 img_tex_diffuse.location = (-510, 310)
                 links.new(img_tex_diffuse.outputs["Color"], principled.inputs["Base Color"])
-                if bpy.context.scene.i3dea.alpha_box:
+                if context.scene.i3dea.alpha_box:
                     links.new(img_tex_diffuse.outputs["Alpha"], principled.inputs["Alpha"])
                     mat.blend_method = 'CLIP'
                     mat.shadow_method = 'CLIP'
@@ -163,15 +163,13 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
                         print(e)
             self.report({'INFO'}, mat_name + " created")
 
-        for obj in bpy.context.selected_objects:
-            if not obj.type == "MESH":
+        for obj in context.selected_objects:
+            if obj.type != "MESH":
                 continue
-            obj.active_material_index = 0
-            for i in range(len(obj.material_slots)):
-                bpy.ops.object.material_slot_remove()
+            obj.data.materials.clear()
             obj.data.materials.append(mat)
 
-        if len(bpy.context.selectable_objects) > 0:
+        if len(context.selectable_objects) > 0:
             self.report({'INFO'}, mat_name + " applied to selected objects")
 
         return {'FINISHED'}
