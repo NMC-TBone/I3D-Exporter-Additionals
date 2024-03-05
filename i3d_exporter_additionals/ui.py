@@ -483,9 +483,15 @@ class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
 
             box_row.prop(i3dea, "motion_type", expand=True)
             box_row = box_col.row(align=True)
-            box_row.prop(i3dea, "motion_uniform")
-            box_row.prop(i3dea, "motion_adaptive")
-            box_row.prop(i3dea, "motion_distance")
+            box_row_uniform = box_row.row(align=True)
+            box_row_uniform.enabled = i3dea.motion_type == 'UNIFORM'
+            box_row_uniform.prop(i3dea, "motion_uniform")
+            box_row_adaptive = box_row.row(align=True)
+            box_row_adaptive.enabled = i3dea.motion_type == 'ADAPTIVE'
+            box_row_adaptive.prop(i3dea, "motion_adaptive")
+            box_row_distance = box_row.row(align=True)
+            box_row_distance.enabled = i3dea.motion_type == 'DISTANCE'
+            box_row_distance.prop(i3dea, "motion_distance")
             box_row = box_col.row()
             box_row.label(text="")
             box_row = box_col.row(align=True)
