@@ -38,10 +38,12 @@ class I3DEA_OT_assets(bpy.types.Operator):
 
     def get_asset(self, name):
         if name == 'rearHitch':
-            bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path2, name), directory=os.path.join(file_path, inner_path2), filename=name, )
+            bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path2, name),
+                              directory=os.path.join(file_path, inner_path2), filename=name)
             return
 
-        bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path, name), directory=os.path.join(file_path, inner_path), filename=name, )
+        bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path, name),
+                          directory=os.path.join(file_path, inner_path), filename=name)
 
     def execute(self, context):
         if bpy.context.view_layer.objects.active is not None:

@@ -16,7 +16,7 @@ class PoseAddOperator(bpy.types.Operator):
         pose_list = context.scene.i3dea.pose_list
         while True:
             pose_count += 1
-            name = "pose" + str(pose_count)
+            name = f"pose{pose_count}"
             existing = any(item.name == name for item in pose_list)
             if not existing:
                 break
@@ -71,8 +71,7 @@ class RemoveCurveOperator(bpy.types.Operator):
         if pose_list:
             selected_pose = pose_list[context.scene.i3dea.pose_count]
             return selected_pose.sub_pose_list
-        else:
-            return False
+        return False
 
     def execute(self, context):
         pose_list = context.scene.i3dea.pose_list
@@ -92,24 +91,37 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
     bl_label = "Create empties along curves"
     bl_idname = "i3dea.add_empties_curves"
     bl_description = "Create empties evenly spread along selected curves"
-    bl_options = {'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
 
-    def __create_empty(self, empty_type='PLAIN_AXES', location=(0, 0, 0), name="empty"):
+    def _create_empty(self, context, empty_type='PLAIN_AXES', location=(0, 0, 0), name="empty") -> bpy.types.Object:
         """Creates an empty object at the origin"""
         empty = bpy.data.objects.new(name, None)
         empty.empty_display_size = 0.25
         empty.empty_display_type = empty_type
         empty.location = location
-        bpy.context.collection.objects.link(empty)
+        context.collection.objects.link(empty)
         return empty
 
-    def __create_empties_on_curve(self, hierarchy="curveArray"):
+    def _create_empties_on_curve(self, context, hierarchy="curveArray"):
         """Creates empty objects along each selected curve object"""
+        i3dea = context.scene.i3dea
         # Create empty object "pose1"
-        hierarchy_empty = self.__create_empty(name=hierarchy)
+        hierarchy_empty = self._create_empty(context, name=hierarchy)
 
         if giants_i3d:
-            hierarchy_empty['I3D_objectDataFilePath'] = f"{hierarchy}.dds"
+            import os
+            from pathlib import Path
+            blend_file_path = Path(bpy.data.filepath).parent
+            target_path = Path(i3dea.motion_save_location if i3dea.motion_save_location else "")
+            relative_path = Path(os.path.relpath(target_path, blend_file_path))
+            relative_path = str(relative_path).replace('\\', '/')
+            final_path = f"{relative_path}/{hierarchy}.dds"
+
+            if not final_path.startswith((".", "/")):
+                final_path = "./" + final_path
+
+            hierarchy_empty['I3D_objectDataFilePath'] = final_path
+
             hierarchy_empty['I3D_objectDataHierarchicalSetup'] = True
             hierarchy_empty['I3D_objectDataHideFirstAndLastObject'] = True
             hierarchy_empty['I3D_objectDataExportPosition'] = True
@@ -117,9 +129,9 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
             hierarchy_empty['I3D_objectDataExportScale'] = True
 
         all_empties = []
-        for pose in bpy.context.scene.i3dea.pose_list:
+        for pose in i3dea.pose_list:
             if pose.sub_pose_list:
-                pose_empty = self.__create_empty(name=pose.name)
+                pose_empty = self._create_empty(context, name=pose.name)
                 pose_empty.parent = hierarchy_empty
             else:
                 pose_empty = None
@@ -128,21 +140,21 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
             curve_lengths = {curve.curve: get_curve_length(curve.curve) for curve in pose.sub_pose_list}
             longest_curve_length = max(curve_lengths.values(), default=0)
 
-            for ind, curve in enumerate(pose.sub_pose_list):
+            for idx, curve in enumerate(pose.sub_pose_list):
                 split_name = curve.curve.split('.')[0]
-                curve_empty = self.__create_empty(name=f"{split_name}_Y_{ind:03d}")
+                curve_empty = self._create_empty(context, name=f"{split_name}_Y_{idx:03d}")
                 curve_empty.parent = pose_empty
                 c_length = curve_lengths[curve.curve]
                 amount = 0
-                if bpy.context.scene.i3dea.motion_type == "AMOUNT_REL":
-                    amount = bpy.context.scene.i3dea.motion_amount_rel
-                elif bpy.context.scene.i3dea.motion_type == "DISTANCE":
-                    amount = math.ceil(c_length / bpy.context.scene.i3dea.motion_distance)
-                elif bpy.context.scene.i3dea.motion_type == "AMOUNT_FIX":
-                    distance = longest_curve_length / bpy.context.scene.i3dea.motion_amount_fix
+                if i3dea.motion_type == "UNIFORM":
+                    amount = i3dea.motion_uniform
+                elif i3dea.motion_type == "ADAPTIVE":
+                    distance = longest_curve_length / i3dea.motion_adaptive
                     amount = math.ceil(c_length / distance)
+                elif i3dea.motion_type == "DISTANCE":
+                    amount = math.ceil(c_length / i3dea.motion_distance)
                 for i in range(amount):
-                    x_empty = self.__create_empty(empty_type='ARROWS', name=f"{split_name}_X_{i:03d}")
+                    x_empty = self._create_empty(context, empty_type='ARROWS', name=f"{split_name}_X_{i:03d}")
                     x_empty.parent = curve_empty
 
                     # Set object constraint to follow curve
@@ -158,7 +170,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                     all_empties.append(x_empty)
 
         # Update scene once to get empty matrix and set that after removing constraint
-        bpy.context.view_layer.update()
+        context.view_layer.update()
         for x_empty in all_empties:
             transformation_matrix = x_empty.matrix_world.copy()
             x_empty.constraints.remove(x_empty.constraints['Follow Path'])
@@ -167,10 +179,8 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
     def execute(self, context):
         import time
         start_time = time.time()
-        if context.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
         i3dea = context.scene.i3dea
-        self.__create_empties_on_curve(hierarchy=i3dea.motion_hierarchy_name)
+        self._create_empties_on_curve(context, hierarchy=i3dea.motion_hierarchy_name)
         end_time = time.time()
         self.report({'INFO'}, f"Generated empties a long selected curves in {end_time - start_time:.2f} seconds")
         return {'FINISHED'}

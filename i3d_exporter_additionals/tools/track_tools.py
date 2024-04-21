@@ -424,7 +424,7 @@ def create_from_amount(objects, amount):
         old_object = obj_list[i % len(obj_list)]
         new_object = old_object.copy()
         new_object.data = old_object.data.copy()
-        new_object.name = "{}_{:03d}".format(old_object.name.split("_")[0], last_suffix+i+1)
+        new_object.name = "{}_{:03d}".format(old_object.name.split("_")[0], last_suffix + i + 1)
         bpy.context.collection.objects.link(new_object)
         obj_list.append(new_object)
     return obj_list

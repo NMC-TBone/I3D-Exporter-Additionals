@@ -36,7 +36,7 @@ def apply_transforms(ob_name, use_loc=False, use_rot=False, use_scale=False, app
 
     ob = bpy.data.objects[ob_name]
     mb = ob.matrix_basis
-    I = Matrix()
+    identity_matrix = Matrix()
     loc, rot, scale = mb.decompose()
 
     # rotation
@@ -44,7 +44,7 @@ def apply_transforms(ob_name, use_loc=False, use_rot=False, use_scale=False, app
     r = mb.to_3x3().normalized().to_4x4()
     s = Matrix.Diagonal(scale).to_4x4()
 
-    transform = [I] * 3
+    transform = [identity_matrix] * 3
     basis = [t, r, s]
 
     def swap(i):
@@ -76,3 +76,12 @@ def get_curve_length(curve_name):
         apply_transforms(curve_name, use_scale=True)
     length = bpy.data.objects[curve_name].data.splines[0].calc_length(resolution=1024)
     return length
+
+
+def is_blend_saved():
+    """
+    Check if blend file is saved
+    """
+    if bpy.data.is_saved:
+        return True
+    return False

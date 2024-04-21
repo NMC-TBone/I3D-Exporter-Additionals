@@ -1,9 +1,9 @@
 from bpy.types import Panel, UIList
-from .helper_functions import check_i3d_exporter_type
+from .helper_functions import check_i3d_exporter_type, is_blend_saved
 
 
 class I3DEA_UL_pose_curves(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, data, item, icon, active_data, active_propname, index):
         curve_ob = item.curve
         curve_icon = 'OUTLINER_OB_CURVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -32,7 +32,7 @@ class I3DEA_PT_MainPanel(I3deaPanel, Panel):
     bl_idname = 'I3DEA_PT_MainPanel'
     bl_label = 'I3D Exporter Additionals'
 
-    def draw(self, context):
+    def draw(self, _context):
         giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
         if giants_i3d and stjerne_i3d:
@@ -47,8 +47,8 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
     bl_parent_id = 'I3DEA_PT_MainPanel'
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+    def draw(self, _context):
+        giants_i3d, _stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -76,8 +76,8 @@ class I3DEA_PT_PropConverter(I3deaPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(cls, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+    def poll(cls, _context):
+        giants_i3d, _stjerne_i3d = check_i3d_exporter_type()
         return giants_i3d
 
     def draw(self, context):
@@ -117,8 +117,8 @@ class I3DEA_PT_UserAttributes(I3deaPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
-    def poll(cls, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+    def poll(cls, _context):
+        giants_i3d, _stjerne_i3d = check_i3d_exporter_type()
         return giants_i3d
 
     def draw(self, context):
@@ -183,9 +183,7 @@ class I3DEA_PT_MaterialTools(I3deaPanel, Panel):
         box = layout.box()
         box_col = box.column(align=True)
         box_col.label(text="Material operators")
-        box_col.label(text="Mirror material is currently not possible to export with I3D Exporter")
         box_row = box_col.row(align=True)
-
         box_row.operator("i3dea.mirror_material", text="Add Mirror Material")
         box_row.operator("i3dea.remove_duplicate_material", text="Remove Duplicate Materials")
 
@@ -415,7 +413,7 @@ class I3DEA_PT_TrackVisualization(I3deaPanel, Panel):
 
 
 class I3DEA_UL_PoseList(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name)
         elif self.layout_type == 'GRID':
@@ -483,14 +481,24 @@ class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
 
             box_row.prop(i3dea, "motion_type", expand=True)
             box_row = box_col.row(align=True)
-            box_row.prop(i3dea, "motion_amount_rel")
-            box_row.prop(i3dea, "motion_amount_fix")
-            box_row.prop(i3dea, "motion_distance")
+            box_row_uniform = box_row.row(align=True)
+            box_row_uniform.enabled = i3dea.motion_type == 'UNIFORM'
+            box_row_uniform.prop(i3dea, "motion_uniform")
+            box_row_adaptive = box_row.row(align=True)
+            box_row_adaptive.enabled = i3dea.motion_type == 'ADAPTIVE'
+            box_row_adaptive.prop(i3dea, "motion_adaptive")
+            box_row_distance = box_row.row(align=True)
+            box_row_distance.enabled = i3dea.motion_type == 'DISTANCE'
+            box_row_distance.prop(i3dea, "motion_distance")
             box_row = box_col.row()
             box_row.label(text="")
             box_row = box_col.row(align=True)
             box_row.prop(i3dea, "motion_hierarchy_name")
             box_row = box_col.row(align=True)
+            if not is_blend_saved():
+                box_row.label(text="Save blend file to enable save location", icon='ERROR')
+            box_row = box_col.row(align=True)
+            box_row.enabled = is_blend_saved()
             box_row.prop(i3dea, "motion_save_location")
             box_row = box_col.row(align=True)
             box_row.operator("i3dea.add_empties_curves", text="Create")
