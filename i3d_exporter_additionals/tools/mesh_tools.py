@@ -58,8 +58,11 @@ class I3DEA_OT_remove_doubles(bpy.types.Operator):
                 bpy.ops.mesh.select_all(action='SELECT')
                 bpy.ops.mesh.tris_convert_to_quads(uvs=True)
                 bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.shade_smooth(use_auto_smooth=True)
-                bpy.context.object.data.auto_smooth_angle = smooth_radians
+                if bpy.app.version >= (4, 1, 0):
+                    bpy.ops.object.shade_smooth()
+                else:
+                    bpy.ops.object.shade_smooth(use_auto_smooth=True)
+                    bpy.context.object.data.auto_smooth_angle = smooth_radians
                 self.report({'INFO'}, "Object(s) cleaned")
         for obj in sel_obj:
             obj.select_set(True)
