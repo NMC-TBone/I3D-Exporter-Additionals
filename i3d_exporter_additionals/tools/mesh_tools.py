@@ -94,9 +94,18 @@ class I3DEA_OT_ignore(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        objects = bpy.context.selected_objects
-        for obj in enumerate(objects):
-            obj.name = f"{obj.name}_ignore"
+        for obj in context.selected_objects:
+            if obj.name.endswith("_ignore"):
+                continue
+            if "_ignore" in obj.name:
+                obj.name = obj.name.replace("_ignore", "")
+
+            new_name = f"{obj.name}_ignore"
+            counter = 1
+            while bpy.data.objects.get(new_name):
+                new_name = f"{obj.name}_{counter}_ignore"
+                counter += 1
+            obj.name = new_name
         return {'FINISHED'}
 
 
