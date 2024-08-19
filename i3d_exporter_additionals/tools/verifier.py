@@ -54,7 +54,7 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         if "placeable" in obj.name.lower():
             return True
         for mat in obj.material_slots:
-            if 'customShader' in mat.material:
+            if mat.material is not None and 'customShader' in mat.material:
                 if "placeableShader" or "buildingShader" in mat.material['customShader']:
                     return True
         return False
