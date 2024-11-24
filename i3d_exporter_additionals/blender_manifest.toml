@@ -1,0 +1,18 @@
+schema_version = "1.0.0"
+
+id = "i3d_exporter_additionals"
+version = "0.0.0"
+name = "I3D Exporter Additionals"
+tagline = "Additional tools for the I3D Exporter"
+maintainer = "[NMC]T-Bone"
+type = "add-on"
+
+website = "https://northmoddingcompany.com/"
+
+tags = ["3D View", "Paint", "Object", "Pipeline"]
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]

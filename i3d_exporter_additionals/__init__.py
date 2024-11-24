@@ -17,18 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 from . import ui
 
-
-bl_info = {
-    "name": "I3D Exporter Additionals",
-    "author": "T-Bone",
-    "description": "Additionals For I3D Exporter",
-    "blender": (3, 5, 0),
-    "version": (3, 2, 2),
-    "location": "View3D > UI > I3D Exporter Additionals",
-    "warning": "",
-    "category": "Game Engine"
-}
-
 if "bpy" in locals():
     import importlib
     importlib.reload(helper_functions)

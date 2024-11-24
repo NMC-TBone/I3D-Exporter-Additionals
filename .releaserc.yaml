@@ -1,0 +1,48 @@
+{
+   "branches": [
+    {"name": "main"},
+    {"name": "develop", "prerelease": "dev", "channel": false},
+    {"name": "feature-*", "prerelease": "beta", "channel": false}
+  ],
+  "tagFormat": "v${version}",
+  "plugins": [
+    ["@semantic-release/commit-analyzer", {
+      "preset": "angular",
+      "releaseRules": [
+        {"type": "refactor", "release": "patch"},
+        {"type": "style", "release": false},
+        {"type": "docs", "release": false},
+        {"type": "test", "release": false},
+        {"type": "chore", "release": false},
+        {"type": "build", "release": false},
+        {"type": "ci", "release": false}
+      ]
+    }],
+    ["@semantic-release/release-notes-generator", {
+      "preset": "conventionalcommits",
+      "presetConfig": {
+        "types": [
+          {"type": "feat", "section": "Features"},
+          {"type": "fix", "section": "Bug Fixes"},
+          {"type": "perf", "section": "Performance Improvements"},
+          {"type": "revert", "section": "Reverts"},
+          {"type": "docs", "section": "Documentation"},
+          {"type": "refactor", "section": "Code Refactoring", "hidden": true},
+          {"type": "chore", "section": "Chores", "hidden": true},
+          {"type": "test", "section": "Tests"},
+          {"type": "build", "section": "Build", "hidden": true},
+          {"type": "ci", "section": "Continuous Integration", "hidden": true}
+        ]
+      }
+    }],
+    ["@semantic-release/exec", {
+        "prepareCmd": "./prepare_release.sh ${nextRelease.version}",
+        "shell": "/bin/bash"
+    }],
+    ["@semantic-release/github", {
+      "assets": [{"path": "./i3d_exporter_additionals.zip", "label": "I3D Exporter Additions"}],
+      "successComment": false,
+      "failTitle": false
+    }]
+  ]
+}

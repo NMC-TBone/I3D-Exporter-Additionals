@@ -1,0 +1,22 @@
+name: Test Prepare Release Script
+
+on: 
+  workflow_dispatch:  # Allows you to manually trigger the workflow from the GitHub Actions tab
+
+jobs:
+  test-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Prepare Release Script
+        run: |
+          export GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+          bash prepare_release.sh 1.1.1
+
+      - name: List the Generated Files
+        run: |
+          ls -la $GITHUB_WORKSPACE
+          ls -la $GITHUB_WORKSPACE/i3d_exporter_additionals.zip
