@@ -233,34 +233,36 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        camera = None
-        mirror = None
-        target = None
+        selected_objects = context.selected_objects
+        camera = next((obj for obj in selected_objects if obj.type == 'CAMERA'), None)
+        mirror = next((obj for obj in selected_objects if obj.type == 'MESH'), None)
+        target = next((obj for obj in selected_objects if obj.type == 'EMPTY'), None)
 
-        for obj in bpy.context.selected_objects:
-            if obj.type == 'CAMERA':
-                camera = obj
-            elif obj.type == 'MESH':
-                mirror = obj
-            elif obj.type == 'EMPTY':
-                target = obj
+        if all([camera, mirror, target]):
+            context_override = context.copy()
+            context_override['active_object'] = mirror
+            try:
+                with context.temp_override(**context_override):
+                    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
-        if camera and mirror and target:
-            original_location = mirror.location.copy()
+                original_location = mirror.location.copy()
 
-            # Calculate the orientation of the mirror based on the camera and target
-            dir_camera_to_mirror = (mirror.location - camera.location).normalized()
-            dir_target_to_mirror = (mirror.location - target.location).normalized()
-            blended_direction = (dir_camera_to_mirror + dir_target_to_mirror).normalized()
+                # Calculate the orientation of the mirror based on the camera and target
+                dir_camera_to_mirror = (mirror.location - camera.location).normalized()
+                dir_target_to_mirror = (mirror.location - target.location).normalized()
+                blended_direction = (dir_camera_to_mirror + dir_target_to_mirror).normalized()
 
-            # Compute the rotation matrix from the blended direction
-            rotation_matrix = blended_direction.to_track_quat('-Z', 'Y').to_matrix().to_4x4()
-            mirror.matrix_world = rotation_matrix @ mirror.matrix_world
-            mirror.data.transform(rotation_matrix.inverted())
+                # Compute the rotation matrix from the blended direction
+                rotation_matrix = blended_direction.to_track_quat('-Z', 'Y').to_matrix().to_4x4()
+                mirror.matrix_world = rotation_matrix @ mirror.matrix_world
+                mirror.data.transform(rotation_matrix.inverted())
 
-            mirror.location = original_location
-            self.report({'INFO'}, f"Mirror orientation set for {mirror.name}")
-            return {'FINISHED'}
+                mirror.location = original_location
+                self.report({'INFO'}, f"Mirror orientation set for {mirror.name}")
+                return {'FINISHED'}
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to set mirror orientation. Error: {e}")
+                return {'CANCELLED'}
 
         else:
             self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
