@@ -137,7 +137,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                 pose_empty = None
 
             # For AMOUNT_FIX
-            curve_lengths = {curve.curve: get_curve_length(curve.curve) for curve in pose.sub_pose_list}
+            curve_lengths = {curve: get_curve_length(curve) for curve in pose.sub_pose_list}
             longest_curve_length = max(curve_lengths.values(), default=0)
 
             for idx, curve in enumerate(pose.sub_pose_list):
