@@ -226,3 +226,12 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                             material.i3d_attributes.shader_textures[1].source = dirt
 
         return {'FINISHED'}
+
+
+classes = (
+    I3DEA_OT_mirror_material,
+    I3DEA_OT_remove_duplicate_material,
+    I3DEA_OT_setup_material,
+    I3DEA_OT_i3dio_material,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

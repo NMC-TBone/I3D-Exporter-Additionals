@@ -74,3 +74,10 @@ class I3DEA_OT_delete_user_attribute(bpy.types.Operator):
             del obj[self.attribute_name]
 
         return {'FINISHED'}
+
+
+classes = (
+    I3DEA_OT_create_user_attribute,
+    I3DEA_OT_delete_user_attribute
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

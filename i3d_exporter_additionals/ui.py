@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Panel, UIList
 from .helper_functions import check_i3d_exporter_type, is_blend_saved
 
@@ -377,8 +378,8 @@ class I3DEA_PT_CreateAutoTrack(I3deaPanel, Panel):
         i3dea = context.scene.i3dea
 
         col = layout.column()
-        col.prop(i3dea, "auto_all_curves")
-        if i3dea.auto_all_curves != "None" and not i3dea.auto_fixed_amount:
+        col.prop(i3dea, "selected_curve")
+        if i3dea.selected_curve and not i3dea.auto_fixed_amount:
             col.prop(i3dea, "auto_allow_curve_scale")
         else:
             i3dea.property_unset("auto_allow_curve_scale")
@@ -502,3 +503,27 @@ class I3DEA_PT_SubArrayHierarchy(I3deaPanel, Panel):
             box_row.prop(i3dea, "motion_save_location")
             box_row = box_col.row(align=True)
             box_row.operator("i3dea.add_empties_curves", text="Create")
+
+
+classes = (
+    I3DEA_PT_MainPanel,
+    I3DEA_PT_GeneralTools,
+    I3DEA_PT_PropConverter,
+    I3DEA_PT_UserAttributes,
+    I3DEA_PT_Skeletons,
+    I3DEA_PT_MaterialTools,
+    I3DEA_PT_AssetImporter,
+    I3DEA_PT_TrackTools,
+    I3DEA_PT_TrackSetup,
+    I3DEA_PT_CreateUvSet,
+    I3DEA_PT_CalcAmount,
+    I3DEA_PT_AddEmpties,
+    I3DEA_PT_CreateAutoTrack,
+    I3DEA_PT_TrackVisualization,
+    I3DEA_UL_PoseList,
+    I3DEA_UL_SubPoseCurveList,
+    I3DEA_PT_ArrayHierarchy,
+    I3DEA_PT_SubArrayHierarchy,
+)
+
+register, unregister = bpy.utils.register_classes_factory(classes)

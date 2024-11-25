@@ -446,7 +446,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         total_props_conv = 0
         # Get the merge groups from the objects
         merge_groups = []
-        for obj in bpy.data.objects:
+        for obj in context.scene.objects:
             if obj.type == 'MESH' and 'i3d_merge_group' in obj:
                 i3d_merge_group = obj['i3d_merge_group']
                 if 'group_id' in i3d_merge_group and i3d_merge_group['group_id'] != '':
@@ -454,7 +454,7 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
         mg_list = self.mg_string_to_int(context, merge_groups)
 
         delete_props = True if i3dea.delete_old_props else False
-        for obj in bpy.data.objects:
+        for obj in context.scene.objects:
             total_props_conv += self.convert_obj_props(context, obj, True, mg_list, delete_props)
             if i3dea.convert_user_attr:
                 total_props_conv += self.convert_user_attr(context, obj, delete_props)
@@ -470,3 +470,9 @@ class I3DEA_OT_properties_converter(bpy.types.Operator):
                     self.convert_node_structure(context, mat)
         self.report({'INFO'}, f"{total_props_conv} props converted")
         return {'FINISHED'}
+
+
+classes = (
+    I3DEA_OT_properties_converter,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

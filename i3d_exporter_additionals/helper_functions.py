@@ -2,11 +2,11 @@ import bpy
 from mathutils import Vector, Matrix
 
 
-def check_i3d_exporter_type():
+def check_i3d_exporter_type() -> tuple:
     giants_i3d = False
     stjerne_i3d = False
     for a in bpy.context.preferences.addons:
-        if a.module == "io_export_i3d":
+        if a.module == "io_export_i3d" or a.module == "io_export_i3d_10_0_0":
             giants_i3d = True
         if a.module == "i3dio":
             stjerne_i3d = True
@@ -23,7 +23,7 @@ def check_obj_type(obj):
                 bpy.ops.object.mode_set(mode='OBJECT')
 
 
-def apply_transforms(ob_name, use_loc=False, use_rot=False, use_scale=False, apply_all=False):
+def apply_transforms(obj: bpy.types.Object, use_loc=False, use_rot=False, use_scale=False, apply_all=False) -> None:
     """
     Applies orientation for object
 
@@ -34,10 +34,9 @@ def apply_transforms(ob_name, use_loc=False, use_rot=False, use_scale=False, app
         use_rot = True
         use_scale = True
 
-    ob = bpy.data.objects[ob_name]
-    mb = ob.matrix_basis
+    mb = obj.matrix_basis
     identity_matrix = Matrix()
-    loc, rot, scale = mb.decompose()
+    loc, _rot, scale = mb.decompose()
 
     # rotation
     t = Matrix.Translation(loc)
@@ -58,23 +57,23 @@ def apply_transforms(ob_name, use_loc=False, use_rot=False, use_scale=False, app
         swap(2)
 
     M = transform[0] @ transform[1] @ transform[2]
-    if hasattr(ob.data, "transform"):
-        ob.data.transform(M)
-    for c in ob.children:
+    if hasattr(obj.data, "transform"):
+        obj.data.transform(M)
+    for c in obj.children:
         c.matrix_local = M @ c.matrix_local
 
-    ob.matrix_basis = basis[0] @ basis[1] @ basis[2]
+    obj.matrix_basis = basis[0] @ basis[1] @ basis[2]
     return
 
 
-def get_curve_length(curve_name):
+def get_curve_length(curve: bpy.types.Object) -> float:
     """
     Returns length of curve and if the scale is not 1 1 1, it will be applied first to get the correct result
     """
-    if bpy.data.objects[curve_name].scale != Vector((1, 1, 1)):
-        print(f"{curve_name} scale is not 1 1 1, applying scale automatically.")
-        apply_transforms(curve_name, use_scale=True)
-    length = bpy.data.objects[curve_name].data.splines[0].calc_length(resolution=1024)
+    if curve.scale != Vector((1, 1, 1)):
+        print(f"{curve.name} scale is not 1 1 1, applying scale automatically.")
+        apply_transforms(curve, use_scale=True)
+    length = curve.data.splines[0].calc_length(resolution=1024)
     return length
 
 

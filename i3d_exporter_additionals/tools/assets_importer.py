@@ -52,3 +52,7 @@ class I3DEA_OT_assets(bpy.types.Operator):
         self.get_asset(name)
         self.report({'INFO'}, name + " imported")
         return {'FINISHED'}
+
+
+classes = (I3DEA_OT_assets,)
+register, unregister = bpy.utils.register_classes_factory(classes)

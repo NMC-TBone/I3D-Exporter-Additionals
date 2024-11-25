@@ -120,13 +120,13 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
             if not final_path.startswith((".", "/")):
                 final_path = "./" + final_path
 
-            hierarchy_empty['I3D_objectDataFilePath'] = final_path
+            hierarchy_empty['i3D_objectDataFilePath'] = final_path
 
-            hierarchy_empty['I3D_objectDataHierarchicalSetup'] = True
-            hierarchy_empty['I3D_objectDataHideFirstAndLastObject'] = True
-            hierarchy_empty['I3D_objectDataExportPosition'] = True
-            hierarchy_empty['I3D_objectDataExportOrientation'] = True
-            hierarchy_empty['I3D_objectDataExportScale'] = True
+            hierarchy_empty['i3D_objectDataHierarchicalSetup'] = True
+            hierarchy_empty['i3D_objectDataHideFirstAndLastObject'] = True
+            hierarchy_empty['i3D_objectDataExportPosition'] = True
+            hierarchy_empty['i3D_objectDataExportOrientation'] = True
+            hierarchy_empty['i3D_objectDataExportScale'] = True
 
         all_empties = []
         for pose in i3dea.pose_list:
@@ -184,3 +184,13 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
         end_time = time.time()
         self.report({'INFO'}, f"Generated empties a long selected curves in {end_time - start_time:.2f} seconds")
         return {'FINISHED'}
+
+
+classes = (
+    PoseAddOperator,
+    PoseRemoveOperator,
+    AddCurveOperator,
+    RemoveCurveOperator,
+    I3DEA_OT_empties_along_curves,
+)
+register, unregister = bpy.utils.register_classes_factory(classes)

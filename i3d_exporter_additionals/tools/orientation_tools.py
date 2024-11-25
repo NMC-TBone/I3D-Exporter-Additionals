@@ -66,3 +66,7 @@ class I3DEA_OT_copy_orientation(bpy.types.Operator):
         context.window_manager.clipboard = orientation
         self.report({'INFO'}, f'Orientation "{orientation}" from "{obj.name}" copied to clipboard')
         return {'FINISHED'}
+
+
+classes = (I3DEA_OT_copy_orientation,)
+register, unregister = bpy.utils.register_classes_factory(classes)

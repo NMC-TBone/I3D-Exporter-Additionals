@@ -15,16 +15,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-from . import ui
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(helper_functions)
-    importlib.reload(properties)
     importlib.reload(ui)
+    importlib.reload(properties)
     importlib.reload(tools)
 else:
-    import bpy
+    from . import ui
     from . import properties
     from .tools import (
         assets_importer,
@@ -39,73 +37,35 @@ else:
         properties_converter,
     )
 
-classes = [
-    properties.SubPoseItem,
-    properties.PoseItem,
-    properties.I3DEA_PG_List,
-    track_tools.I3DEA_OT_make_uvset,
-    track_tools.I3DEA_OT_add_empty,
-    track_tools.I3DEA_OT_curve_length,
-    track_tools.I3DEA_OT_calculate_amount,
-    track_tools.I3DEA_OT_visualization,
-    track_tools.I3DEA_OT_visualization_del,
-    track_tools.I3DEA_OT_automatic_track_creation,
-    mesh_tools.I3DEA_OT_remove_doubles,
-    mesh_tools.I3DEA_OT_mesh_name,
-    mesh_tools.I3DEA_OT_ignore,
-    mesh_tools.I3DEA_OT_mirror_orientation,
-    mesh_tools.I3DEA_OT_xml_config,
-    mesh_tools.I3DEA_OT_fill_volume,
-    mesh_tools.I3DEA_OT_convert_skinnedmesh,
-    generate_empty_on_curves.PoseAddOperator,
-    generate_empty_on_curves.PoseRemoveOperator,
-    generate_empty_on_curves.AddCurveOperator,
-    generate_empty_on_curves.RemoveCurveOperator,
-    generate_empty_on_curves.I3DEA_OT_empties_along_curves,
-    skeletons.I3DEA_OT_skeletons,
-    material_tools.I3DEA_OT_mirror_material,
-    material_tools.I3DEA_OT_remove_duplicate_material,
-    material_tools.I3DEA_OT_setup_material,
-    material_tools.I3DEA_OT_i3dio_material,
-    orientation_tools.I3DEA_OT_copy_orientation,
-    assets_importer.I3DEA_OT_assets,
-    user_attributes.I3DEA_OT_create_user_attribute,
-    user_attributes.I3DEA_OT_delete_user_attribute,
-    verifier.I3DEA_OT_verify_scene,
-    properties_converter.I3DEA_OT_properties_converter,
 
-    # UI classes
-    ui.I3DEA_PT_MainPanel,
-    ui.I3DEA_PT_GeneralTools,
-    ui.I3DEA_PT_PropConverter,
-    ui.I3DEA_PT_UserAttributes,
-    ui.I3DEA_PT_Skeletons,
-    ui.I3DEA_PT_MaterialTools,
-    ui.I3DEA_PT_AssetImporter,
-    ui.I3DEA_PT_TrackTools,
-    ui.I3DEA_PT_TrackSetup,
-    ui.I3DEA_PT_CreateUvSet,
-    ui.I3DEA_PT_CalcAmount,
-    ui.I3DEA_PT_AddEmpties,
-    ui.I3DEA_PT_CreateAutoTrack,
-    ui.I3DEA_PT_TrackVisualization,
-    ui.I3DEA_UL_PoseList,
-    ui.I3DEA_UL_SubPoseCurveList,
-    ui.I3DEA_PT_ArrayHierarchy,
-    ui.I3DEA_PT_SubArrayHierarchy,
-]
+def register() -> None:
+    ui.register()
+    track_tools.register()
+    verifier.register()
+    properties.register()
+    generate_empty_on_curves.register()
+    mesh_tools.register()
+    assets_importer.register()
+    skeletons.register()
+    material_tools.register()
+    orientation_tools.register()
+    user_attributes.register()
+    properties_converter.register()
 
 
-def register():
-    for cls in classes:
-        bpy.utils.register_class(cls)
-    bpy.types.Scene.i3dea = bpy.props.PointerProperty(type=properties.I3DEA_PG_List)
-
-
-def unregister():
-    del bpy.types.Scene.i3dea
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
+def unregister() -> None:
+    properties.unregister()
+    ui.unregister()
+    track_tools.unregister()
+    verifier.unregister()
+    generate_empty_on_curves.unregister()
+    mesh_tools.unregister()
+    assets_importer.unregister()
+    skeletons.unregister()
+    material_tools.unregister()
+    orientation_tools.unregister()
+    user_attributes.unregister()
+    properties_converter.unregister()
 
 
 if __name__ == "__main__":

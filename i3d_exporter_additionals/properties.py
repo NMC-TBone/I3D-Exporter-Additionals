@@ -9,15 +9,6 @@ from bpy.props import (
 )
 
 
-def get_curve_objects(self, context):
-    """ Returns enum elements of all Curves of the current Scene. """
-    curve_objects = [obj for obj in bpy.data.objects if obj.type == 'CURVE']
-    if curve_objects:
-        return [(obj.name, obj.name, "") for obj in curve_objects]
-    else:
-        return [("None", "None", "")]
-
-
 class SubPoseItem(bpy.types.PropertyGroup):
     curve: StringProperty()
 
@@ -371,9 +362,11 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default=False
     )
 
-    auto_all_curves: EnumProperty(
-        name="Select A Curve",
-        items=get_curve_objects
+    selected_curve: bpy.props.PointerProperty(
+        name="Select Curve",
+        description="Select a curve object",
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type == 'CURVE'
     )
 
     auto_create_bbox: BoolProperty(
@@ -523,3 +516,21 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         description="Which kind of object to export",
         default={'MATERIAL', 'NODE_STRUCTURE', 'USER_ATTR', 'LIGHT', 'DELETE'},
     )
+
+
+classes = (
+    SubPoseItem,
+    PoseItem,
+    I3DEA_PG_List,
+)
+_register, _unregister = bpy.utils.register_classes_factory(classes)
+
+
+def register() -> None:
+    _register()
+    bpy.types.Scene.i3dea = bpy.props.PointerProperty(type=I3DEA_PG_List)
+
+
+def unregister() -> None:
+    del bpy.types.Scene.i3dea
+    _unregister()

@@ -76,8 +76,8 @@ class I3DEA_OT_mesh_name(bpy.types.Operator):
     bl_description = "Take the Object Name --> Mesh Data name"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def mesh_name(self, context):
-        objects = bpy.data.objects
+    def mesh_name(self, context: bpy.types.Context):
+        objects = context.scene.objects
         for obj in objects:
             if obj.type == "MESH" and obj.data and obj.data.users == 1:
                 obj.data.name = obj.name.split(":")[-1]
@@ -102,7 +102,7 @@ class I3DEA_OT_ignore(bpy.types.Operator):
 
             new_name = f"{obj.name}_ignore"
             counter = 1
-            while bpy.data.objects.get(new_name):
+            while context.scene.objects.get(new_name):
                 new_name = f"{obj.name}_{counter}_ignore"
                 counter += 1
             obj.name = new_name
@@ -339,3 +339,16 @@ class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
             first_armature.parent = skinned_mesh
         self.report({'INFO'}, "Successfully converted skinned mesh")
         return {'FINISHED'}
+
+
+classes = (
+    I3DEA_OT_remove_doubles,
+    I3DEA_OT_mesh_name,
+    I3DEA_OT_ignore,
+    I3DEA_OT_mirror_orientation,
+    I3DEA_OT_xml_config,
+    I3DEA_OT_fill_volume,
+    I3DEA_OT_convert_skinnedmesh,
+)
+
+register, unregister = bpy.utils.register_classes_factory(classes)

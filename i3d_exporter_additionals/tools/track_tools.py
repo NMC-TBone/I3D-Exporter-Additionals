@@ -190,7 +190,7 @@ class I3DEA_OT_visualization_del(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        obj_list = [obj for obj in bpy.data.objects if obj.name.startswith("track_visualization")]
+        obj_list = [obj for obj in context.scene.objects if obj.name.startswith("track_visualization")]
 
         if obj_list:
             for obj in obj_list:
@@ -241,17 +241,17 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
         if not sel_obj.type == 'MESH':
             self.report({'ERROR'}, "Selected object is not a mesh!")
             return {'CANCELLED'}
-        if i3dea.auto_all_curves == "None":
+        if not i3dea.selected_curve:
             self.report({'ERROR'}, "No curve chosen!")
             return {'CANCELLED'}
 
         name = i3dea.auto_name if i3dea.auto_name else "myTrack"
 
-        if "zzz_data_ignore" not in bpy.data.objects:
+        if "zzz_data_ignore" not in context.scene.objects:
             data_ignore = bpy.data.objects.new("zzz_data_ignore", None)
             bpy.context.collection.objects.link(data_ignore)
             data_ignore.empty_display_size = 0
-        data_ignore = bpy.data.objects["zzz_data_ignore"]
+        data_ignore = context.scene.objects["zzz_data_ignore"]
 
         track_main_parent = bpy.data.objects.new(name, None)
         bpy.context.collection.objects.link(track_main_parent)
@@ -264,15 +264,15 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
         track_geo.matrix_parent_inverse = track_main_parent.matrix_world.inverted()
 
         if giants_i3d:
-            track_geo['I3D_receiveShadows'] = True
-            track_geo['I3D_castsShadows'] = True
-            track_geo['I3D_clipDistance'] = 300.00
-            track_geo['I3D_mergeChildren'] = True
-            track_geo['I3D_objectDataExportOrientation'] = True
-            track_geo['I3D_objectDataExportPosition'] = True
+            track_geo['i3D_receiveShadows'] = True
+            track_geo['i3D_castsShadows'] = True
+            track_geo['i3D_clipDistance'] = 300.00
+            track_geo['i3D_mergeChildren'] = True
+            track_geo['i3D_objectDataExportOrientation'] = True
+            track_geo['i3D_objectDataExportPosition'] = True
 
         if i3dea.auto_create_bbox:
-            create_bbox(i3dea.auto_all_curves, name, track_geo.name, sel_obj.dimensions[0])
+            create_bbox(i3dea.selected_curve, name, track_geo.name, sel_obj.dimensions[0])
 
         if i3dea.auto_use_uvset:
             second_uv = create_second_uv(sel_obj, name, int(i3dea.auto_uvset_dropdown))
@@ -284,10 +284,10 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
 
         if not i3dea.auto_allow_curve_scale:
             amount = i3dea.auto_fxd_amount_int if i3dea.auto_fixed_amount \
-                else round(get_curve_length(i3dea.auto_all_curves) / i3dea.auto_distance)
+                else round(get_curve_length(i3dea.selected_curve) / i3dea.auto_distance)
 
         else:
-            amount = scale_curve_to_fit_distance(i3dea.auto_all_curves, i3dea.auto_distance)
+            amount = scale_curve_to_fit_distance(i3dea.selected_curve, i3dea.auto_distance)
 
         all_pieces = create_from_amount(second_uv, amount)
         for obj in all_pieces:
@@ -297,7 +297,7 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
         if i3dea.auto_add_empties:
             create_empties(all_pieces, i3dea.auto_empty_int)
 
-        bpy.data.objects[i3dea.auto_all_curves].parent = data_ignore
+        i3dea.selected_curve.parent = data_ignore
         sel_obj.parent = data_ignore
         sel_obj.matrix_parent_inverse = data_ignore.matrix_world.inverted()
         self.report({'INFO'}, "Full track setup created and ready for export!")
@@ -378,16 +378,15 @@ def vmask_bake_objs(objs, name):
     return vmask_empty
 
 
-def create_bbox(curve_name, name, obj_name, dim_x):
+def create_bbox(curve, name, obj_name, dim_x):
     """
     Creates a bounding box/volume around the curve
 
-    param curve_name: Name of the curve
+    param curve: Curve object
     param name: name of the bbox
     param obj_name: Name of object
     param dim_x: X dimension
     """
-    curve = bpy.data.objects[curve_name]
     bbox = [Vector(b) for b in curve.bound_box]
     center = sum(bbox, Vector()) / 8
     center = curve.matrix_world @ center
@@ -405,7 +404,7 @@ def create_bbox(curve_name, name, obj_name, dim_x):
     bbox.matrix_world.identity()
 
     if giants_i3d:
-        bbox['I3D_boundingVolume'] = obj_name
+        bbox['i3D_boundingVolume'] = obj_name
     bbox.hide_set(True)
     return bbox
 
@@ -430,16 +429,29 @@ def create_from_amount(objects, amount):
     return obj_list
 
 
-def scale_curve_to_fit_distance(curve_name, distance):
+def scale_curve_to_fit_distance(curve: bpy.types.Object, distance: float) -> int:
     i = 0
     while True:
-        length = get_curve_length(curve_name)
+        length = get_curve_length(curve)
         amount = length / distance
         if math.isclose(round(amount, 4) % 1, 0) or i > 250:
             break
         rounded_amount = round(amount)
         scale_factor = rounded_amount / amount
         scale_matrix = Matrix.Scale(scale_factor, 4)
-        bpy.data.objects[curve_name].data.transform(scale_matrix)
+        curve.data.transform(scale_matrix)
         i += 1
     return round(amount)
+
+
+classes = (
+    I3DEA_OT_make_uvset,
+    I3DEA_OT_add_empty,
+    I3DEA_OT_curve_length,
+    I3DEA_OT_calculate_amount,
+    I3DEA_OT_visualization,
+    I3DEA_OT_visualization_del,
+    I3DEA_OT_automatic_track_creation,
+)
+
+register, unregister = bpy.utils.register_classes_factory(classes)

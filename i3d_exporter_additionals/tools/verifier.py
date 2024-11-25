@@ -35,20 +35,20 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
     @staticmethod
     def get_children(parent_obj):
         children = []
-        to_visit = [bpy.data.objects[parent_obj]]
+        to_visit = [bpy.context.scene.objects[parent_obj]]
         while to_visit:
             curr_ob = to_visit.pop()
             children.extend(curr_ob.children)
             to_visit.extend(curr_ob.children)
         return children
 
-    def objects_to_check(self, context):
+    def objects_to_check(self, context: bpy.types.Context):
         ignored_obj_names = set()
-        for obj in bpy.data.objects:
+        for obj in context.scene.objects:
             if obj.name.lower().endswith("_ignore"):
                 children_objs = self.get_children(obj.name)
                 ignored_obj_names.update(obj.name for obj in children_objs)
-        return [obj for obj in bpy.data.objects if obj.name not in ignored_obj_names]
+        return [obj for obj in context.scene.objects if obj.name not in ignored_obj_names]
 
     def check_placeable(self, obj):
         if "placeable" in obj.name.lower():
@@ -93,15 +93,15 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         mesh = bpy.data.meshes.new_from_object(eval_obj)
         poly_count = len(mesh.polygons)
 
-        is_non_renderable = obj.get('I3D_nonRenderable', False) is True
-        merge_group = obj.get('I3D_mergeGroup', 0)
-        merge_group_root = obj.get('I3D_mergeGroupRoot', False)
-        bounding_volume = obj.get('I3D_boundingVolume', '')
+        is_non_renderable = obj.get('i3D_nonRenderable', False) is True
+        merge_group = obj.get('i3D_mergeGroup', 0)
+        merge_group_root = obj.get('i3D_mergeGroupRoot', False)
+        bounding_volume = obj.get('i3D_boundingVolume', '')
         if poly_count > 0 and not is_non_renderable and merge_group == 0:
             self.total_object_count += 1
             self.total_poly_count += poly_count
 
-            if len([o for o in bpy.data.objects if o.data == mesh]) > 1:
+            if len([o for o in context.scene.objects if o.data == mesh]) > 1:
                 self._add_message('INFO', f"Multiple shapes defined for {obj.name}!")
         bpy.data.meshes.remove(mesh)
 
@@ -117,18 +117,18 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         if bounding_volume not in ['', 'None']:
             self.bounding_volumes[bounding_volume] = True
 
-        if obj.get("I3D_static", False) is True and not is_placeable:
+        if obj.get("i3D_static", False) is True and not is_placeable:
             self._add_message('INFO', f"RigidBody: {obj.name} is marked as static!")
 
-        clip_distance_conditions = [('I3D_nonRenderable', lambda v: v == 0),
-                                    ('I3D_mergeGroup', lambda v: v == 0),
-                                    ('I3D_clipDistance', lambda v: v == 0),
-                                    ('I3D_boundingVolume', lambda v: v == '')]
+        clip_distance_conditions = [('i3D_nonRenderable', lambda v: v == 0),
+                                    ('i3D_mergeGroup', lambda v: v == 0),
+                                    ('i3D_clipDistance', lambda v: v == 0),
+                                    ('i3D_boundingVolume', lambda v: v == '')]
         if all(key in obj and condition(obj[key]) for key, condition in clip_distance_conditions):
             self._add_message('INFO',
                               f"ClipDistance: {obj.name} has no clip distance set. This causes performance issues!")
 
-        decal_layer = obj.get('I3D_decalLayer', 0)
+        decal_layer = obj.get('i3D_decalLayer', 0)
         if 'decal' in self.name_lower and decal_layer == 0:
             self._add_message('INFO', f"Decal Layer: {obj.name}, has decal layer set to 0")
         elif decal_layer > 0 and 'decal' not in self.name_lower:
@@ -136,12 +136,12 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
                               "if decalLayer-attribute > 0")
 
         if 'fillvolume' in self.name_lower:
-            if obj.get('I3D_cpuMesh', False) is False:
+            if obj.get('i3D_cpuMesh', False) is False:
                 self._add_message('WARNING', f"FillVolume: {obj.name} is not marked as CPU-Mesh!")
 
-        collision = obj.get('I3D_collision', False)
-        compound = obj.get('I3D_compound', False)
-        trigger = obj.get('I3D_trigger', False)
+        collision = obj.get('i3D_collision', False)
+        compound = obj.get('i3D_compound', False)
+        trigger = obj.get('i3D_trigger', False)
         if collision is True:
             if compound is True and trigger is False and obj.parent is None:
                 expected_suffix = "_main_component1" \
@@ -212,7 +212,7 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         print("Object count:", self.total_object_count)
 
     def execute(self, context):
-        is_placeable = any(self.check_placeable(obj) for obj in bpy.data.objects)
+        is_placeable = any(self.check_placeable(obj) for obj in context.scene.objects)
         objects_list = self.objects_to_check(context)
         self.initialize_counts()
         self._check_objects(context, objects_list, is_placeable)
@@ -221,3 +221,7 @@ class I3DEA_OT_verify_scene(bpy.types.Operator):
         self.report({'INFO'}, f'Errors: {self.error_count}, Warnings: {self.warning_count}, Info: {self.info_count} '
                     '(check console for details)')
         return {'FINISHED'}
+
+
+classes = (I3DEA_OT_verify_scene,)
+register, unregister = bpy.utils.register_classes_factory(classes)
