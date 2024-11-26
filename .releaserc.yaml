@@ -27,21 +27,25 @@
           {"type": "perf", "section": "Performance Improvements"},
           {"type": "revert", "section": "Reverts"},
           {"type": "docs", "section": "Documentation"},
-          {"type": "refactor", "section": "Code Refactoring", "hidden": true},
-          {"type": "chore", "section": "Chores", "hidden": true},
           {"type": "test", "section": "Tests"},
-          {"type": "build", "section": "Build", "hidden": true},
-          {"type": "ci", "section": "Continuous Integration", "hidden": true}
+          {"type": "refactor", "section": "Refactoring"},
+          {"type": "build", "section": "Internal Changes"},
+          {"type": "ci", "section": "Internal Changes"},
+          {"type": "chore", "section": "Internal Changes"}
         ]
       }
     }],
     ["@semantic-release/exec", {
         "prepareCmd": "./prepare_release.sh ${nextRelease.version}",
-        "shell": "/bin/bash"
     }],
     ["@semantic-release/github", {
-      "assets": [{"path": "./i3d_exporter_additionals.zip", "label": "I3D Exporter Additions"}],
-      "successComment": false,
+      "assets": [
+        {
+          "path": "i3d_exporter_additionals-*.zip",
+          "label": "I3D Exporter Additions v${nextRelease.version}"
+        }
+      ],
+      "successCommentCondition": false,
       "failTitle": false
     }]
   ]
