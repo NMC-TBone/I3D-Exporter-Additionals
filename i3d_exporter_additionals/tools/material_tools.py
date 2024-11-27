@@ -19,7 +19,6 @@
 # material_tools.py includes different material tools
 
 import bpy
-
 from ..helper_functions import check_i3d_exporter_type
 
 giants_i3d, stjerne_i3d = check_i3d_exporter_type()
@@ -28,50 +27,78 @@ giants_i3d, stjerne_i3d = check_i3d_exporter_type()
 class I3DEA_OT_mirror_material(bpy.types.Operator):
     bl_idname = "i3dea.mirror_material"
     bl_label = "Add Mirror Material"
-    bl_description = "Adds mirror_mat to materials"
+    bl_description = "Adds mirror_mat to materials and assigns it to selected objects"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def create_mirror_material(self):
+    assign_to_selected: bpy.props.BoolProperty(
+        name="Assign to selected",
+        description="Assign the mirror material to selected objects",
+        default=True
+    )
+
+    def create_mirror_material(self) -> bpy.types.Material:
         material = bpy.data.materials.new(name="mirror_mat")
         material.use_nodes = True
         principled_node = material.node_tree.nodes.get('Principled BSDF')
+        # Giants exporter will ignore base color if its 0,0,0,0
         principled_node.inputs["Base Color"].default_value = (0.000001, 0.000001, 0.000001, 1)
+        # TODO Check whats the new value, see a bunch of in game vehicles now use: 0.5 0.5 0.5
         principled_node.inputs["Metallic"].default_value = 1
-        if bpy.app.version >= (4, 0, 0):
-            principled_node.inputs["Specular IOR Level"].default_value = 1
-        else:
-            principled_node.inputs["Specular"].default_value = 1
+        principled_node.inputs["Specular IOR Level"].default_value = 1
         principled_node.inputs["Roughness"].default_value = 1
+        # Set emission to 0,0,0,1 to avoid it being exported (old default blender value)
+        principled_node.inputs["Emission Color"].default_value = (0.0, 0.0, 0.0, 1)
         return material
 
-    def execute(self, context):
+    def assign_mirror_material(self, obj: bpy.types.Object, mat: bpy.types.Material) -> None:
+        obj.data.materials.clear()
+        obj.data.materials.append(mat)
+
+        if giants_i3d:
+            obj.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
+            obj.active_material['shadingRate'] = "1x1"
+        if stjerne_i3d:
+            data_folder = bpy.context.preferences.addons['i3dio'].preferences.fs_data_path
+            obj.active_material.i3d_attributes.source = f"{data_folder}shaders\\mirrorShader.xml"
+
+    def execute(self, context: bpy.types.Context):
         if stjerne_i3d:
             if context.preferences.addons['i3dio'].preferences.fs_data_path == "":
                 self.report({'ERROR'}, "FS Data Folder is not set!")
                 return {'CANCELLED'}
 
-        if bpy.data.materials.get("mirror_mat"):
-            self.report({'ERROR'}, "Mirror Material already exists!")
+        mirror_mat = bpy.data.materials.get("mirror_mat")
+        material_status = "reused" if mirror_mat else "created"
+        if not mirror_mat:
+            mirror_mat = self.create_mirror_material()
+
+        selected_objs = context.selected_objects
+        if not selected_objs or not self.assign_to_selected:
+            skip_reason = "no selected objects" if not context.selected_objects else "property choice"
+            self.report({'INFO'}, f"Mirror material {material_status}. Skipped assignment due to {skip_reason}.")
             return {'CANCELLED'}
 
-        if not context.object.type == "MESH":
-            self.report({'ERROR'}, "Selected Object is not a mesh!")
-            return {'CANCELLED'}
+        processed_count = 0
+        assigned_count = 0
+        skipped_count = 0
 
-        mirror_mat = self.create_mirror_material()
+        for obj in selected_objs:
+            if obj.type != "MESH":
+                skipped_count += 1
+                continue
+            if mirror_mat.name not in [mat.name for mat in obj.data.materials if mat]:
+                self.assign_mirror_material(obj, mirror_mat)
+                assigned_count += 1
+            else:
+                skipped_count += 1
+            processed_count += 1
 
-        for obj in context.selected_objects:
-            obj.data.materials.clear()
-            obj.data.materials.append(mirror_mat)
-
-            if giants_i3d:
-                obj.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
-                obj.active_material['shadingRate'] = "1x1"
-            if stjerne_i3d:
-                data_folder = context.preferences.addons['i3dio'].preferences.fs_data_path
-                obj.active_material.i3d_attributes.source = f"{data_folder}shaders\\mirrorShader.xml"
-
-        self.report({'INFO'}, "Created material: mirror_mat")
+        feedback = (
+            f"Mirror material {material_status}. "
+            f"Processed {processed_count} object(s): "
+            f"{assigned_count} assigned, {skipped_count} skipped."
+        )
+        self.report({'INFO'}, feedback)
         return {'FINISHED'}
 
 
