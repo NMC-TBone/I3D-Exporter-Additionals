@@ -1,7 +1,7 @@
 {
    "branches": [
     {"name": "main"},
-    {"name": "develop", "prerelease": "dev", "channel": false},
+    {"name": "dev", "prerelease": "dev", "channel": false},
     {"name": "feature-*", "prerelease": "beta", "channel": false}
   ],
   "tagFormat": "v${version}",
