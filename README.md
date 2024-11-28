@@ -30,7 +30,7 @@ Remove duplicated materials: Currently just removes empty slots in the materials
 It imports the in game assets into your blender file with correct rotation and translation. No lights added to it yet. (Keep in mind these objects are ment for reference only, if you deceide to export a mod with these objects you can expect issues with UV maps etc).
 
 ## How to install
-Support for Blender 3.0.0 and up
+Support for Blender 4.2.0 and up
 Install it like any other Blender addon. Download the newest version from [releases page](https://github.com/NMC-TBone/i3d_exporter_additionals/releases).
 
 ## Need help?
