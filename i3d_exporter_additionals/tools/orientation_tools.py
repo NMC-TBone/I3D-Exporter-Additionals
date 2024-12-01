@@ -1,5 +1,3 @@
-"""freezeTools.py Includes tools to freeze translation, rotation and scale"""
-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -21,28 +19,60 @@
 import bpy
 import math
 import mathutils
-import numpy as np
+from bpy_extras.io_utils import axis_conversion
 
 
-class I3DEA_OT_copy_orientation(bpy.types.Operator):
-    bl_idname = "i3dea.copy_orientation"
-    bl_label = "Copy Orientation"
-    bl_description = "Copy Location/Rotation from active object to clipboard in Giants Editor format"
+class I3DEA_OT_copy_transform(bpy.types.Operator):
+    bl_idname = "i3dea.copy_transform"
+    bl_label = "Copy Transform"
+    bl_description = "Copy Location/Rotation from active object or EditBone to clipboard in Giants Editor format"
     state: bpy.props.IntProperty()
 
+    # Conversion matrix for transforming from Blender's coordinate system (Z-up, -Y-forward)
+    # to Giants Editor's coordinate system (Y-up, Z-forward)
+    conversion_matrix: mathutils.Matrix = axis_conversion(to_forward='-Z', to_up='Y').to_4x4()
+
     @staticmethod
-    def transform_matrix(matrix):
-        rotation_minus90_x = np.array([
-            [1, 0, 0, 0],
-            [0, 0, 1, 0],
-            [0, -1, 0, 0],
-            [0, 0, 0, 1]])
-        rotation_plus90_x = np.array([
-            [1, 0, 0, 0],
-            [0, 0, -1, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 1]])
-        return mathutils.Matrix(rotation_minus90_x.tolist()) @ matrix @ mathutils.Matrix(rotation_plus90_x.tolist())
+    def format_transformation(values) -> str:
+        return " ".join("0" if math.isclose(x, 0, abs_tol=1e-5) else f"{x:.6f}" for x in values)
+
+    @staticmethod
+    def apply_root_bone_fix(matrix: mathutils.Matrix) -> mathutils.Matrix:
+        """
+        Adjust the rotation of the root bone to align with I3D conventions.
+
+        Blender's root bone orientation does not match I3D orientation like other bones.
+        So this method applies a -90-degree rotation correction around the X-axis.
+        """
+        rotation_fix = mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
+        # Extract translation
+        translation = matrix.to_translation()
+        # Apply rotation fix and reapply translation
+        fixed_matrix = rotation_fix @ matrix.to_3x3().to_4x4()
+        fixed_matrix.translation = translation
+        return fixed_matrix
+
+    def handle_bone_transformation(self, bone: bpy.types.EditBone) -> mathutils.Matrix:
+        """
+        Transform the bone's local matrix into I3D coordinates.
+
+        For bones with a parent:
+        - Compute the transformation relative to the parent bone's matrix (local transformation).
+
+        For the root bone:
+        - Apply a global transformation using the conversion matrix to match I3D coordinates.
+        - Apply additional rotation correction for root bones.
+        """
+        # Bone space in blender is the same as Giants Editor space (except for root bone(?))
+        # Blender bone space = Y-up, Z-forward, Giants space = Y-up, Z-forward
+        if bone.parent:
+            # Compute local transformation relative to the parent bone
+            local_matrix = bone.parent.matrix.inverted() @ bone.matrix
+            return local_matrix
+        else:
+            # Apply global transformation and rotation fix for root bones
+            root_matrix = self.conversion_matrix @ bone.matrix @ self.conversion_matrix.inverted()
+            return self.apply_root_bone_fix(root_matrix)
 
     def execute(self, context):
         obj = context.object
@@ -51,22 +81,28 @@ class I3DEA_OT_copy_orientation(bpy.types.Operator):
             self.report({'ERROR'}, "No object selected")
             return {'CANCELLED'}
 
-        transformed_matrix = self.transform_matrix(obj.matrix_local)
-        orientation = "0 0 0"
+        if obj.type == 'ARMATURE' and context.mode == 'EDIT_ARMATURE':
+            active_bone = context.active_bone
+            if not active_bone:
+                self.report({'ERROR'}, "No active bone selected. Switch to Edit Mode and select a bone.")
+                return {'CANCELLED'}
+            transformed_matrix = self.handle_bone_transformation(active_bone)
+            source_name = active_bone.name
+        else:
+            transformed_matrix = self.conversion_matrix @ obj.matrix_local @ self.conversion_matrix.inverted()
+            source_name = obj.name
 
+        transformation = "0 0 0"
         if self.state == 1:
-            t = transformed_matrix.to_translation()[:]
-            orientation = " ".join("0" if abs(x) < 1e-6 else "{:.6f}".format(x) for x in t)
-
+            transformation = self.format_transformation(transformed_matrix.to_translation()[:])
         elif self.state == 2:
-            r = transformed_matrix.to_euler("XYZ")
-            r = [math.degrees(x) for x in r]
-            orientation = " ".join("0" if abs(x) < 1e-6 else "{:.6f}".format(x) for x in r)
+            r = [math.degrees(x) for x in transformed_matrix.to_euler("XYZ")]
+            transformation = self.format_transformation(r)
 
-        context.window_manager.clipboard = orientation
-        self.report({'INFO'}, f'Orientation "{orientation}" from "{obj.name}" copied to clipboard')
+        context.window_manager.clipboard = transformation
+        self.report({'INFO'}, f'Transformation "{transformation}" from "{source_name}" copied to clipboard')
         return {'FINISHED'}
 
 
-classes = (I3DEA_OT_copy_orientation,)
+classes = (I3DEA_OT_copy_transform,)
 register, unregister = bpy.utils.register_classes_factory(classes)

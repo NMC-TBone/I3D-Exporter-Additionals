@@ -53,8 +53,8 @@ class I3DEA_PT_GeneralTools(I3deaPanel, Panel):
         layout = self.layout
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("i3dea.copy_orientation", text="Copy Location").state = 1
-        row.operator("i3dea.copy_orientation", text="Copy Rotation").state = 2
+        row.operator("i3dea.copy_transform", text="Copy Location").state = 1
+        row.operator("i3dea.copy_transform", text="Copy Rotation").state = 2
         row = col.row(align=True)
         row.operator("i3dea.mirror_orientation", text="Set mirror orientation")
         row.operator("i3dea.remove_doubles", text="Clean Meshes")
