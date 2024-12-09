@@ -32,18 +32,16 @@ class I3DEA_OT_remove_doubles(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        smooth_angle = 180
         merge_threshold = .0001
-        smooth_radians = math.radians(smooth_angle)
-        sel_obj = bpy.context.selected_objects
-        act_obj = bpy.context.active_object
+        sel_obj = context.selected_objects
+        act_obj = context.active_object
 
         for obj in sel_obj:
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
             obj.select_set(True)
             if obj.type == 'MESH':
-                bpy.context.view_layer.objects.active = obj
+                context.view_layer.objects.active = obj
                 bpy.ops.mesh.customdata_custom_splitnormals_clear()
                 bm = bmesh.new()
                 bm.from_mesh(obj.data)
@@ -58,15 +56,11 @@ class I3DEA_OT_remove_doubles(bpy.types.Operator):
                 bpy.ops.mesh.select_all(action='SELECT')
                 bpy.ops.mesh.tris_convert_to_quads(uvs=True)
                 bpy.ops.object.mode_set(mode='OBJECT')
-                if bpy.app.version >= (4, 1, 0):
-                    bpy.ops.object.shade_smooth()
-                else:
-                    bpy.ops.object.shade_smooth(use_auto_smooth=True)
-                    bpy.context.object.data.auto_smooth_angle = smooth_radians
-                self.report({'INFO'}, "Object(s) cleaned")
+                bpy.ops.object.shade_smooth()
         for obj in sel_obj:
             obj.select_set(True)
-        bpy.context.view_layer.objects.active = act_obj
+        context.view_layer.objects.active = act_obj
+        self.report({'INFO'}, "Object(s) cleaned")
         return {'FINISHED'}
 
 

@@ -167,10 +167,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         img_tex_spec = nodes.new("ShaderNodeTexImage")
         img_tex_spec.location = (-510, 32)
         if giants_i3d:
-            if bpy.app.version >= (4, 0, 0):
-                links.new(img_tex_spec.outputs["Color"], nodes.get("Principled BSDF").inputs["Specular IOR Level"])
-            else:
-                links.new(img_tex_spec.outputs["Color"], nodes.get("Principled BSDF").inputs["Specular"])
+            links.new(img_tex_spec.outputs["Color"], nodes.get("Principled BSDF").inputs["Specular IOR Level"])
         elif stjerne_i3d:
             sep_rgb = nodes.new("ShaderNodeSeparateRGB")
             sep_rgb.name = "Glossmap"
