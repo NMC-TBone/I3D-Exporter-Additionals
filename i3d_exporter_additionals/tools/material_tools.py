@@ -102,22 +102,27 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class I3DEA_OT_remove_duplicate_material(bpy.types.Operator):
-    bl_idname = "i3dea.remove_duplicate_material"
-    bl_label = "Remove Duplicate Materials"
-    bl_description = "Removes all duplicated/not assigned materials"
+class I3DEA_OT_remove_unused_material_slots(bpy.types.Operator):
+    bl_idname = "i3dea.remove_unused_material_slots"
+    bl_label = "Remove Unused Material Slots"
+    bl_description = "Removes duplicate materials and unused material slots"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.ops.object.mode_set(mode='OBJECT')
-        for ob in bpy.context.scene.objects:
-            if not ob.material_slots:
+        for obj in context.scene.objects:
+            if obj.type != 'MESH' and not obj.material_slots:
                 continue
-            bpy.ops.object.material_slot_remove_unused()
-        for mat in bpy.data.materials:
-            if not mat.users:
-                bpy.data.materials.remove(mat)
-        bpy.ops.outliner.orphans_purge()
+
+            mesh: bpy.types.Mesh = obj.data
+
+            used_material_indices = set(poly.material_index for poly in mesh.polygons)
+            used_materials = [mesh.materials[i] for i in used_material_indices if mesh.materials[i] is not None]
+
+            mesh.materials.clear()
+
+            for mat in used_materials:
+                mesh.materials.append(mat)
+
         self.report({'INFO'}, "Unused material slots & Orphan Data removed")
         return {'FINISHED'}
 
@@ -257,7 +262,7 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
 
 classes = (
     I3DEA_OT_mirror_material,
-    I3DEA_OT_remove_duplicate_material,
+    I3DEA_OT_remove_unused_material_slots,
     I3DEA_OT_setup_material,
     I3DEA_OT_i3dio_material,
 )
