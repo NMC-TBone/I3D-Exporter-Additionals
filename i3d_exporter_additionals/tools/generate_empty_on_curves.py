@@ -109,13 +109,22 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
         hierarchy_empty = self._create_empty(context, name=hierarchy)
 
         if giants_i3d:
-            import os
             from pathlib import Path
             blend_file_path = Path(bpy.data.filepath).parent
-            target_path = Path(i3dea.motion_save_location if i3dea.motion_save_location else "")
-            relative_path = Path(os.path.relpath(target_path, blend_file_path))
-            relative_path = str(relative_path).replace('\\', '/')
-            final_path = f"{relative_path}/{hierarchy}.dds"
+            target_path = Path(i3dea.motion_save_location or "")
+
+            if blend_file_path.anchor == target_path.anchor:
+                try:
+                    relative_path = target_path.relative_to(blend_file_path)
+                    final_path = f"{relative_path.as_posix()}/{hierarchy}.dds"
+                except ValueError:
+                    # Fallback to absolute path if relative fails
+                    final_path = f"{target_path.as_posix()}/{hierarchy}.dds"
+            else:
+                # Use absolute path if paths are on different mounts
+                final_path = f"{target_path.as_posix()}/{hierarchy}.dds"
+
+            final_path = final_path.replace('\\', '/').replace('//', '/')
 
             if not final_path.startswith((".", "/")):
                 final_path = "./" + final_path
@@ -137,7 +146,8 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
                 pose_empty = None
 
             # For AMOUNT_FIX
-            curve_lengths = {curve: get_curve_length(curve) for curve in pose.sub_pose_list}
+            curve_lengths = {curve.curve: get_curve_length(context.scene.objects[curve.curve])
+                             for curve in pose.sub_pose_list}
             longest_curve_length = max(curve_lengths.values(), default=0)
 
             for idx, curve in enumerate(pose.sub_pose_list):
