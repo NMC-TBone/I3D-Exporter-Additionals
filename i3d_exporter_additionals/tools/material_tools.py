@@ -116,7 +116,9 @@ class I3DEA_OT_remove_unused_material_slots(bpy.types.Operator):
             mesh: bpy.types.Mesh = obj.data
 
             used_material_indices = set(poly.material_index for poly in mesh.polygons)
-            used_materials = [mesh.materials[i] for i in used_material_indices if mesh.materials[i] is not None]
+
+            used_materials = [mesh.materials[i] for i in used_material_indices
+                              if 0 <= i < len(mesh.materials) and mesh.materials[i] is not None]
 
             mesh.materials.clear()
 
