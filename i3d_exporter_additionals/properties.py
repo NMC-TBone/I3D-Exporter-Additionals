@@ -390,7 +390,8 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
     # User Attribute properties.py
     user_attribute_name: StringProperty(
         name="Name",
-        description="Name of the User Attribute."
+        description="Name of the User Attribute.",
+        default=""
     )
 
     user_attribute_type: EnumProperty(
@@ -399,6 +400,7 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         items=[
             ('boolean', "boolean", ""),
             ('float', "float", ""),
+            ('integer', "integer", ""),
             ('string', "string", ""),
             ('scriptCallback', "scriptCallback", "")
         ],

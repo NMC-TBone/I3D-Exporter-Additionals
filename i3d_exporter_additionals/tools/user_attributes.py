@@ -29,34 +29,43 @@ class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        attr_type = context.scene.i3dea.user_attribute_type
-        attr_name = context.scene.i3dea.user_attribute_name
-        create_attr_name = f"userAttribute_{attr_type}_{attr_name}"
+        i3dea = context.scene.i3dea
         obj = context.object
 
         if obj:
-            if context.scene.i3dea.user_attribute_name:
+            if attr_name := i3dea.user_attribute_name != "":
                 if attr_name in [k.split("_")[-1] for k in obj.keys() if k.startswith("userAttribute_")]:
-                    self.report({'WARNING'}, f"Attribute {attr_name} already exist.")
+                    self.report({'ERROR'}, f"Attribute {attr_name} already exist.")
                     return {'CANCELLED'}
                 else:
-                    if attr_type == 'boolean':
-                        obj[create_attr_name] = False
-                        ui = obj.id_properties_ui(create_attr_name)
-                        ui.update(description=create_attr_name)
-                        ui.update(default=False)
-                    elif attr_type == 'float':
-                        obj[create_attr_name] = 0.0
-                        ui = obj.id_properties_ui(create_attr_name)
-                        ui.update(description=create_attr_name)
-                        ui.update(default=0.0)
-                        ui.update(min=-200)
-                        ui.update(max=200)
-                    elif attr_type == 'string':
-                        obj[create_attr_name] = ""
-                    elif attr_type == 'scriptCallback':
-                        obj[create_attr_name] = ""
+                    attr_type = i3dea.user_attribute_type
+                    create_attr_name = f"userAttribute_{attr_type}_{attr_name}"
+                    match attr_type:
+                        case 'boolean':
+                            obj[create_attr_name] = False
+                            ui = obj.id_properties_ui(create_attr_name)
+                            ui.update(description=create_attr_name)
+                            ui.update(default=False)
+                        case 'integer':
+                            obj[create_attr_name] = 0
+                            ui = obj.id_properties_ui(create_attr_name)
+                            ui.update(description=create_attr_name)
+                            ui.update(default=0)
+                            ui.update(min=-200)
+                            ui.update(max=200)
+                        case 'float':
+                            obj[create_attr_name] = 0.0
+                            ui = obj.id_properties_ui(create_attr_name)
+                            ui.update(description=create_attr_name)
+                            ui.update(default=0.0)
+                            ui.update(min=-200)
+                            ui.update(max=200)
+                        case 'string' | 'scriptCallback':
+                            obj[create_attr_name] = ""
                     return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, "Attribute name can't be empty.")
+                return {'CANCELLED'}
 
 
 class I3DEA_OT_delete_user_attribute(bpy.types.Operator):
