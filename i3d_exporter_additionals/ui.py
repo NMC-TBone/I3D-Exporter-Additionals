@@ -27,6 +27,15 @@ class I3DEA_PT_MainPanel(Panel):
     def draw(self, context):
         giants_i3d, stjerne_i3d = check_i3d_exporter_type()
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        obj = context.object
+
+        if obj:
+            layout.use_property_split = False
+            col = layout.column(align=True)
+            col.prop(obj, "test_translation")
         if giants_i3d and stjerne_i3d:
             # "Exporter selection" box
             layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')

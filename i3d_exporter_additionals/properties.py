@@ -528,9 +528,29 @@ classes = (
 _register, _unregister = bpy.utils.register_classes_factory(classes)
 
 
+def get_translation(self) -> tuple:
+    from mathutils import Vector
+    # blender vs giants coordinate
+    # x = x, y = z, z = -y
+    return Vector((self.location[0], self.location[2], -self.location[1]))
+
+
+def set_translation(self, value) -> None:
+    self.location = (value[0], -value[2], value[1])
+
+
 def register() -> None:
     _register()
     bpy.types.Scene.i3dea = bpy.props.PointerProperty(type=I3DEA_PG_List)
+    bpy.types.Object.test_translation = bpy.props.FloatVectorProperty(
+        name="Location",
+        default=(0, 0, 0),
+        subtype='TRANSLATION',
+        size=3,
+        get=get_translation,
+        set=set_translation,
+        precision=3
+    )
 
 
 def unregister() -> None:
