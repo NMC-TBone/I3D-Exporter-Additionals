@@ -35,6 +35,7 @@ else:
         verifier,
         generate_empty_on_curves,
         properties_converter,
+        giants_to_i3dio,
     )
 
 
@@ -51,9 +52,11 @@ def register() -> None:
     orientation_tools.register()
     user_attributes.register()
     properties_converter.register()
+    giants_to_i3dio.register()
 
 
 def unregister() -> None:
+    giants_to_i3dio.unregister()
     properties.unregister()
     ui.unregister()
     track_tools.unregister()

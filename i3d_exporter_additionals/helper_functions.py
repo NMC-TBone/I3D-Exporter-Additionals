@@ -1,16 +1,14 @@
+import importlib
+import sys
 import bpy
+import addon_utils
 from mathutils import Vector, Matrix
 
 
-def check_i3d_exporter_type() -> tuple:
-    giants_i3d = False
-    stjerne_i3d = False
-    for a in bpy.context.preferences.addons:
-        if a.module == "io_export_i3d" or a.module == "io_export_i3d_10_0_0":
-            giants_i3d = True
-        if a.module == "i3dio":
-            stjerne_i3d = True
-    return giants_i3d, stjerne_i3d
+def check_i3d_exporter_type() -> tuple[bool, bool]:
+    giants_enabled = addon_utils.check("io_export_i3d")[1] or addon_utils.check("io_export_i3d_10_0_0")[1]
+    i3dio_enabled = addon_utils.check("i3dio")[1]
+    return giants_enabled, i3dio_enabled
 
 
 def check_obj_type(obj):
@@ -21,6 +19,27 @@ def check_obj_type(obj):
                 continue
             if not mode == 'OBJECT':
                 bpy.ops.object.mode_set(mode='OBJECT')
+
+
+def get_from_addon_module(module_path: str, attr_name: str):
+    """
+    Fetches an attribute (variable, class, function, etc.) from a (possibly nested) Blender addon module.
+
+    Args:
+        module_path (str): The Python module path, e.g. "i3dio.ui.collision_data"
+        attr_name (str): The name of the attribute to fetch.
+
+    Returns:
+        The object if found, otherwise None.
+    """
+    mod = sys.modules.get(module_path)
+    if mod is None:
+        try:
+            mod = importlib.import_module(module_path)
+        except ImportError:
+            print(f"Module {module_path!r} could not be imported.")
+            return None
+    return getattr(mod, attr_name, None)
 
 
 def apply_transforms(obj: bpy.types.Object, use_loc=False, use_rot=False, use_scale=False, apply_all=False) -> None:

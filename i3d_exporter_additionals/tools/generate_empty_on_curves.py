@@ -3,7 +3,7 @@ import math
 import bpy
 from ..helper_functions import check_i3d_exporter_type, get_curve_length
 
-giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+giants_enabled, i3dio_enabled = check_i3d_exporter_type()
 
 
 class PoseAddOperator(bpy.types.Operator):
@@ -108,7 +108,7 @@ class I3DEA_OT_empties_along_curves(bpy.types.Operator):
         # Create empty object "pose1"
         hierarchy_empty = self._create_empty(context, name=hierarchy)
 
-        if giants_i3d:
+        if giants_enabled:
             from pathlib import Path
             blend_file_path = Path(bpy.data.filepath).parent
             target_path = Path(i3dea.motion_save_location or "")
