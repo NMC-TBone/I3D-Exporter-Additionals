@@ -494,10 +494,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
     def create_cameras(self, fov):
         bpy.ops.object.empty_add(radius=0)
         camera_group = bpy.context.active_object
-        camera_group.name = '2_cameras'
+        camera_group.name = '2:cameras'
         bpy.ops.object.empty_add(radius=0)
         outdoor_camera_group = bpy.context.active_object
-        outdoor_camera_group.name = 'outdoorCameraTarget'
+        outdoor_camera_group.name = '1:outdoorCameraTarget'
         outdoor_camera_group.parent = camera_group
         outdoor_camera_group.rotation_euler = (math.radians(-24), 0, math.radians(-180))
         bpy.ops.object.camera_add()
@@ -512,7 +512,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         outdoor_camera.clip_end = 5000
         bpy.ops.object.camera_add()
         indoor_camera = bpy.context.active_object
-        indoor_camera.name = 'indoorCamera'
+        indoor_camera.name = '2:indoorCamera'
         indoor_camera.parent = camera_group
         indoor_camera.rotation_euler = (math.radians(72), 0, math.radians(-180))
         indoor_camera = bpy.context.object.data
@@ -520,16 +520,20 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         indoor_camera.clip_end = 5000
         bpy.ops.object.empty_add(radius=0)
         camera_raycast_node1_group = bpy.context.active_object
-        camera_raycast_node1_group.name = 'cameraRaycastNode1'
+        camera_raycast_node1_group.name = '3:cameraRaycastNode1'
         camera_raycast_node1_group.parent = camera_group
         bpy.ops.object.empty_add(radius=0)
         camera_raycast_node2_group = bpy.context.active_object
-        camera_raycast_node2_group.name = 'cameraRaycastNode2'
+        camera_raycast_node2_group.name = '4:cameraRaycastNode2'
         camera_raycast_node2_group.parent = camera_group
         bpy.ops.object.empty_add(radius=0)
         camera_raycast_node3_group = bpy.context.active_object
-        camera_raycast_node3_group.name = 'cameraRaycastNode3'
+        camera_raycast_node3_group.name = '5:cameraRaycastNode3'
         camera_raycast_node3_group.parent = camera_group
+        bpy.ops.mesh.primitive_cube_add()
+        shadow_focus_box = bpy.context.active_object
+        shadow_focus_box.name = 'shadowFocusBox'
+        shadow_focus_box.parent = camera_group
         bpy.ops.object.select_grouped(type='PARENT')
         return camera_group
 
