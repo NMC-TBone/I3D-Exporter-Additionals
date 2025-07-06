@@ -25,15 +25,27 @@ class I3DEA_PT_MainPanel(Panel):
     bl_category = 'I3D Exporter Additionals'
 
     def draw(self, context):
-        giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+        giants_enabled, i3dio_enabled = check_i3d_exporter_type()
         layout = self.layout
-        if giants_i3d and stjerne_i3d:
+        if giants_enabled and i3dio_enabled:
             # "Exporter selection" box
-            layout.label(text="Both Giants & Stjerne I3D exporter is enabled", icon='ERROR')
+            layout.label(text="Both Giants & Community I3D exporter is enabled", icon='ERROR')
             layout.label(text="Recommend to disable one of them as it can cause unexpected issues")
 
-        draw_general_tools(layout, context, giants_i3d, stjerne_i3d)
-        if giants_i3d:
+        box = layout.box()
+        box.label(text="Migrate from Giants to Community I3D Exporter", icon='IMPORT')
+        box.operator("i3dea.migrate_giants_to_i3dio", text="Migrate...", icon='IMPORT')
+        if not i3dio_enabled:
+            box.label(text="Community I3D Exporter not detected!", icon='ERROR')
+            op = box.operator("wm.url_open", text="Download Community I3D Exporter...", icon='URL')
+            op.url = "https://github.com/StjerneIdioten/I3D-Blender-Addon"
+
+        if giants_enabled:
+            box.label(text="Disable Giants I3D Exporter")
+            box.operator("i3dea.disable_giants_exporter", icon='CANCEL')
+
+        draw_general_tools(layout, context, giants_enabled, i3dio_enabled)
+        if giants_enabled:
             draw_user_attributes(layout, context)
         draw_skeletons(layout, context)
         draw_material_tools(layout, context)
@@ -43,7 +55,7 @@ class I3DEA_PT_MainPanel(Panel):
 
 
 def draw_general_tools(layout: bpy.types.UILayout, context: bpy.types.Context,
-                       giants_i3d: bool, stjerne_i3d: bool) -> None:
+                       giants_enabled: bool, i3dio_enabled: bool) -> None:
     header, panel = layout.panel("I3DEA_general_tools", default_closed=True)
     header.label(text="General Tools")
     if panel:
@@ -57,7 +69,7 @@ def draw_general_tools(layout: bpy.types.UILayout, context: bpy.types.Context,
         row = col.row(align=True)
         row.operator("i3dea.mesh_name", text="Set Mesh Name")
         # row.operator("i3dea.fill_volume", text="Check Fill Volume") hidden for now
-        if giants_i3d:
+        if giants_enabled:
             row = col.row(align=True)
             row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
             row.operator("i3dea.ignore", text="Add Suffix _ignore")
@@ -88,7 +100,7 @@ def draw_general_tools(layout: bpy.types.UILayout, context: bpy.types.Context,
                              icon=_get_toggle_icon(i3dea.convert_nodes))
                 row = col.row(align=True)
                 delete_row = col.row(align=True)
-                if stjerne_i3d:
+                if i3dio_enabled:
                     delete_row.enabled = False
                     row.label(text="Disabled when Stjerne I3D Exporter is enabled", icon='ERROR')
                     i3dea.property_unset('delete_old_props')

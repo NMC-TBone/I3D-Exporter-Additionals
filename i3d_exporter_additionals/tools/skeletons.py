@@ -27,7 +27,7 @@ import math
 
 from ..helper_functions import check_i3d_exporter_type
 
-giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+giants_enabled, i3dio_enabled = check_i3d_exporter_type()
 
 
 class I3DEA_OT_skeletons(bpy.types.Operator):
@@ -390,14 +390,14 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         nav_root_node = self.create_skel_node("1_8_navigationRootNode", animal_husbandry)
         self.create_plane("navigationMesh", nav_root_node)
         walking_plane = self.create_plane("walkingPlane", nav_root_node)
-        if giants_i3d:
+        if giants_enabled:
             walking_plane['i3D_collision'] = True
             walking_plane['i3D_static'] = True
             walking_plane['i3D_nonRenderable'] = True
             walking_plane['i3D_castsShadows'] = True
             walking_plane['i3D_receiveShadows'] = True
             walking_plane['i3D_collisionMask'] = 131072
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.rigid_body_type = 'static'
             bpy.context.object.i3d_attributes.collision_mask = "20000"
             bpy.context.object.data.i3d_attributes.casts_shadows = True
@@ -468,13 +468,13 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         self.create_collision("collision", 255, "ff", collisions)
         self.create_collision("tipCollision", 524288, "80000", collisions)
         self.create_collision("tipCollisionWall", 524288, "80000", collisions)
-        if giants_i3d:
+        if giants_enabled:
             prop_name = 'userAttribute_float_collisionHeight'
             bpy.context.object[prop_name] = 4.0
             bpy.context.object.id_properties_ensure()  # Make sure the manager is updated
             property_manager = bpy.context.object.id_properties_ui(prop_name)
             property_manager.update(min=-200, max=200)
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.ops.i3dio_user_attribute_list.new_item()
             bpy.context.object.i3d_user_attributes.attribute_list[0].name = "collisionHeight"
             bpy.context.object.i3d_user_attributes.attribute_list[0].type = 'data_float'
@@ -494,10 +494,10 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
     def create_cameras(self, fov):
         bpy.ops.object.empty_add(radius=0)
         camera_group = bpy.context.active_object
-        camera_group.name = '2_cameras'
+        camera_group.name = '2:cameras'
         bpy.ops.object.empty_add(radius=0)
         outdoor_camera_group = bpy.context.active_object
-        outdoor_camera_group.name = 'outdoorCameraTarget'
+        outdoor_camera_group.name = '1:outdoorCameraTarget'
         outdoor_camera_group.parent = camera_group
         outdoor_camera_group.rotation_euler = (math.radians(-24), 0, math.radians(-180))
         bpy.ops.object.camera_add()
@@ -512,7 +512,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         outdoor_camera.clip_end = 5000
         bpy.ops.object.camera_add()
         indoor_camera = bpy.context.active_object
-        indoor_camera.name = 'indoorCamera'
+        indoor_camera.name = '2:indoorCamera'
         indoor_camera.parent = camera_group
         indoor_camera.rotation_euler = (math.radians(72), 0, math.radians(-180))
         indoor_camera = bpy.context.object.data
@@ -520,16 +520,20 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         indoor_camera.clip_end = 5000
         bpy.ops.object.empty_add(radius=0)
         camera_raycast_node1_group = bpy.context.active_object
-        camera_raycast_node1_group.name = 'cameraRaycastNode1'
+        camera_raycast_node1_group.name = '3:cameraRaycastNode1'
         camera_raycast_node1_group.parent = camera_group
         bpy.ops.object.empty_add(radius=0)
         camera_raycast_node2_group = bpy.context.active_object
-        camera_raycast_node2_group.name = 'cameraRaycastNode2'
+        camera_raycast_node2_group.name = '4:cameraRaycastNode2'
         camera_raycast_node2_group.parent = camera_group
         bpy.ops.object.empty_add(radius=0)
         camera_raycast_node3_group = bpy.context.active_object
-        camera_raycast_node3_group.name = 'cameraRaycastNode3'
+        camera_raycast_node3_group.name = '5:cameraRaycastNode3'
         camera_raycast_node3_group.parent = camera_group
+        bpy.ops.mesh.primitive_cube_add()
+        shadow_focus_box = bpy.context.active_object
+        shadow_focus_box.name = 'shadowFocusBox'
+        shadow_focus_box.parent = camera_group
         bpy.ops.object.select_grouped(type='PARENT')
         return camera_group
 
@@ -555,11 +559,11 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         light_transform = bpy.context.active_object
         light_transform.parent = parent
         light_transform.name = name
-        if giants_i3d:
+        if giants_enabled:
             light_transform['i3D_collision'] = False
             light_transform['i3D_static'] = False
             light_transform['i3D_clipDistance'] = 75.00
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.clip_distance = 75
         return light_transform
 
@@ -572,11 +576,11 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         light = bpy.context.active_object
         light.parent = parent
         light.name = name
-        if giants_i3d:
+        if giants_enabled:
             light['i3D_collision'] = False
             light['i3D_static'] = False
             light['i3D_clipDistance'] = clip_distance
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.clip_distance = clip_distance
         return light
 
@@ -591,11 +595,11 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         light = bpy.context.active_object
         light.parent = parent
         light.name = name
-        if giants_i3d:
+        if giants_enabled:
             light['i3D_collision'] = False
             light['i3D_static'] = False
             light['i3D_clipDistance'] = clip_distance
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.clip_distance = clip_distance
         return light
 
@@ -607,7 +611,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
         trigger = bpy.context.active_object
-        if giants_i3d:
+        if giants_enabled:
             trigger['i3D_collision'] = True
             trigger['i3D_static'] = True
             trigger['i3D_trigger'] = True
@@ -615,7 +619,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
             trigger['i3D_castsShadows'] = True
             trigger['i3D_receiveShadows'] = True
             trigger['i3D_collisionMask'] = col_mask
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.rigid_body_type = 'static'
             bpy.context.object.i3d_attributes.trigger = True
             bpy.context.object.i3d_attributes.collision_mask = col_mask_stjerne
@@ -632,7 +636,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         bpy.ops.object.transform_apply(scale=True)
         bpy.context.active_object.parent = parent
         trigger = bpy.context.active_object
-        if giants_i3d:
+        if giants_enabled:
             trigger['i3D_collision'] = True
             trigger['i3D_static'] = True
             trigger['i3D_trigger'] = True
@@ -640,7 +644,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
             trigger['i3D_castsShadows'] = True
             trigger['i3D_receiveShadows'] = True
             trigger['i3D_collisionMask'] = col_mask
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.rigid_body_type = 'static'
             bpy.context.object.i3d_attributes.trigger = True
             bpy.context.object.i3d_attributes.collision_mask = col_mask_stjerne
@@ -658,7 +662,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         bpy.context.active_object.parent = parent
         bpy.ops.object.parent_set(type='OBJECT', keep_transform=False)
         exact_fill_root_node = bpy.context.active_object
-        if giants_i3d:
+        if giants_enabled:
             exact_fill_root_node['i3D_collision'] = True
             exact_fill_root_node['i3D_static'] = True
             exact_fill_root_node['i3D_trigger'] = True
@@ -666,7 +670,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
             exact_fill_root_node['i3D_castsShadows'] = True
             exact_fill_root_node['i3D_receiveShadows'] = True
             exact_fill_root_node['i3D_collisionMask'] = 1073741824
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.rigid_body_type = 'static'
             bpy.context.object.i3d_attributes.collision_mask = "40000000"
             bpy.context.object.i3d_attributes.trigger = True
@@ -695,7 +699,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         bpy.context.active_object.location = translate
         translate = (0, 0, 0)
         component = bpy.context.active_object
-        if giants_i3d:
+        if giants_enabled:
             component['i3D_dynamic'] = True
             component['i3D_collision'] = True
             component['i3D_compound'] = True
@@ -705,7 +709,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
             component['i3D_castsShadows'] = True
             component['i3D_receiveShadows'] = True
             component['i3D_nonRenderable'] = True
-        if stjerne_i3d:
+        if i3dio_enabled:
             bpy.context.object.i3d_attributes.rigid_body_type = 'dynamic'
             bpy.context.object.i3d_attributes.compound = True
             bpy.context.object.i3d_attributes.collision_mask = "203002"

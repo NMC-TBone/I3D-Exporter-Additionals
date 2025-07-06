@@ -21,7 +21,7 @@
 import bpy
 from ..helper_functions import check_i3d_exporter_type
 
-giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+giants_enabled, i3dio_enabled = check_i3d_exporter_type()
 
 
 class I3DEA_OT_mirror_material(bpy.types.Operator):
@@ -54,15 +54,15 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         obj.data.materials.clear()
         obj.data.materials.append(mat)
 
-        if giants_i3d:
+        if giants_enabled:
             obj.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
             obj.active_material['shadingRate'] = "1x1"
-        if stjerne_i3d:
+        if i3dio_enabled:
             data_folder = bpy.context.preferences.addons['i3dio'].preferences.fs_data_path
             obj.active_material.i3d_attributes.source = f"{data_folder}shaders\\mirrorShader.xml"
 
     def execute(self, context: bpy.types.Context):
-        if stjerne_i3d:
+        if i3dio_enabled:
             if context.preferences.addons['i3dio'].preferences.fs_data_path == "":
                 self.report({'ERROR'}, "FS Data Folder is not set!")
                 return {'CANCELLED'}
@@ -168,9 +168,9 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
     def setup_specular_map(self, nodes, links, image_path):
         img_tex_spec = nodes.new("ShaderNodeTexImage")
         img_tex_spec.location = (-510, 32)
-        if giants_i3d:
+        if giants_enabled:
             links.new(img_tex_spec.outputs["Color"], nodes.get("Principled BSDF").inputs["Specular IOR Level"])
-        elif stjerne_i3d:
+        elif i3dio_enabled:
             sep_rgb = nodes.new("ShaderNodeSeparateRGB")
             sep_rgb.name = "Glossmap"
             sep_rgb.location = (-210, 90)

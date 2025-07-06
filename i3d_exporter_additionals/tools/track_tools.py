@@ -25,7 +25,7 @@ from mathutils import Vector, Matrix
 
 from ..helper_functions import check_i3d_exporter_type, get_curve_length
 
-giants_i3d, stjerne_i3d = check_i3d_exporter_type()
+giants_enabled, i3dio_enabled = check_i3d_exporter_type()
 
 
 def create_empties(objs, amount):
@@ -263,7 +263,7 @@ class I3DEA_OT_automatic_track_creation(bpy.types.Operator):
         track_geo.parent = track_main_parent
         track_geo.matrix_parent_inverse = track_main_parent.matrix_world.inverted()
 
-        if giants_i3d:
+        if giants_enabled:
             track_geo['i3D_receiveShadows'] = True
             track_geo['i3D_castsShadows'] = True
             track_geo['i3D_clipDistance'] = 300.00
@@ -403,7 +403,7 @@ def create_bbox(curve, name, obj_name, dim_x):
         vert.co = matrix @ vert.co
     bbox.matrix_world.identity()
 
-    if giants_i3d:
+    if giants_enabled:
         bbox['i3D_boundingVolume'] = obj_name
     bbox.hide_set(True)
     return bbox
