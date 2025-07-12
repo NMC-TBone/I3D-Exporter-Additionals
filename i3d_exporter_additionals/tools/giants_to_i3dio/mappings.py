@@ -30,7 +30,8 @@ BASE_OBJECT_PROP_MAPPINGS = {
     # Note: I3D_XMLconfigID handles mapping for armature bones as well.
     "I3D_XMLconfigBool": (None, bool, migrate_i3d_mapping, "obj", "ANY", None),
     "i3D_lockedGroup": ("locked_group", int, None, "obj", "ANY", None),
-    "i3D_clipDistance": ("clip_distance", float, None, "obj", "ANY", None),
+    "i3D_clipDistance": ("clip_distance", float, None, "obj", "ANY",  # Default in Giants Exp is 0.0, skip if 0.0
+                         lambda obj: float(obj.get("i3D_clipDistance", 0.0)) != 0.0),
     "i3D_objectMask": (None, int, lambda o, v: migrate_mask(o, v, attr_path="object_mask"), "obj", "ANY", None),
     "i3D_forceVisibilityCondition": ("use_parent", bool,
                                      lambda o, v: setattr(o.i3d_attributes, "use_parent", not v), "obj", "ANY", None),
