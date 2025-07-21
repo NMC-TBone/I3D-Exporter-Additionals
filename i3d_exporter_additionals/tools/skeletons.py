@@ -118,7 +118,7 @@ class I3DEA_OT_skeletons(bpy.types.Operator):
         if is_harvester:
             exhaust_particles = self.create_skel_node("particles", vehicle_vis)
         else:
-            exhaust_particles = self.create_skel_node("8_exhaustParticles", vehicle_vis)
+            exhaust_particles = self.create_skel_node("8:exhaustParticles", vehicle_vis)
         self.create_skel_node("exhaustParticle1", exhaust_particles, True)
         self.create_skel_node("exhaustParticle2", exhaust_particles, True)
         if is_harvester:
