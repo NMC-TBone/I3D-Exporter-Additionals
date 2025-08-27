@@ -138,7 +138,7 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
     i3da.shader_variation_name = mat.get("customShaderVariation", "")
 
     # Assign all customParameter_* keys to i3dio shader material parameters
-    parameter_collection = i3da.shader_material_parameters
+    parameter_collection = i3da.shader_material_params
     for k in mat.keys():
         if not k.startswith("customParameter_"):
             continue
