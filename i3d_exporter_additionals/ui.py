@@ -56,26 +56,22 @@ class I3DEA_PT_MainPanel(Panel):
 
 def draw_general_tools(layout: bpy.types.UILayout, context: bpy.types.Context,
                        giants_enabled: bool, i3dio_enabled: bool) -> None:
-    header, panel = layout.panel("I3DEA_general_tools", default_closed=True)
+    header, panel = layout.panel("I3DEA_general_tools", default_closed=False)
     header.label(text="General Tools")
     if panel:
-        col = panel.column(align=True)
-        row = col.row(align=True)
-        row.operator("i3dea.copy_transform", text="Copy Location").state = 1
-        row.operator("i3dea.copy_transform", text="Copy Rotation").state = 2
-        row = col.row(align=True)
-        row.operator("i3dea.mirror_orientation", text="Set mirror orientation")
-        row.operator("i3dea.remove_doubles", text="Clean Meshes")
-        row = col.row(align=True)
-        row.operator("i3dea.mesh_name", text="Set Mesh Name")
-        # row.operator("i3dea.fill_volume", text="Check Fill Volume") hidden for now
+        grid = panel.grid_flow(columns=2, even_columns=True, even_rows=True, align=True, row_major=True)
+        grid.operator("i3dea.copy_transform", text="Copy Location").state = 1
+        grid.operator("i3dea.copy_transform", text="Copy Rotation").state = 2
+        grid.operator("i3dea.mirror_orientation", text="Set mirror orientation")
+        grid.operator("i3dea.remove_doubles", text="Clean Meshes")
+        grid.operator("i3dea.mesh_name", text="Set Mesh Name")
+        grid.operator("i3dea.align_hydraulic_pair")
+        # grid.operator("i3dea.fill_volume", text="Check Fill Volume") hidden for now
         if giants_enabled:
-            row = col.row(align=True)
-            row.operator("i3dea.xml_config", text="Enable export to i3dMappings")
-            row.operator("i3dea.ignore", text="Add Suffix _ignore")
-            row = col.row(align=True)
-            row.operator("i3dea.verify_scene", text="Verify Scene")
-            row.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
+            grid.operator("i3dea.xml_config", text="Enable export to i3dMappings")
+            grid.operator("i3dea.ignore", text="Add Suffix _ignore")
+            grid.operator("i3dea.verify_scene", text="Verify Scene")
+            grid.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
 
             prop_converter_header, prop_converter_panel = layout.panel("I3DEA_prop_converter", default_closed=True)
             prop_converter_header.label(text="Misc")
