@@ -1,13 +1,14 @@
 import importlib
 import sys
-import bpy
+
 import addon_utils
-from mathutils import Vector, Matrix
+import bpy
+from mathutils import Matrix, Vector
 
 
 def check_i3d_exporter_type() -> tuple[bool, bool]:
     giants_enabled = addon_utils.check("io_export_i3d")[1] or addon_utils.check("io_export_i3d_10_0_0")[1]
-    i3dio_enabled = addon_utils.check("i3dio")[1]
+    i3dio_enabled = any(a.module.endswith(".i3dio") for a in bpy.context.preferences.addons.values())
     return giants_enabled, i3dio_enabled
 
 
@@ -17,8 +18,8 @@ def check_obj_type(obj):
         for obj in bpy.context.selected_objects:
             if not obj.type == "MESH":
                 continue
-            if not mode == 'OBJECT':
-                bpy.ops.object.mode_set(mode='OBJECT')
+            if not mode == "OBJECT":
+                bpy.ops.object.mode_set(mode="OBJECT")
 
 
 def get_from_addon_module(module_path: str, attr_name: str):
