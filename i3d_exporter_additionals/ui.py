@@ -72,55 +72,6 @@ def draw_general_tools(
             grid.operator("i3dea.verify_scene", text="Verify Scene")
             grid.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
 
-            prop_converter_header, prop_converter_panel = layout.panel("I3DEA_prop_converter", default_closed=True)
-            prop_converter_header.label(text="Misc")
-            if prop_converter_panel:
-
-                def _get_toggle_icon(state: bool) -> str:
-                    return "CHECKBOX_HLT" if state else "CHECKBOX_DEHLT"
-
-                i3dea = context.scene.i3dea
-                col = prop_converter_panel.column(align=True)
-                col.label(text="Convert Settings:")
-                row = col.row(align=True)
-                row.prop(
-                    i3dea,
-                    "convert_user_attr",
-                    text="User Attributes",
-                    toggle=True,
-                    icon=_get_toggle_icon(i3dea.convert_user_attr),
-                )
-                row = col.row(align=True)
-                row.prop(
-                    i3dea, "convert_lights", text="Lights", toggle=True, icon=_get_toggle_icon(i3dea.convert_lights)
-                )
-                row = col.row(align=True)
-                row.prop(
-                    i3dea,
-                    "convert_materials",
-                    text="Materials",
-                    toggle=True,
-                    icon=_get_toggle_icon(i3dea.convert_materials),
-                )
-                if i3dea.convert_materials:
-                    row = col.row(align=True)
-                    row.prop(
-                        i3dea, "convert_nodes", text="Nodes", toggle=True, icon=_get_toggle_icon(i3dea.convert_nodes)
-                    )
-                row = col.row(align=True)
-                delete_row = col.row(align=True)
-                if i3dio_enabled:
-                    delete_row.enabled = False
-                    row.label(text="Disabled when Stjerne I3D Exporter is enabled", icon="ERROR")
-                    i3dea.property_unset("delete_old_props")
-                delete_row.prop(
-                    i3dea,
-                    "delete_old_props",
-                    text="Delete Old Props",
-                    toggle=True,
-                    icon=_get_toggle_icon(i3dea.delete_old_props),
-                )
-
 
 def draw_user_attributes(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:
     header, panel = layout.panel("I3DEA_user_attributes", default_closed=True)
@@ -179,17 +130,19 @@ def draw_material_tools(layout: bpy.types.UILayout, context: bpy.types.Context) 
         row.operator("i3dea.remove_unused_material_slots")
 
         box = panel.box()
-        col = box.column(align=True)
-        col.label(text="Create a material")
+        box.label(text="Create Material")
+        col = box.column()
+        col.use_property_split = True
+        col.use_property_decorate = False
         row = col.row(align=True)
-        row.prop(i3dea, "diffuse_box", text="Diffuse")
+        row.prop(i3dea, "diffuse_box")
         if i3dea.diffuse_box:
-            row.prop(i3dea, "alpha_box", text="Alpha")
-        col.prop(i3dea, "material_name", text="Material Name")
+            row.prop(i3dea, "alpha_box")
+        col.prop(i3dea, "material_name")
         if i3dea.diffuse_box:
-            col.prop(i3dea, "diffuse_texture_path", text="Diffuse Texture")
-        col.prop(i3dea, "spec_texture_path", text="Specular Texture")
-        col.prop(i3dea, "normal_texture_path", text="Normal Texture")
+            col.prop(i3dea, "diffuse_texture_path")
+        col.prop(i3dea, "spec_texture_path")
+        col.prop(i3dea, "normal_texture_path")
         col.operator("i3dea.setup_material", text=f"Create {i3dea.material_name}")
 
 

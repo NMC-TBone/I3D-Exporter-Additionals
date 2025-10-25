@@ -491,7 +491,9 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
 
     # Properties for material_tools
     material_name: StringProperty(
-        name="Material name", description="Write name of the material you want to create", default="material_mat"
+        name="Material name",
+        description="Write name of the material you want to create",
+        default="material_mat",
     )
     diffuse_box: BoolProperty(
         name="Add diffuse node",
@@ -502,13 +504,22 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False
     )
     diffuse_texture_path: StringProperty(
-        name="Diffuse", description="Add path to your diffuse texture.", subtype="FILE_PATH", default=""
+        name="Diffuse Texture",
+        description="Add path to your diffuse texture.",
+        subtype="FILE_PATH",
+        default="",
     )
     spec_texture_path: StringProperty(
-        name="Specular", description="Add path to your specular texture.", subtype="FILE_PATH", default=""
+        name="Specular Texture",
+        description="Add path to your specular texture.",
+        subtype="FILE_PATH",
+        default="",
     )
     normal_texture_path: StringProperty(
-        name="Normal", description="Add path to your normal map texture.", subtype="FILE_PATH", default=""
+        name="Normal Texture",
+        description="Add path to your normal map texture.",
+        subtype="FILE_PATH",
+        default="",
     )
 
     # i3dio_material handler
@@ -518,7 +529,12 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         subtype="FILE_PATH",
         default="",
     )
-    mask_map: StringProperty(name="Mask Map", description="Add mask map texture", subtype="FILE_PATH", default="")
+    mask_map: StringProperty(
+        name="Mask Map",
+        description="Add mask map texture",
+        subtype="FILE_PATH",
+        default="",
+    )
     dirt_diffuse: StringProperty(
         name="Dirt diffuse", description="Add dirt diffuse texture", subtype="FILE_PATH", default=""
     )
@@ -759,41 +775,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         description="Choose location where you want the array to be saved",
         default="",
         subtype="DIR_PATH",
-    )
-
-    # Properties converter
-    convert_materials: BoolProperty(name="Material Properties", description="Convert material properties", default=True)
-
-    convert_nodes: BoolProperty(
-        name="Material Nodes",
-        description="Convert material nodes to match Giants node tree structure (it will set specular image texture "
-        "directly to specular channel)",
-        default=True,
-    )
-
-    convert_user_attr: BoolProperty(name="User Attributes", description="Convert user attributes", default=True)
-
-    convert_lights: BoolProperty(name="Light Properties", description="Convert light properties", default=True)
-
-    delete_old_props: BoolProperty(
-        name="Delete Old Properties",
-        description="Enable this option to delete all properties from the stjerneidioten exporter."
-        "WARNING: this action is irreversible and properties cannot be recovered once deleted",
-        default=False,
-    )
-
-    convert_prop_types: EnumProperty(
-        name="Settings",
-        options={"ENUM_FLAG"},
-        items=(
-            ("MATERIAL", "Material", ""),
-            ("NODE_STRUCTURE", "Node Structure", ""),
-            ("USER_ATTR", "User Attributes", ""),
-            ("LIGHT", "Light", ""),
-            ("DELETE", "Delete", ""),
-        ),
-        description="Which kind of object to export",
-        default={"MATERIAL", "NODE_STRUCTURE", "USER_ATTR", "LIGHT", "DELETE"},
     )
 
 
