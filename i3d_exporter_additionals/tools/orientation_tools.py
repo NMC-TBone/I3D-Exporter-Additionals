@@ -16,8 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
 import math
+
+import bpy
 import mathutils
 from bpy_extras.io_utils import axis_conversion
 
@@ -30,7 +31,7 @@ class I3DEA_OT_copy_transform(bpy.types.Operator):
 
     # Conversion matrix for transforming from Blender's coordinate system (Z-up, -Y-forward)
     # to Giants Editor's coordinate system (Y-up, Z-forward)
-    conversion_matrix: mathutils.Matrix = axis_conversion(to_forward='-Z', to_up='Y').to_4x4()
+    conversion_matrix: mathutils.Matrix = axis_conversion(to_forward="-Z", to_up="Y").to_4x4()
 
     @staticmethod
     def format_transformation(values) -> str:
@@ -44,7 +45,7 @@ class I3DEA_OT_copy_transform(bpy.types.Operator):
         Blender's root bone orientation does not match I3D orientation like other bones.
         So this method applies a -90-degree rotation correction around the X-axis.
         """
-        rotation_fix = mathutils.Matrix.Rotation(math.radians(-90), 4, 'X')
+        rotation_fix = mathutils.Matrix.Rotation(math.radians(-90), 4, "X")
         # Extract translation
         translation = matrix.to_translation()
         # Apply rotation fix and reapply translation
@@ -78,14 +79,14 @@ class I3DEA_OT_copy_transform(bpy.types.Operator):
         obj = context.object
 
         if not obj:
-            self.report({'ERROR'}, "No object selected")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, "No object selected")
+            return {"CANCELLED"}
 
-        if obj.type == 'ARMATURE' and context.mode == 'EDIT_ARMATURE':
+        if obj.type == "ARMATURE" and context.mode == "EDIT_ARMATURE":
             active_bone = context.active_bone
             if not active_bone:
-                self.report({'ERROR'}, "No active bone selected. Switch to Edit Mode and select a bone.")
-                return {'CANCELLED'}
+                self.report({"ERROR"}, "No active bone selected. Switch to Edit Mode and select a bone.")
+                return {"CANCELLED"}
             transformed_matrix = self.handle_bone_transformation(active_bone)
             source_name = active_bone.name
         else:
@@ -100,8 +101,8 @@ class I3DEA_OT_copy_transform(bpy.types.Operator):
             transformation = self.format_transformation(r)
 
         context.window_manager.clipboard = transformation
-        self.report({'INFO'}, f'Transformation "{transformation}" from "{source_name}" copied to clipboard')
-        return {'FINISHED'}
+        self.report({"INFO"}, f'Transformation "{transformation}" from "{source_name}" copied to clipboard')
+        return {"FINISHED"}
 
 
 classes = (I3DEA_OT_copy_transform,)

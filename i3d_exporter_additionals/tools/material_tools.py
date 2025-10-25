@@ -19,6 +19,7 @@
 # material_tools.py includes different material tools
 
 import bpy
+
 from ..helper_functions import check_i3d_exporter_type
 
 giants_enabled, i3dio_enabled = check_i3d_exporter_type()
@@ -28,18 +29,16 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
     bl_idname = "i3dea.mirror_material"
     bl_label = "Add Mirror Material"
     bl_description = "Adds mirror_mat to materials and assigns it to selected objects"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     assign_to_selected: bpy.props.BoolProperty(
-        name="Assign to selected",
-        description="Assign the mirror material to selected objects",
-        default=True
+        name="Assign to selected", description="Assign the mirror material to selected objects", default=True
     )
 
     def create_mirror_material(self) -> bpy.types.Material:
         material = bpy.data.materials.new(name="mirror_mat")
         material.use_nodes = True
-        principled_node = material.node_tree.nodes.get('Principled BSDF')
+        principled_node = material.node_tree.nodes.get("Principled BSDF")
         # Giants exporter will ignore base color if its 0,0,0,0
         principled_node.inputs["Base Color"].default_value = (0.000001, 0.000001, 0.000001, 1)
         # TODO Check whats the new value, see a bunch of in game vehicles now use: 0.5 0.5 0.5
@@ -55,17 +54,17 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         obj.data.materials.append(mat)
 
         if giants_enabled:
-            obj.active_material['customShader'] = "$data\\shaders\\mirrorShader.xml"
-            obj.active_material['shadingRate'] = "1x1"
+            obj.active_material["customShader"] = "$data\\shaders\\mirrorShader.xml"
+            obj.active_material["shadingRate"] = "1x1"
         if i3dio_enabled:
-            data_folder = bpy.context.preferences.addons['i3dio'].preferences.fs_data_path
+            data_folder = bpy.context.preferences.addons["i3dio"].preferences.fs_data_path
             obj.active_material.i3d_attributes.source = f"{data_folder}shaders\\mirrorShader.xml"
 
     def execute(self, context: bpy.types.Context):
         if i3dio_enabled:
-            if context.preferences.addons['i3dio'].preferences.fs_data_path == "":
-                self.report({'ERROR'}, "FS Data Folder is not set!")
-                return {'CANCELLED'}
+            if context.preferences.addons["i3dio"].preferences.fs_data_path == "":
+                self.report({"ERROR"}, "FS Data Folder is not set!")
+                return {"CANCELLED"}
 
         mirror_mat = bpy.data.materials.get("mirror_mat")
         material_status = "reused" if mirror_mat else "created"
@@ -75,8 +74,8 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         selected_objs = context.selected_objects
         if not selected_objs or not self.assign_to_selected:
             skip_reason = "no selected objects" if not context.selected_objects else "property choice"
-            self.report({'INFO'}, f"Mirror material {material_status}. Skipped assignment due to {skip_reason}.")
-            return {'CANCELLED'}
+            self.report({"INFO"}, f"Mirror material {material_status}. Skipped assignment due to {skip_reason}.")
+            return {"CANCELLED"}
 
         processed_count = 0
         assigned_count = 0
@@ -98,42 +97,45 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
             f"Processed {processed_count} object(s): "
             f"{assigned_count} assigned, {skipped_count} skipped."
         )
-        self.report({'INFO'}, feedback)
-        return {'FINISHED'}
+        self.report({"INFO"}, feedback)
+        return {"FINISHED"}
 
 
 class I3DEA_OT_remove_unused_material_slots(bpy.types.Operator):
     bl_idname = "i3dea.remove_unused_material_slots"
     bl_label = "Remove Unused Material Slots"
     bl_description = "Removes duplicate materials and unused material slots"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         for obj in context.scene.objects:
-            if obj.type != 'MESH' and not obj.material_slots:
+            if obj.type != "MESH" and not obj.material_slots:
                 continue
 
             mesh: bpy.types.Mesh = obj.data
 
             used_material_indices = set(poly.material_index for poly in mesh.polygons)
 
-            used_materials = [mesh.materials[i] for i in used_material_indices
-                              if 0 <= i < len(mesh.materials) and mesh.materials[i] is not None]
+            used_materials = [
+                mesh.materials[i]
+                for i in used_material_indices
+                if 0 <= i < len(mesh.materials) and mesh.materials[i] is not None
+            ]
 
             mesh.materials.clear()
 
             for mat in used_materials:
                 mesh.materials.append(mat)
 
-        self.report({'INFO'}, "Unused material slots & Orphan Data removed")
-        return {'FINISHED'}
+        self.report({"INFO"}, "Unused material slots & Orphan Data removed")
+        return {"FINISHED"}
 
 
 class I3DEA_OT_setup_material(bpy.types.Operator):
     bl_idname = "i3dea.setup_material"
     bl_label = "Make Material"
     bl_description = "Set up a material with all the material nodes correctly connected"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def create_material(self, mat_name):
         mat = bpy.data.materials.get(mat_name)
@@ -142,7 +144,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
             mat.use_nodes = True
         return mat
 
-    def load_image_to_node(self, node, image_path, color_space='sRGB'):
+    def load_image_to_node(self, node, image_path, color_space="sRGB"):
         if image_path == "":
             return
         try:
@@ -163,7 +165,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         img_tex_normal.location = (-510, -250)
         links.new(normal.outputs["Normal"], nodes.get("Principled BSDF").inputs["Normal"])
         links.new(img_tex_normal.outputs["Color"], normal.inputs["Color"])
-        self.load_image_to_node(img_tex_normal, image_path, 'Non-Color')
+        self.load_image_to_node(img_tex_normal, image_path, "Non-Color")
 
     def setup_specular_map(self, nodes, links, image_path):
         img_tex_spec = nodes.new("ShaderNodeTexImage")
@@ -175,7 +177,7 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
             sep_rgb.name = "Glossmap"
             sep_rgb.location = (-210, 90)
             links.new(img_tex_spec.outputs["Color"], sep_rgb.inputs["Image"])
-        self.load_image_to_node(img_tex_spec, image_path, 'Non-Color')
+        self.load_image_to_node(img_tex_spec, image_path, "Non-Color")
 
     def setup_diffuse_map(self, nodes, links, image_path, use_alpha):
         img_tex_diffuse = nodes.new("ShaderNodeTexImage")
@@ -209,18 +211,18 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         applied_amount = self.apply_material_to_selected(context, mat)
 
         if applied_amount > 0:
-            self.report({'INFO'}, f"{i3dea.material_name} applied to selected objects")
+            self.report({"INFO"}, f"{i3dea.material_name} applied to selected objects")
         else:
-            self.report({'INFO'}, f"{i3dea.material_name} created")
+            self.report({"INFO"}, f"{i3dea.material_name} created")
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class I3DEA_OT_i3dio_material(bpy.types.Operator):
     bl_idname = "i3dea.i3dio_material"
     bl_label = "Add material settings (stjerne addon)"
     bl_description = "Setup material setting for multiple materials at once"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         selected_list = []
@@ -243,8 +245,10 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                         material.i3d_attributes.source = shader_loc
 
                 if not material.i3d_attributes.source:
-                    self.report({'ERROR'}, f"Something went wrong with this obj/mat: {loop_obj.name} | "
-                                           f"{loop_obj.active_material.name}")
+                    self.report(
+                        {"ERROR"},
+                        f"Something went wrong with this obj/mat: {loop_obj.name} | {loop_obj.active_material.name}",
+                    )
                     continue
                 else:
                     if context.scene.i3dea.mask_map_box:
@@ -256,7 +260,7 @@ class I3DEA_OT_i3dio_material(bpy.types.Operator):
                         if dirt:
                             material.i3d_attributes.shader_textures[1].source = dirt
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 classes = (

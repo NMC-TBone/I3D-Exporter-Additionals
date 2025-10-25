@@ -76,11 +76,11 @@ def apply_transforms(obj: bpy.types.Object, use_loc=False, use_rot=False, use_sc
     if use_scale:
         swap(2)
 
-    M = transform[0] @ transform[1] @ transform[2]
+    matrix = transform[0] @ transform[1] @ transform[2]
     if hasattr(obj.data, "transform"):
-        obj.data.transform(M)
+        obj.data.transform(matrix)
     for c in obj.children:
-        c.matrix_local = M @ c.matrix_local
+        c.matrix_local = matrix @ c.matrix_local
 
     obj.matrix_basis = basis[0] @ basis[1] @ basis[2]
     return

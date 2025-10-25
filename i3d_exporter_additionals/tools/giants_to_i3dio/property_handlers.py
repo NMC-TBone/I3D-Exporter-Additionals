@@ -1,4 +1,5 @@
 import bpy
+
 from ...helper_functions import get_from_addon_module
 from .logging_config import logger
 
@@ -23,10 +24,10 @@ def has_visibility_condition(obj: bpy.types.Object) -> bool:
 def convert_collision_mask_handler(obj: bpy.types.Object, value: int) -> None:
     if value in GIANTS_DEFAULT_MASK_VALUES:
         return
-    if (COLLISIONS := get_from_addon_module("i3dio.ui.collision_data", "COLLISIONS")) is None:
+    if (collisions := get_from_addon_module("i3dio.ui.collision_data", "COLLISIONS")) is None:
         logger.warning("COLLISIONS data not found in i3dio addon. Skipping collision mask conversion.")
         return
-    rule_lookup = {rule.mask_old: rule for rule in COLLISIONS['rules']}
+    rule_lookup = {rule.mask_old: rule for rule in collisions["rules"]}
     rule = rule_lookup.get(value)
     if rule is None:
         logger.warning(f"{obj.name}: No rule found for collision mask {value!r}.")
@@ -36,17 +37,23 @@ def convert_collision_mask_handler(obj: bpy.types.Object, value: int) -> None:
         logger.warning("apply_rule_to_mask not found in i3dio addon. Skipping collision mask conversion.")
         return
     result = apply_rule_to_mask(rule, is_trigger)
-    obj.i3d_attributes.collision_filter_group = result['group_hex']
-    obj.i3d_attributes.collision_filter_mask = result['mask_hex']
-    logger.info(f"{obj.name}: Converted collision mask {value!r} to group "
-                f"{result['group_hex']} and mask {result['mask_hex']}.")
+    obj.i3d_attributes.collision_filter_group = result["group_hex"]
+    obj.i3d_attributes.collision_filter_mask = result["mask_hex"]
+    logger.info(
+        f"{obj.name}: Converted collision mask {value!r} to group {result['group_hex']} and mask {result['mask_hex']}."
+    )
 
 
 def migrate_merge_children(obj: bpy.types.Object, value: bool) -> None:
     obj.i3d_merge_children.enabled = value
-    freeze_props = {"i3D_mergeChildrenFreezeTranslation", "i3D_mergeChildrenFreezeRotation",
-                    "i3D_mergeChildrenFreezeScale", "I3D_mergeChildrenFreezeTranslation",
-                    "I3D_mergeChildrenFreezeRotation", "I3D_mergeChildrenFreezeScale"}
+    freeze_props = {
+        "i3D_mergeChildrenFreezeTranslation",
+        "i3D_mergeChildrenFreezeRotation",
+        "i3D_mergeChildrenFreezeScale",
+        "I3D_mergeChildrenFreezeTranslation",
+        "I3D_mergeChildrenFreezeRotation",
+        "I3D_mergeChildrenFreezeScale",
+    }
     if any(hasattr(obj, prop) and getattr(obj, prop) for prop in freeze_props):
         obj.i3d_merge_children.apply_transforms = True
 
@@ -70,7 +77,7 @@ def migrate_i3d_mapping(obj: bpy.types.Object, value: bool) -> None:
         obj.i3d_mapping.mapping_name = xml_config_id
 
     # Handle armature bones
-    if obj.type == 'ARMATURE' and hasattr(obj.data, 'bones'):
+    if obj.type == "ARMATURE" and hasattr(obj.data, "bones"):
         for bone in obj.data.bones:
             bone_value = bone.get("I3D_XMLconfigBool", False)
             bone.i3d_mapping.is_mapped = bone_value
@@ -159,11 +166,11 @@ def migrate_lod_distances(obj: bpy.types.Object, value: bool) -> None:
     for i in range(1, 4):
         if lod_values[i] < lod_values[i - 1]:
             logger.warning(
-                f"{obj.name}: LOD distance {i} ({lod_values[i]}) < previous level ({lod_values[i-1]}), clamping."
+                f"{obj.name}: LOD distance {i} ({lod_values[i]}) < previous level ({lod_values[i - 1]}), clamping."
             )
             lod_values[i] = lod_values[i - 1]
 
     # Assign only up to the number of children (min 2, max 4), fill to length 4 with 0.0 as needed.
-    lod_vec = lod_values[:min(max(n_children, 2), 4)]
+    lod_vec = lod_values[: min(max(n_children, 2), 4)]
     lod_vec += [0.0] * (4 - len(lod_vec))  # Ensure exactly 4 elements for i3dio
     obj.i3d_attributes.lod_distances = lod_vec

@@ -18,40 +18,47 @@
 
 # assets_importer.py importer for FS game files assets
 
-import bpy
 import os
 from pathlib import Path
+
+import bpy
 
 
 class I3DEA_OT_assets(bpy.types.Operator):
     bl_label = "Import Assets"
     bl_idname = "i3dea.assets"
     bl_description = "Import Assets"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     global file_path
     global inner_path
     global inner_path2
     file_path = Path(__file__).parent / "assets_blend/assets.blend"
-    inner_path = 'Object'
-    inner_path2 = 'Collection'
+    inner_path = "Object"
+    inner_path2 = "Collection"
 
     def get_asset(self, name):
-        if name == 'rearHitch':
-            bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path2, name),
-                              directory=os.path.join(file_path, inner_path2), filename=name)
+        if name == "rearHitch":
+            bpy.ops.wm.append(
+                filepath=os.path.join(file_path, inner_path2, name),
+                directory=os.path.join(file_path, inner_path2),
+                filename=name,
+            )
             return
 
-        bpy.ops.wm.append(filepath=os.path.join(file_path, inner_path, name),
-                          directory=os.path.join(file_path, inner_path), filename=name)
+        bpy.ops.wm.append(
+            filepath=os.path.join(file_path, inner_path, name),
+            directory=os.path.join(file_path, inner_path),
+            filename=name,
+        )
 
     def execute(self, context):
         if bpy.context.view_layer.objects.active is not None:
-            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode="OBJECT")
         name = context.scene.i3dea.assets_dropdown
         self.get_asset(name)
-        self.report({'INFO'}, name + " imported")
-        return {'FINISHED'}
+        self.report({"INFO"}, name + " imported")
+        return {"FINISHED"}
 
 
 classes = (I3DEA_OT_assets,)
