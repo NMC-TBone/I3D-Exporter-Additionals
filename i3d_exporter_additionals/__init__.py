@@ -19,10 +19,9 @@
 
 _needs_reload = "bpy" in locals()
 
-from . import properties, ui  # noqa: E402
-from .tools import (  # noqa: E402
+from . import properties, ui
+from .tools import (
     align_hydraulic_pair,
-    assets_importer,
     generate_empty_on_curves,
     giants_to_i3dio,
     material_tools,
@@ -41,7 +40,6 @@ if _needs_reload:
         ui,
         properties,
         align_hydraulic_pair,
-        assets_importer,
         orientation_tools,
         material_tools,
         mesh_tools,
@@ -62,7 +60,6 @@ def register() -> None:
     verifier.register()
     generate_empty_on_curves.register()
     mesh_tools.register()
-    assets_importer.register()
     skeletons.register()
     material_tools.register()
     orientation_tools.register()
@@ -78,7 +75,6 @@ def unregister() -> None:
     orientation_tools.unregister()
     material_tools.unregister()
     skeletons.unregister()
-    assets_importer.unregister()
     mesh_tools.unregister()
     generate_empty_on_curves.unregister()
     verifier.unregister()

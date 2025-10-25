@@ -47,7 +47,6 @@ class I3DEA_PT_MainPanel(Panel):
             draw_user_attributes(layout, context)
         draw_skeletons(layout, context)
         draw_material_tools(layout, context)
-        draw_asset_importer(layout, context)
         draw_track_tools(layout, context)
         draw_motion_path(layout, context)
 
@@ -133,15 +132,6 @@ def draw_material_tools(layout: bpy.types.UILayout, context: bpy.types.Context) 
         col.prop(i3dea, "spec_texture_path")
         col.prop(i3dea, "normal_texture_path")
         col.operator("i3dea.setup_material", text=f"Create {i3dea.material_name}")
-
-
-def draw_asset_importer(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:
-    header, panel = layout.panel("I3DEA_asset_importer", default_closed=True)
-    header.label(text="Asset Importer")
-    if panel:
-        row = panel.row(align=True)
-        row.prop(context.scene.i3dea, "assets_dropdown", text="")
-        row.operator("i3dea.assets", text="Import Asset")
 
 
 def draw_track_tools(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:
