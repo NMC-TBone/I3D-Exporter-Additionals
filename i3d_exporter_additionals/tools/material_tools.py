@@ -20,7 +20,7 @@
 
 import bpy
 
-from ..helper_functions import check_i3d_exporter_type
+from ..helper_functions import check_i3d_exporter_type, get_i3dio_preferences
 
 giants_enabled, i3dio_enabled = check_i3d_exporter_type()
 
@@ -35,7 +35,8 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         name="Assign to selected", description="Assign the mirror material to selected objects", default=True
     )
 
-    def create_mirror_material(self) -> bpy.types.Material:
+    @staticmethod
+    def create_mirror_material() -> bpy.types.Material:
         material = bpy.data.materials.new(name="mirror_mat")
         material.use_nodes = True
         principled_node = material.node_tree.nodes.get("Principled BSDF")
@@ -49,20 +50,20 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         principled_node.inputs["Emission Color"].default_value = (0.0, 0.0, 0.0, 1)
         return material
 
-    def assign_mirror_material(self, obj: bpy.types.Object, mat: bpy.types.Material) -> None:
+    @staticmethod
+    def assign_mirror_material(obj: bpy.types.Object, mat: bpy.types.Material) -> None:
         obj.data.materials.clear()
         obj.data.materials.append(mat)
 
         if giants_enabled:
-            obj.active_material["customShader"] = "$data\\shaders\\mirrorShader.xml"
-            obj.active_material["shadingRate"] = "1x1"
+            mat["customShader"] = "$data\\shaders\\mirrorShader.xml"
+            mat["shadingRate"] = "1x1"
         if i3dio_enabled:
-            data_folder = bpy.context.preferences.addons["i3dio"].preferences.fs_data_path
-            obj.active_material.i3d_attributes.source = f"{data_folder}shaders\\mirrorShader.xml"
+            mat.i3d_attributes.shader_name = "mirrorShader"
 
     def execute(self, context: bpy.types.Context):
         if i3dio_enabled:
-            if context.preferences.addons["i3dio"].preferences.fs_data_path == "":
+            if get_i3dio_preferences().fs_data_path == "":
                 self.report({"ERROR"}, "FS Data Folder is not set!")
                 return {"CANCELLED"}
 

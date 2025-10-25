@@ -14,6 +14,11 @@ def check_i3d_exporter_type() -> tuple[bool, bool]:
     return giants_enabled, i3dio_enabled
 
 
+def get_i3dio_preferences() -> bpy.types.AddonPreferences | None:
+    i3dio = next((a for a in bpy.context.preferences.addons.values() if a.module.endswith(".i3dio")), None)
+    return i3dio.preferences if i3dio else None
+
+
 def check_obj_type(obj):
     if len(bpy.context.selected_objects) > 0:
         mode = bpy.context.object.mode
