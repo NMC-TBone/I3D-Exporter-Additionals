@@ -1,5 +1,5 @@
 [project]
-name = "i3d_material_visualizer"
+name = "i3d_exporter_additionals"
 
 [tool.ruff]
 target-version = "py311"
@@ -12,7 +12,7 @@ ignore = [
 ]
 # Scope Blender reload/import side-effect patterns:
 [tool.ruff.lint.per-file-ignores]
-"i3d_material_visualizer/__init__.py" = ["E402", "F401"]  # import not at top; imported for side effects
+"i3d_exporter_additionals/__init__.py" = ["E402", "F401"]  # import not at top; imported for side effects
 
 [tool.ruff.lint.isort]
 order-by-type = true
