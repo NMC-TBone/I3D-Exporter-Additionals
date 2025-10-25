@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Panel, UIList
 
-from .helper_functions import check_i3d_exporter_type, is_blend_saved
+from .helper_functions import check_i3d_exporter_type, is_blend_saved, iter_user_attrs
 
 
 class I3DEA_UL_pose_curves(UIList):
@@ -76,35 +76,24 @@ def draw_general_tools(
 def draw_user_attributes(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:
     header, panel = layout.panel("I3DEA_user_attributes", default_closed=True)
     header.label(text="User Attributes")
-    if panel:
-        col = panel.column(align=True)
-        row = col.row(align=True)
-        if obj := context.active_object:
-            row.label(text=f"Object Name: {obj.name}")
-            row = col.row()
-            attributes = [k for k in obj.keys() if 0 == k.find("userAttribute_")]
-            if attributes:
-                col2 = row.column()
-                box2 = col2.box()
-                row2 = box2.row()
-                row2.label(text="Attributes:")
-                row2 = box2.row()
-                for k in attributes:
-                    m_list = k.split("_", 2)
-                    name = m_list[2]
-                    row2.prop(obj, f'["{k}"]', text=name)
-                    row2.operator("i3dea.delete_user_attribute", text="", icon="X").attribute_name = k
-                    row2 = box2.row()
-                row = col.row()
-            row.label(text="Add new attributes:")
-            row = col.row()
-            row.prop(context.scene.i3dea, "user_attribute_name")
-            row = col.row()
-            row.prop(context.scene.i3dea, "user_attribute_type")
-            row = col.row()
-            row.operator("i3dea.create_user_attribute", text="Add")
-        else:
-            row.label(text="Object Name: None")
+    if not panel:
+        return
+    obj = context.active_object
+    panel.label(text=f"Object Name: {obj.name}" if obj else "No active object")
+    if not obj:
+        return
+
+    attributes = list(iter_user_attrs(obj))
+    if attributes:
+        box = panel.box()
+        for k, _, a_name in sorted(attributes, key=lambda x: x[2].lower()):
+            row = box.row(align=False)
+            row.prop(obj, f'["{k}"]', text=f"{a_name}")
+            row.operator("i3dea.delete_user_attribute", text="", icon="X").attribute_name = k
+    row = panel.row()
+    row.prop(context.scene.i3dea, "user_attribute_name", text="", placeholder="Attribute Name")
+    row.prop(context.scene.i3dea, "user_attribute_type", text="")
+    row.operator("i3dea.create_user_attribute", text="Add")
 
 
 def draw_skeletons(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:

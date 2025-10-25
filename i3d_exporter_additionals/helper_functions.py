@@ -5,6 +5,8 @@ import addon_utils
 import bpy
 from mathutils import Matrix, Vector
 
+ATTR_PREFIX = "userAttribute_"
+
 
 def check_i3d_exporter_type() -> tuple[bool, bool]:
     giants_enabled = addon_utils.check("io_export_i3d")[1] or addon_utils.check("io_export_i3d_10_0_0")[1]
@@ -104,3 +106,23 @@ def is_blend_saved():
     if bpy.data.is_saved:
         return True
     return False
+
+
+def split_key(key: str) -> tuple[str, str] | None:
+    """Return (type, name) if this is a userAttribute key; else None."""
+    if not key.startswith(ATTR_PREFIX):
+        return None
+    parts = key.split("_", 2)
+    if len(parts) < 3:
+        return None
+    # parts: ["userAttribute", "{type}", "{name...}"]
+    return parts[1], parts[2]
+
+
+def iter_user_attrs(obj: bpy.types.Object):
+    """Yield (key, type, name) for all userAttribute_* on obj."""
+    for k in obj.keys():
+        sp = split_key(k)
+        if sp:
+            a_type, a_name = sp
+            yield k, a_type, a_name
