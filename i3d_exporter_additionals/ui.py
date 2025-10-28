@@ -64,7 +64,6 @@ def draw_general_tools(
         grid.operator("i3dea.remove_doubles", text="Clean Meshes")
         grid.operator("i3dea.mesh_name", text="Set Mesh Name")
         grid.operator("i3dea.align_hydraulic_pair")
-        # grid.operator("i3dea.fill_volume", text="Check Fill Volume") hidden for now
         if giants_enabled:
             grid.operator("i3dea.xml_config", text="Enable export to i3dMappings")
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
