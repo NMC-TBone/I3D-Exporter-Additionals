@@ -219,55 +219,9 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class I3DEA_OT_i3dio_material(bpy.types.Operator):
-    bl_idname = "i3dea.i3dio_material"
-    bl_label = "Add material settings (stjerne addon)"
-    bl_description = "Setup material setting for multiple materials at once"
-    bl_options = {"REGISTER", "UNDO"}
-
-    def execute(self, context):
-        selected_list = []
-
-        for obj in context.selected_objects:
-            if obj.type == "MESH":
-                selected_list.append(obj)
-
-        for loop_obj in selected_list:
-            context.view_layer.objects.active = loop_obj
-            loop_obj.select_set(state=True, view_layer=None)
-
-            for num in range(0, len(loop_obj.material_slots)):
-                loop_obj.active_material_index = num
-                material = loop_obj.active_material
-                shader_loc = context.scene.i3dea.shader_path
-
-                if context.scene.i3dea.shader_box:
-                    if shader_loc:
-                        material.i3d_attributes.source = shader_loc
-
-                if not material.i3d_attributes.source:
-                    self.report(
-                        {"ERROR"},
-                        f"Something went wrong with this obj/mat: {loop_obj.name} | {loop_obj.active_material.name}",
-                    )
-                    continue
-                else:
-                    if context.scene.i3dea.mask_map_box:
-                        mask = context.scene.i3dea.mask_map
-                        if mask:
-                            material.i3d_attributes.shader_textures[0].source = mask
-                    if context.scene.i3dea.dirt_diffuse_box:
-                        dirt = context.scene.i3dea.dirt_diffuse
-                        if dirt:
-                            material.i3d_attributes.shader_textures[1].source = dirt
-
-        return {"FINISHED"}
-
-
 classes = (
     I3DEA_OT_mirror_material,
     I3DEA_OT_remove_unused_material_slots,
     I3DEA_OT_setup_material,
-    I3DEA_OT_i3dio_material,
 )
 register, unregister = bpy.utils.register_classes_factory(classes)
