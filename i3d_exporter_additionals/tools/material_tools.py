@@ -19,6 +19,7 @@
 # material_tools.py includes different material tools
 
 import bpy
+from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 
 from ..helper_functions import check_i3d_exporter_type, get_i3dio_preferences
 
@@ -32,73 +33,54 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     assign_to_selected: bpy.props.BoolProperty(
-        name="Assign to selected", description="Assign the mirror material to selected objects", default=True
+        name="Assign to selected",
+        description="Assign the mirror material to selected objects",
+        default=True,
     )
 
     @staticmethod
-    def create_mirror_material() -> bpy.types.Material:
-        material = bpy.data.materials.new(name="mirror_mat")
-        material.use_nodes = True
-        principled_node = material.node_tree.nodes.get("Principled BSDF")
-        # Giants exporter will ignore base color if its 0,0,0,0
-        principled_node.inputs["Base Color"].default_value = (0.000001, 0.000001, 0.000001, 1)
-        # TODO Check whats the new value, see a bunch of in game vehicles now use: 0.5 0.5 0.5
-        principled_node.inputs["Metallic"].default_value = 1
-        principled_node.inputs["Specular IOR Level"].default_value = 1
-        principled_node.inputs["Roughness"].default_value = 1
-        # Set emission to 0,0,0,1 to avoid it being exported (old default blender value)
-        principled_node.inputs["Emission Color"].default_value = (0.0, 0.0, 0.0, 1)
-        return material
-
-    @staticmethod
-    def assign_mirror_material(obj: bpy.types.Object, mat: bpy.types.Material) -> None:
-        obj.data.materials.clear()
-        obj.data.materials.append(mat)
-
+    def set_exporter_metadata(mat: bpy.types.Material) -> None:
         if giants_enabled:
             mat["customShader"] = "$data\\shaders\\mirrorShader.xml"
             mat["shadingRate"] = "1x1"
         if i3dio_enabled:
             mat.i3d_attributes.shader_name = "mirrorShader"
 
+    @staticmethod
+    def get_or_create_mirror_material() -> bpy.types.Material:
+        if mat := bpy.data.materials.get("mirror_mat"):
+            return mat
+        mat = bpy.data.materials.new(name="mirror_mat")
+        wrapper = PrincipledBSDFWrapper(mat, is_readonly=False)
+        wrapper.base_color = (0.0, 0.0, 0.0)
+        wrapper.metallic = 1.0
+        wrapper.specular = 1.0
+        wrapper.roughness = 1.0
+        return mat
+
     def execute(self, context: bpy.types.Context):
-        if i3dio_enabled:
-            if get_i3dio_preferences().fs_data_path == "":
-                self.report({"ERROR"}, "FS Data Folder is not set!")
-                return {"CANCELLED"}
-
-        mirror_mat = bpy.data.materials.get("mirror_mat")
-        material_status = "reused" if mirror_mat else "created"
-        if not mirror_mat:
-            mirror_mat = self.create_mirror_material()
-
-        selected_objs = context.selected_objects
-        if not selected_objs or not self.assign_to_selected:
-            skip_reason = "no selected objects" if not context.selected_objects else "property choice"
-            self.report({"INFO"}, f"Mirror material {material_status}. Skipped assignment due to {skip_reason}.")
+        if i3dio_enabled and get_i3dio_preferences().fs_data_path == "":
+            self.report({"ERROR"}, "FS Data Folder is not set!")
             return {"CANCELLED"}
 
-        processed_count = 0
+        mirror_mat = self.get_or_create_mirror_material()
+        self.set_exporter_metadata(mirror_mat)
+
+        selected_objs = context.selected_objects
+        if not self.assign_to_selected or not selected_objs:
+            self.report({"INFO"}, "Skipped assignment due to no selected objects.")
+            return {"FINISHED"}
+
         assigned_count = 0
-        skipped_count = 0
 
         for obj in selected_objs:
-            if obj.type != "MESH":
-                skipped_count += 1
+            if obj.type != "MESH" or any(m is mirror_mat for m in obj.data.materials):
                 continue
-            if mirror_mat.name not in [mat.name for mat in obj.data.materials if mat]:
-                self.assign_mirror_material(obj, mirror_mat)
-                assigned_count += 1
-            else:
-                skipped_count += 1
-            processed_count += 1
+            obj.data.materials.clear()
+            obj.data.materials.append(mirror_mat)
+            assigned_count += 1
 
-        feedback = (
-            f"Mirror material {material_status}. "
-            f"Processed {processed_count} object(s): "
-            f"{assigned_count} assigned, {skipped_count} skipped."
-        )
-        self.report({"INFO"}, feedback)
+        self.report({"INFO"}, f"Added mirror_mat and assigned to {assigned_count} objects.")
         return {"FINISHED"}
 
 

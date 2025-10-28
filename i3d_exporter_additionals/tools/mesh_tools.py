@@ -18,11 +18,9 @@
 
 # mesh_tools.py includes different tools for mesh
 
-import math
 
 import bmesh
 import bpy
-from mathutils import Vector
 
 
 class I3DEA_OT_remove_doubles(bpy.types.Operator):
@@ -223,8 +221,6 @@ classes = (
     I3DEA_OT_mesh_name,
     I3DEA_OT_ignore,
     I3DEA_OT_mirror_orientation,
-    I3DEA_OT_xml_config,
-    I3DEA_OT_fill_volume,
     I3DEA_OT_convert_skinnedmesh,
 )
 
