@@ -110,9 +110,11 @@ class I3DEA_OT_align_hydraulic_pair(bpy.types.Operator):
         rot_punch_old = p_rot_q.to_matrix()
 
         rot_housing_new = _aim_rot_preserve_roll(
-            from_loc=h_loc, to_loc=p_loc, y_sign=-1.0, old_R_world_3x3=rot_housing_old
+            from_loc=h_loc, to_loc=p_loc, y_sign=-1.0, old_rot_world_3x3=rot_housing_old
         )
-        rot_punch_new = _aim_rot_preserve_roll(from_loc=p_loc, to_loc=h_loc, y_sign=+1.0, old_R_world_3x3=rot_punch_old)
+        rot_punch_new = _aim_rot_preserve_roll(
+            from_loc=p_loc, to_loc=h_loc, y_sign=+1.0, old_rot_world_3x3=rot_punch_old
+        )
 
         _apply_rotation_keep_mesh(housing, rot_housing_new, h_loc, rot_housing_old, h_scale)
         _apply_rotation_keep_mesh(punch, rot_punch_new, p_loc, rot_punch_old, p_scale)
