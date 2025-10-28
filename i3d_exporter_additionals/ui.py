@@ -65,7 +65,6 @@ def draw_general_tools(
         grid.operator("i3dea.mesh_name", text="Set Mesh Name")
         grid.operator("i3dea.align_hydraulic_pair")
         if giants_enabled:
-            grid.operator("i3dea.xml_config", text="Enable export to i3dMappings")
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
             grid.operator("i3dea.verify_scene", text="Verify Scene")
             grid.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")

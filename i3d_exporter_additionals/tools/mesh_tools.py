@@ -103,19 +103,6 @@ class I3DEA_OT_ignore(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class I3DEA_OT_xml_config(bpy.types.Operator):
-    bl_idname = "i3dea.xml_config"
-    bl_label = "Enable export to i3dMappings"
-    bl_description = "This add i3dMappings to all selected objects and set the object name as Node ID"
-    bl_options = {"REGISTER", "UNDO"}
-
-    def execute(self, context):
-        for obj in context.selected_objects:
-            obj["I3D_XMLconfigBool"] = 1
-            obj["I3D_XMLconfigID"] = obj.name
-        return {"FINISHED"}
-
-
 class I3DEA_OT_mirror_orientation(bpy.types.Operator):
     bl_idname = "i3dea.mirror_orientation"
     bl_label = "Set Mirror Orientation"
