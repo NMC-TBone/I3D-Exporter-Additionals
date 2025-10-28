@@ -1,8 +1,8 @@
-import math
+from math import radians
 
 BASE_VEHICLE_SKELETON = {
     "name": "1:vehicleName_main_component1",
-    "type": "mesh",            # We want a mesh for the main component.
+    "type": "mesh",  # We want a mesh for the main component.
     "data_name": "vehicleName_main_component1",
     "children": [
         {
@@ -31,26 +31,24 @@ BASE_VEHICLE_SKELETON = {
                                             "name": "playerRightHandTarget",
                                             "type": "empty",
                                             "display_handle": True,
-                                            "translate": (-0.189, 0.023, 0.03),
-                                            "rotation": (math.radians(-4.70569), math.radians(-50.8809), math.radians(-7.47474))
+                                            "location": (-0.189, 0.023, 0.03),
+                                            "rotation": (radians(-4.70569), radians(-50.8809), radians(-7.47474)),
                                         },
                                         {
                                             "name": "playerLeftHandTarget",
                                             "type": "empty",
                                             "display_handle": True,
-                                            "translate": (0.189, 0.023, 0.03),
-                                            "rotation": (math.radians(-16.3303), math.radians(50.8809), math.radians(-7.47473))
-                                        }
-                                    ]
+                                            "location": (0.189, 0.023, 0.03),
+                                            "rotation": (radians(-16.3303), radians(50.8809), radians(-7.47473)),
+                                        },
+                                    ],
                                 }
-                            ]
+                            ],
                         },
                         {
                             "name": "2:seat_REPLACE_WITH_MESH",
                             "type": "empty",
-                            "children": [
-                                {"name": "playerSkin", "type": "empty", "display_handle": True}
-                            ]
+                            "children": [{"name": "playerSkin", "type": "empty", "display_handle": True}],
                         },
                         {"name": "3:lights_cabin", "type": "empty"},
                         {"name": "4:wipers", "type": "empty"},
@@ -62,38 +60,41 @@ BASE_VEHICLE_SKELETON = {
                             "type": "empty",
                             "children": [
                                 {"name": "playerRightFootTarget", "type": "empty", "display_handle": True},
-                                {"name": "playerLeftFootTarget", "type": "empty", "display_handle": True}
-                            ]
+                                {"name": "playerLeftFootTarget", "type": "empty", "display_handle": True},
+                            ],
                         },
-                        {"name": "9:mirrors_cabin", "type": "empty" },
-                        {"name": "10:visuals_cabin", "type": "empty" }
-                    ]
+                        {"name": "9:mirrors_cabin", "type": "empty"},
+                        {"name": "10:visuals_cabin", "type": "empty"},
+                    ],
                 },
                 # Include attacher joints from the common config.
-                { "name": "attacher_joints", "type": "include", "include": "ATTACHER_JOINTS", "params": {"is_harvester": False}},
+                {
+                    "name": "attacher_joints",
+                    "type": "include",
+                    "include": "ATTACHER_JOINTS",
+                    "params": {"is_harvester": False},
+                },
                 {
                     "name": "7:ai",
                     "type": "empty",
-                    "children": [
-                        {"name": "aiCollisionTrigger_REPLACE_WITH_MESH", "type": "empty" }
-                    ]
+                    "children": [{"name": "aiCollisionTrigger_REPLACE_WITH_MESH", "type": "empty"}],
                 },
                 {
                     "name": "exhaust_particles",
                     "type": "empty",
                     "children": [
                         {"name": "exhaustParticle1", "type": "empty", "display_handle": True},
-                        {"name": "exhaustParticle2", "type": "empty", "display_handle": True}
-                    ]
+                        {"name": "exhaustParticle2", "type": "empty", "display_handle": True},
+                    ],
                 },
                 {"name": "9:hydraulics", "type": "empty"},
                 {"name": "10:mirrors", "type": "empty"},
                 {"name": "11:configurations", "type": "empty"},
-                {"name": "12:visuals", "type": "empty"}
-            ]
+                {"name": "12:visuals", "type": "empty"},
+            ],
         },
         # Additional nodes that are children of the main vehicle component:
         {"name": "2:skinnedMeshes", "type": "empty"},
-        {"name": "3:collisions", "type": "empty"}
-    ]
+        {"name": "3:collisions", "type": "empty"},
+    ],
 }
