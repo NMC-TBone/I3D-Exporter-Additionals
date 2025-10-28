@@ -1,7 +1,9 @@
 from pathlib import Path
+
 import bpy
+
 from .logging_config import logger
-from .mappings import OLD_TO_NEW_PARAMETERS, OLD_TO_NEW_CUSTOM_TEXTURES
+from .mappings import OLD_TO_NEW_CUSTOM_TEXTURES, OLD_TO_NEW_PARAMETERS
 
 
 class MaterialMigrationContext:
@@ -15,8 +17,10 @@ class MaterialMigrationContext:
         self.found_legacy_vehicle_shader = True
 
     def summary(self):
-        return (f"Materials migrated: {self.migrated_count}, "
-                f"Legacy vehicleShader: {'yes' if self.found_legacy_vehicle_shader else 'no'}")
+        return (
+            f"Materials migrated: {self.migrated_count}, "
+            f"Legacy vehicleShader: {'yes' if self.found_legacy_vehicle_shader else 'no'}"
+        )
 
 
 def migrate_materials() -> MaterialMigrationContext:
@@ -47,7 +51,7 @@ def migrate_giants_material_properties(mat: bpy.types.Material) -> bool:
 
     # surface_render_method: BLENDED -> True, else False
     if hasattr(mat, "surface_render_method"):
-        mat.i3d_attributes.alpha_blending = (mat.surface_render_method == "BLENDED")
+        mat.i3d_attributes.alpha_blending = mat.surface_render_method == "BLENDED"
         changed = True
 
     return changed
@@ -107,7 +111,7 @@ def convert_giants_legacy_vehicle_shader_to_i3dio(mat: bpy.types.Material, shade
         # All their parameters are usually stored with 4 values, even if the parameter is something else.
         # So just to make it easy for ourselves, clip everything to 4 values.
         vals = (vals + [0.0] * 4)[:4]
-        shader_parameters.append({'name': pname, 'data_float_4': vals})
+        shader_parameters.append({"name": pname, "data_float_4": vals})
     i3da["shader_parameters"] = shader_parameters
 
     # Collect all customTexture_* keys
@@ -117,12 +121,14 @@ def convert_giants_legacy_vehicle_shader_to_i3dio(mat: bpy.types.Material, shade
             continue
         tname = k.replace("customTexture_", "")
         texture_value = mat[k]
-        shader_textures.append({'name': tname, 'source': texture_value})
+        shader_textures.append({"name": tname, "source": texture_value})
     i3da["shader_textures"] = shader_textures
 
     _remove_giants_legacy_mat_keys(mat)
-    logger.info(f"[Adapter] {mat.name}: Wrote {len(shader_parameters)} shader params, "
-                f"{len(shader_textures)} textures for legacy operator.")
+    logger.info(
+        f"[Adapter] {mat.name}: Wrote {len(shader_parameters)} shader params, "
+        f"{len(shader_textures)} textures for legacy operator."
+    )
     return True
 
 
@@ -137,8 +143,8 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
         return False
     i3da.shader_variation_name = mat.get("customShaderVariation", "")
 
-    # Assign all customParameter_* keys to i3dio shader parameters
-    parameter_collection = i3da.shader_parameters
+    # Assign all customParameter_* keys to i3dio shader material parameters
+    parameter_collection = i3da.shader_material_params
     for k in mat.keys():
         if not k.startswith("customParameter_"):
             continue
@@ -158,8 +164,8 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
         except (TypeError, ValueError, KeyError) as e:
             logger.warning(f"{mat.name}: Error setting parameter {new_pname!r} with value {vals!r}: {e}")
 
-    # Assign all customTexture_* keys to i3dio shader textures
-    texture_collection = i3da.shader_textures
+    # Assign all customTexture_* keys to i3dio shader material textures
+    texture_collection = i3da.shader_material_textures
     for k in mat.keys():
         if not k.startswith("customTexture_"):
             continue
@@ -181,7 +187,10 @@ def _remove_giants_legacy_mat_keys(mat: bpy.types.Material) -> None:
     This is a cleanup function to ensure no old keys remain after migration.
     """
     for k in list(mat.keys()):
-        if k.startswith("customParameter_") or k.startswith("customTexture_") \
-                or k in {"customShader", "customShaderVariation"}:
+        if (
+            k.startswith("customParameter_")
+            or k.startswith("customTexture_")
+            or k in {"customShader", "customShaderVariation"}
+        ):
             del mat[k]
     logger.debug(f"{mat.name}: Removed Giants legacy keys.")

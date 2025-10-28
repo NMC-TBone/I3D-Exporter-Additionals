@@ -16,16 +16,30 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-if "bpy" in locals():
+
+_needs_reload = "bpy" in locals()
+
+from . import properties, ui
+from .tools import (
+    align_hydraulic_pair,
+    generate_empty_on_curves,
+    giants_to_i3dio,
+    material_tools,
+    mesh_tools,
+    orientation_tools,
+    skeletons,
+    track_tools,
+    user_attributes,
+    verifier,
+)
+
+if _needs_reload:
     import importlib
-    importlib.reload(ui)
-    importlib.reload(properties)
-    importlib.reload(tools)
-else:
-    from . import ui
-    from . import properties
-    from .tools import (
-        assets_importer,
+
+    for _m in (
+        ui,
+        properties,
+        align_hydraulic_pair,
         orientation_tools,
         material_tools,
         mesh_tools,
@@ -34,41 +48,39 @@ else:
         user_attributes,
         verifier,
         generate_empty_on_curves,
-        properties_converter,
         giants_to_i3dio,
-    )
+    ):
+        importlib.reload(_m)
 
 
 def register() -> None:
-    ui.register()
+    properties.register()
+    align_hydraulic_pair.register()
     track_tools.register()
     verifier.register()
-    properties.register()
     generate_empty_on_curves.register()
     mesh_tools.register()
-    assets_importer.register()
     skeletons.register()
     material_tools.register()
     orientation_tools.register()
     user_attributes.register()
-    properties_converter.register()
     giants_to_i3dio.register()
+    ui.register()
 
 
 def unregister() -> None:
-    giants_to_i3dio.unregister()
-    properties.unregister()
     ui.unregister()
-    track_tools.unregister()
-    verifier.unregister()
-    generate_empty_on_curves.unregister()
-    mesh_tools.unregister()
-    assets_importer.unregister()
-    skeletons.unregister()
-    material_tools.unregister()
-    orientation_tools.unregister()
+    giants_to_i3dio.unregister()
     user_attributes.unregister()
-    properties_converter.unregister()
+    orientation_tools.unregister()
+    material_tools.unregister()
+    skeletons.unregister()
+    mesh_tools.unregister()
+    generate_empty_on_curves.unregister()
+    verifier.unregister()
+    track_tools.unregister()
+    align_hydraulic_pair.unregister()
+    properties.unregister()
 
 
 if __name__ == "__main__":

@@ -18,10 +18,10 @@
 
 # mesh_tools.py includes different tools for mesh
 
-import bpy
-import bmesh
 import math
 
+import bmesh
+import bpy
 from mathutils import Vector
 
 
@@ -29,18 +29,18 @@ class I3DEA_OT_remove_doubles(bpy.types.Operator):
     bl_idname = "i3dea.remove_doubles"
     bl_label = "Clean Object(s)"
     bl_description = "Removes custom split normals, set shade smooth and auto smooth, merge vertices."
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        merge_threshold = .0001
+        merge_threshold = 0.0001
         sel_obj = context.selected_objects
         act_obj = context.active_object
 
         for obj in sel_obj:
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.object.mode_set(mode="OBJECT")
+            bpy.ops.object.select_all(action="DESELECT")
             obj.select_set(True)
-            if obj.type == 'MESH':
+            if obj.type == "MESH":
                 context.view_layer.objects.active = obj
                 bpy.ops.mesh.customdata_custom_splitnormals_clear()
                 bm = bmesh.new()
@@ -48,27 +48,27 @@ class I3DEA_OT_remove_doubles(bpy.types.Operator):
                 bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
                 bm.to_mesh(obj.data)
                 bm.free()
-                bpy.ops.object.mode_set(mode='EDIT')
-                bpy.ops.mesh.select_all(action='DESELECT')
-                bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+                bpy.ops.object.mode_set(mode="EDIT")
+                bpy.ops.mesh.select_all(action="DESELECT")
+                bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type="EDGE")
                 bpy.ops.mesh.edges_select_sharp(sharpness=0.872665)
                 bpy.ops.mesh.mark_sharp()
-                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.select_all(action="SELECT")
                 bpy.ops.mesh.tris_convert_to_quads(uvs=True)
-                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.mode_set(mode="OBJECT")
                 bpy.ops.object.shade_smooth()
         for obj in sel_obj:
             obj.select_set(True)
         context.view_layer.objects.active = act_obj
-        self.report({'INFO'}, "Object(s) cleaned")
-        return {'FINISHED'}
+        self.report({"INFO"}, "Object(s) cleaned")
+        return {"FINISHED"}
 
 
 class I3DEA_OT_mesh_name(bpy.types.Operator):
     bl_idname = "i3dea.mesh_name"
     bl_label = "Set Mesh Name"
     bl_description = "Take the Object Name --> Mesh Data name"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def mesh_name(self, context: bpy.types.Context):
         objects = context.scene.objects
@@ -78,14 +78,14 @@ class I3DEA_OT_mesh_name(bpy.types.Operator):
 
     def execute(self, context):
         self.mesh_name(context)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class I3DEA_OT_ignore(bpy.types.Operator):
     bl_idname = "i3dea.ignore"
     bl_label = "Suffix _ignore"
     bl_description = "Add _ignore to all selected objects"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         for obj in context.selected_objects:
@@ -100,20 +100,20 @@ class I3DEA_OT_ignore(bpy.types.Operator):
                 new_name = f"{obj.name}_{counter}_ignore"
                 counter += 1
             obj.name = new_name
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class I3DEA_OT_xml_config(bpy.types.Operator):
     bl_idname = "i3dea.xml_config"
     bl_label = "Enable export to i3dMappings"
     bl_description = "This add i3dMappings to all selected objects and set the object name as Node ID"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         for obj in context.selected_objects:
             obj["I3D_XMLconfigBool"] = 1
             obj["I3D_XMLconfigID"] = obj.name
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 def check_parallel(fill_volume):
@@ -156,9 +156,9 @@ def check_parallel(fill_volume):
     for poly in fill_volume.data.polygons:
         poly.select = False
 
-    bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+    bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type="FACE")
     bpy.context.tool_settings.mesh_select_mode = (False, False, True)
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
 
     # Selects the bottom face
     for face in fill_volume.data.polygons:
@@ -172,8 +172,8 @@ def check_parallel(fill_volume):
 
     # need to clear selection to get correct result for top faces
     bpy.ops.object.editmode_toggle()
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
 
     # selects top faces
     for face in fill_volume.data.polygons:
@@ -186,7 +186,7 @@ def check_parallel(fill_volume):
             top = False
 
     bpy.ops.object.editmode_toggle()
-    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.mesh.select_all(action="DESELECT")
 
     bpy.context.tool_settings.mesh_select_mode = prev_select_type
     bpy.ops.object.mode_set(mode=prev_mode, toggle=False)
@@ -198,43 +198,43 @@ class I3DEA_OT_fill_volume(bpy.types.Operator):
     bl_idname = "i3dea.fill_volume"
     bl_label = "Check Fill Volume"
     bl_description = "Check if fill volume bottom face is flat"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        if bpy.context.object.type == 'MESH':
+        if bpy.context.object.type == "MESH":
             original_mode = bpy.context.object.mode
-            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode="OBJECT")
             fill_volume = context.object
             if check_parallel(fill_volume)[0]:
                 if check_parallel(fill_volume)[1]:
-                    self.report({'INFO'}, fill_volume.name + " passed the tests")
+                    self.report({"INFO"}, fill_volume.name + " passed the tests")
                 else:
-                    self.report({'ERROR'}, fill_volume.name + " doesn't have parallel bottom and top face")
+                    self.report({"ERROR"}, fill_volume.name + " doesn't have parallel bottom and top face")
             else:
-                self.report({'ERROR'}, fill_volume.name + " doesn't have flat bottom face")
+                self.report({"ERROR"}, fill_volume.name + " doesn't have flat bottom face")
 
-            bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.object.select_all(action="DESELECT")
             fill_volume.select_set(True)
             context.view_layer.objects.active = fill_volume
             bpy.ops.object.mode_set(mode=original_mode)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class I3DEA_OT_mirror_orientation(bpy.types.Operator):
     bl_idname = "i3dea.mirror_orientation"
     bl_label = "Set Mirror Orientation"
     bl_description = "Sets mirror orientation based on camera and ref empty"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         selected_objects = context.selected_objects
-        camera = next((obj for obj in selected_objects if obj.type == 'CAMERA'), None)
-        mirror = next((obj for obj in selected_objects if obj.type == 'MESH'), None)
-        target = next((obj for obj in selected_objects if obj.type == 'EMPTY'), None)
+        camera = next((obj for obj in selected_objects if obj.type == "CAMERA"), None)
+        mirror = next((obj for obj in selected_objects if obj.type == "MESH"), None)
+        target = next((obj for obj in selected_objects if obj.type == "EMPTY"), None)
 
         if all([camera, mirror, target]):
             context_override = context.copy()
-            context_override['active_object'] = mirror
+            context_override["active_object"] = mirror
             try:
                 with context.temp_override(**context_override):
                     bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
@@ -247,27 +247,27 @@ class I3DEA_OT_mirror_orientation(bpy.types.Operator):
                 blended_direction = (dir_camera_to_mirror + dir_target_to_mirror).normalized()
 
                 # Compute the rotation matrix from the blended direction
-                rotation_matrix = blended_direction.to_track_quat('-Z', 'Y').to_matrix().to_4x4()
+                rotation_matrix = blended_direction.to_track_quat("-Z", "Y").to_matrix().to_4x4()
                 mirror.matrix_world = rotation_matrix @ mirror.matrix_world
                 mirror.data.transform(rotation_matrix.inverted())
 
                 mirror.location = original_location
-                self.report({'INFO'}, f"Mirror orientation set for {mirror.name}")
-                return {'FINISHED'}
+                self.report({"INFO"}, f"Mirror orientation set for {mirror.name}")
+                return {"FINISHED"}
             except Exception as e:
-                self.report({'ERROR'}, f"Failed to set mirror orientation. Error: {e}")
-                return {'CANCELLED'}
+                self.report({"ERROR"}, f"Failed to set mirror orientation. Error: {e}")
+                return {"CANCELLED"}
 
         else:
-            self.report({'ERROR'}, "You need to select 3 objects (camera, mirror, empty)")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, "You need to select 3 objects (camera, mirror, empty)")
+            return {"CANCELLED"}
 
 
 class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
     bl_idname = "i3dea.convert_skinnedmesh"
     bl_label = "Convert Skinned Mesh"
     bl_description = "Converts selected skinned mesh object armatures to new structure"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def get_all_armatures(self, obj):
         return [mod.object for mod in obj.modifiers if mod.type == "ARMATURE"]
@@ -275,12 +275,12 @@ class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
     def join_armatures(self, obj, armatures):
         first_armature = armatures[0]
         for mod in obj.modifiers:
-            if mod.type == 'ARMATURE' and mod.object == first_armature:
+            if mod.type == "ARMATURE" and mod.object == first_armature:
                 mod.vertex_group = ""
                 break
 
         for mod in obj.modifiers:
-            if mod.type == 'ARMATURE' and mod.object in armatures[1:]:
+            if mod.type == "ARMATURE" and mod.object in armatures[1:]:
                 obj.modifiers.remove(mod)
 
         with bpy.context.temp_override(active_object=first_armature, selected_editable_objects=armatures):
@@ -291,9 +291,9 @@ class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
         return first_armature
 
     def set_child_of_constraints(self, armature):
-        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.object.mode_set(mode="POSE")
         for pose_bone in armature.pose.bones:
-            child_of_constraints = [c for c in pose_bone.constraints if c.type == 'CHILD_OF']
+            child_of_constraints = [c for c in pose_bone.constraints if c.type == "CHILD_OF"]
             if not child_of_constraints:
                 print(f"No 'Child Of' constraint found on bone: {pose_bone.name}")
                 continue
@@ -302,23 +302,23 @@ class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
 
             armature.data.bones.active = armature.data.bones[pose_bone.name]
             try:
-                bpy.ops.constraint.childof_set_inverse(constraint=constraint_name, owner='BONE')
+                bpy.ops.constraint.childof_set_inverse(constraint=constraint_name, owner="BONE")
             except Exception as e:
                 print(f"Failed to set inverse for bone: {pose_bone.name}. Error: {e}")
 
-        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode="OBJECT")
 
     def execute(self, context):
         obj = context.object
         all_armatures = self.get_all_armatures(obj)
 
         if not all_armatures:
-            self.report({'ERROR'}, f"{obj.name} doesn't have armature modifiers")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, f"{obj.name} doesn't have armature modifiers")
+            return {"CANCELLED"}
 
         if len(all_armatures) <= 1:
-            self.report({'ERROR'}, f"{obj.name} doesn't have more than one armature modifier")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, f"{obj.name} doesn't have more than one armature modifier")
+            return {"CANCELLED"}
 
         first_armature = all_armatures[0]
 
@@ -331,8 +331,8 @@ class I3DEA_OT_convert_skinnedmesh(bpy.types.Operator):
         skinned_mesh = bpy.data.objects.get("skinnedMeshes") or bpy.data.objects.get("skinnedMesh")
         if skinned_mesh:
             first_armature.parent = skinned_mesh
-        self.report({'INFO'}, "Successfully converted skinned mesh")
-        return {'FINISHED'}
+        self.report({"INFO"}, "Successfully converted skinned mesh")
+        return {"FINISHED"}
 
 
 classes = (

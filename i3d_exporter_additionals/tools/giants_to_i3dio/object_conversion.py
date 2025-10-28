@@ -1,6 +1,7 @@
 import bpy
-from .mappings import OBJECT_PROP_MAPPINGS
+
 from .logging_config import logger
+from .mappings import OBJECT_PROP_MAPPINGS
 
 
 def migrate_objects() -> None:
@@ -121,7 +122,7 @@ def migrate_merge_groups() -> dict[int, int]:
     referenced_groups = set()
 
     # Collect all group memberships and root info
-    objects = [obj for obj in bpy.data.objects if obj.type == 'MESH']
+    objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     for obj in objects:
         group_id = obj.get("i3D_mergeGroup") or obj.get("I3D_mergeGroup")
         if group_id is not None:
@@ -154,7 +155,7 @@ def migrate_bounding_volumes(merge_group_number_to_index: dict) -> None:
     scene = bpy.context.scene
     mgroups = scene.i3dio_merge_groups
 
-    objects = [obj for obj in bpy.data.objects if obj.type == 'MESH']
+    objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     for bv_obj in objects:
         bv_name = bv_obj.get("i3D_boundingVolume", "") or bv_obj.get("I3D_boundingVolume", "")
         if not bv_name or bv_name in {"", "None"}:
