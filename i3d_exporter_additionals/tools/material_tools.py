@@ -84,36 +84,6 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class I3DEA_OT_remove_unused_material_slots(bpy.types.Operator):
-    bl_idname = "i3dea.remove_unused_material_slots"
-    bl_label = "Remove Unused Material Slots"
-    bl_description = "Removes duplicate materials and unused material slots"
-    bl_options = {"REGISTER", "UNDO"}
-
-    def execute(self, context):
-        for obj in context.scene.objects:
-            if obj.type != "MESH" and not obj.material_slots:
-                continue
-
-            mesh: bpy.types.Mesh = obj.data
-
-            used_material_indices = set(poly.material_index for poly in mesh.polygons)
-
-            used_materials = [
-                mesh.materials[i]
-                for i in used_material_indices
-                if 0 <= i < len(mesh.materials) and mesh.materials[i] is not None
-            ]
-
-            mesh.materials.clear()
-
-            for mat in used_materials:
-                mesh.materials.append(mat)
-
-        self.report({"INFO"}, "Unused material slots & Orphan Data removed")
-        return {"FINISHED"}
-
-
 class I3DEA_OT_setup_material(bpy.types.Operator):
     bl_idname = "i3dea.setup_material"
     bl_label = "Make Material"
@@ -203,7 +173,6 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
 
 classes = (
     I3DEA_OT_mirror_material,
-    I3DEA_OT_remove_unused_material_slots,
     I3DEA_OT_setup_material,
 )
 register, unregister = bpy.utils.register_classes_factory(classes)
