@@ -64,6 +64,7 @@ def draw_general_tools(
         grid.operator("i3dea.remove_doubles", text="Clean Meshes")
         grid.operator("i3dea.mesh_name", text="Set Mesh Name")
         grid.operator("i3dea.align_hydraulic_pair")
+        grid.operator("i3dea.adjust_decal_offsets", text="Adjust Decal Offsets...")
         if giants_enabled:
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
             grid.operator("i3dea.verify_scene", text="Verify Scene")
