@@ -7,15 +7,16 @@ def _single_user(obj: bpy.types.Object) -> None:
         obj.data = obj.data.copy()
 
 
-def _aim_rot_preserve_roll(from_loc: Vector, to_loc: Vector, y_sign: float, old_rot_world_3x3: Matrix) -> Matrix:
+def _aim_rot_preserve_roll(from_loc: Vector, to_loc: Vector, aim_positive_y: bool, old_rot_world_3x3: Matrix) -> Matrix:
     """World rotation so local Y (±) aims at target, preserving roll from old X. Returns 3x3 (columns=basis)."""
     fwd = to_loc - from_loc
     if fwd.length_squared == 0.0:
         return old_rot_world_3x3.copy()
 
-    y_rot = (fwd if y_sign > 0.0 else -fwd).normalized()
+    y_rot = (fwd if aim_positive_y else -fwd).normalized()
 
-    # preserve roll using old world +X
+    # If old X is almost parallel to new Y, pick an arbitrary axis
+    # that's not parallel to Y to preserve a stable roll.
     x_rot_old = old_rot_world_3x3.col[0]
     x_proj = x_rot_old - y_rot * x_rot_old.dot(y_rot)
     if x_proj.length_squared < 1e-12:
@@ -35,7 +36,7 @@ def _apply_rotation_keep_mesh(
     r_old_3x3_snapshot: Matrix,
     scale_snapshot: Vector,
 ) -> None:
-    """Apply using snapshots; counter-rotate mesh; write matrix_world directly."""
+    """Rotate object but counter-rotate its mesh so world-space shape stays the same."""
     if obj.type != "MESH":
         return
     _single_user(obj)  # Ensure single user for mesh data to prevent unwanted edits on duplicates
@@ -67,7 +68,7 @@ class I3DEA_OT_align_hydraulic_pair(bpy.types.Operator):
 
     swap_roles: bpy.props.BoolProperty(
         name="Swap Roles",
-        description="If active is actually the punch, swap",
+        description="Treat the active object as the piston instead of the housing",
         default=False,
     )
 
@@ -109,12 +110,8 @@ class I3DEA_OT_align_hydraulic_pair(bpy.types.Operator):
         rot_housing_old = h_rot_q.to_matrix()
         rot_punch_old = p_rot_q.to_matrix()
 
-        rot_housing_new = _aim_rot_preserve_roll(
-            from_loc=h_loc, to_loc=p_loc, y_sign=-1.0, old_rot_world_3x3=rot_housing_old
-        )
-        rot_punch_new = _aim_rot_preserve_roll(
-            from_loc=p_loc, to_loc=h_loc, y_sign=+1.0, old_rot_world_3x3=rot_punch_old
-        )
+        rot_housing_new = _aim_rot_preserve_roll(h_loc, p_loc, False, rot_housing_old)
+        rot_punch_new = _aim_rot_preserve_roll(p_loc, h_loc, True, rot_punch_old)
 
         _apply_rotation_keep_mesh(housing, rot_housing_new, h_loc, rot_housing_old, h_scale)
         _apply_rotation_keep_mesh(punch, rot_punch_new, p_loc, rot_punch_old, p_scale)
