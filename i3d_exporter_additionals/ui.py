@@ -120,13 +120,9 @@ def draw_material_tools(layout: bpy.types.UILayout, context: bpy.types.Context) 
         col = box.column()
         col.use_property_split = True
         col.use_property_decorate = False
-        row = col.row(align=True)
-        row.prop(i3dea, "diffuse_box")
-        if i3dea.diffuse_box:
-            row.prop(i3dea, "alpha_box")
+        col.prop(i3dea, "alpha_box")
         col.prop(i3dea, "material_name")
-        if i3dea.diffuse_box:
-            col.prop(i3dea, "diffuse_texture_path")
+        col.prop(i3dea, "diffuse_texture_path")
         col.prop(i3dea, "spec_texture_path")
         col.prop(i3dea, "normal_texture_path")
         col.operator("i3dea.setup_material", text=f"Create {i3dea.material_name}")
