@@ -138,10 +138,11 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
 
     i3da.shader_name = ""  # Just a safety to make it update
     i3da.shader_name = shader_name  # The property will not set the shader name if it doesn't exist.
-
-    if mat.get("customShaderVariation", "") not in i3da.shader_variations:
-        return False
-    i3da.shader_variation_name = mat.get("customShaderVariation", "")
+    variation = mat.get("customShaderVariation", "")
+    if variation not in i3da.shader_variations:
+        logger.debug(f"{mat.name}: Shader variation {variation!r} not found in i3dio shader {shader_name!r}.")
+        variation = ""
+    i3da.shader_variation_name = variation
 
     # Assign all customParameter_* keys to i3dio shader material parameters
     parameter_collection = i3da.shader_material_params
