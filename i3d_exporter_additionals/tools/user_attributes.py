@@ -21,72 +21,71 @@
 
 import bpy
 
+from ..helper_functions import ATTR_PREFIX, iter_user_attrs
+
 
 class I3DEA_OT_create_user_attribute(bpy.types.Operator):
     bl_idname = "i3dea.create_user_attribute"
     bl_label = "Create User Attribute"
     bl_description = "Create user attribute for selected object"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
         i3dea = context.scene.i3dea
-        obj = context.object
+        obj = context.active_object
+        if not obj:
+            self.report({"ERROR"}, "No active object.")
+            return {"CANCELLED"}
 
-        if obj:
-            if attr_name := i3dea.user_attribute_name != "":
-                if attr_name in [k.split("_")[-1] for k in obj.keys() if k.startswith("userAttribute_")]:
-                    self.report({'ERROR'}, f"Attribute {attr_name} already exist.")
-                    return {'CANCELLED'}
-                else:
-                    attr_type = i3dea.user_attribute_type
-                    create_attr_name = f"userAttribute_{attr_type}_{attr_name}"
-                    match attr_type:
-                        case 'boolean':
-                            obj[create_attr_name] = False
-                            ui = obj.id_properties_ui(create_attr_name)
-                            ui.update(description=create_attr_name)
-                            ui.update(default=False)
-                        case 'integer':
-                            obj[create_attr_name] = 0
-                            ui = obj.id_properties_ui(create_attr_name)
-                            ui.update(description=create_attr_name)
-                            ui.update(default=0)
-                            ui.update(min=-200)
-                            ui.update(max=200)
-                        case 'float':
-                            obj[create_attr_name] = 0.0
-                            ui = obj.id_properties_ui(create_attr_name)
-                            ui.update(description=create_attr_name)
-                            ui.update(default=0.0)
-                            ui.update(min=-200)
-                            ui.update(max=200)
-                        case 'string' | 'scriptCallback':
-                            obj[create_attr_name] = ""
-                    return {'FINISHED'}
-            else:
-                self.report({'ERROR'}, "Attribute name can't be empty.")
-                return {'CANCELLED'}
+        attr_name = i3dea.user_attribute_name
+        if not attr_name:
+            self.report({"ERROR"}, "Attribute name cannot be empty.")
+            return {"CANCELLED"}
+
+        existing_names = {n for _, _, n in iter_user_attrs(obj)}
+        if attr_name in existing_names:
+            self.report({"ERROR"}, f"Attribute {attr_name!r} already exist.")
+            return {"CANCELLED"}
+
+        key = f"{ATTR_PREFIX}{i3dea.user_attribute_type}_{attr_name}"
+        attr_type = i3dea.user_attribute_type
+        match attr_type:
+            case "boolean":
+                obj[key] = False
+                ui = obj.id_properties_ui(key)
+                ui.update(description=key, default=False)
+            case "integer":
+                obj[key] = 0
+                ui = obj.id_properties_ui(key)
+                ui.update(description=key, default=0, min=-200, max=200)
+            case "float":
+                obj[key] = 0.0
+                ui = obj.id_properties_ui(key)
+                ui.update(description=key, default=0.0, min=-200.0, max=200.0)
+            case "string" | "scriptCallback":
+                obj[key] = ""
+        return {"FINISHED"}
 
 
 class I3DEA_OT_delete_user_attribute(bpy.types.Operator):
     bl_idname = "i3dea.delete_user_attribute"
     bl_label = "Delete User Attribute"
     bl_description = "Delete selected user attribute"
-    bl_options = {'UNDO'}
+    bl_options = {"UNDO"}
 
     attribute_name: bpy.props.StringProperty()
 
     def execute(self, context):
-        obj = context.object
+        obj = context.active_object
+        if not obj:
+            self.report({"ERROR"}, "No active object.")
+            return {"CANCELLED"}
 
-        if obj and self.attribute_name in obj:
+        if self.attribute_name in obj:
             del obj[self.attribute_name]
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
-classes = (
-    I3DEA_OT_create_user_attribute,
-    I3DEA_OT_delete_user_attribute
-)
+classes = (I3DEA_OT_create_user_attribute, I3DEA_OT_delete_user_attribute)
 register, unregister = bpy.utils.register_classes_factory(classes)
