@@ -1,6 +1,11 @@
+import importlib
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import Any, Callable
+
 import bpy
 
-from ...helper_functions import get_from_addon_module
+from ...helper_functions import addon_submodule, get_addon_module_name
 from .logging_config import logger
 
 GIANTS_DEFAULT_MASK_VALUES = {4294967295, 255, 0}
@@ -21,22 +26,54 @@ def has_visibility_condition(obj: bpy.types.Object) -> bool:
     return not getattr(obj.i3d_attributes, "use_parent", True)
 
 
+@dataclass(frozen=True, slots=True)
+class I3dioCollisionAPI:
+    rule_lookup: dict[int, Any]
+    apply_rule_to_mask: Callable[[Any, bool], dict[str, str]]
+
+
+@lru_cache(maxsize=1)
+def get_i3dio_collision_api() -> I3dioCollisionAPI | None:
+    """
+    Resolve and cache i3dio collision helpers once.
+    If missing, we log once (because of lru_cache) and return None.
+    """
+    base = get_addon_module_name("i3dio")
+    if base is None:
+        logger.warning("i3dio addon not enabled. Skipping collision mask conversion.")
+        return None
+
+    module_path = addon_submodule(base, "ui.collision_data")
+    try:
+        mod = importlib.import_module(module_path)
+    except ModuleNotFoundError:
+        logger.warning("i3dio collision_data module not found. Skipping collision mask conversion.")
+        return None
+
+    collisions = getattr(mod, "COLLISIONS", None)
+    apply_rule_to_mask = getattr(mod, "apply_rule_to_mask", None)
+    if collisions is None or apply_rule_to_mask is None:
+        logger.warning("COLLISIONS/apply_rule_to_mask not found in i3dio. Skipping collision mask conversion.")
+        return None
+
+    rules = collisions.get("rules", [])
+    rule_lookup = {rule.mask_old: rule for rule in rules}
+    return I3dioCollisionAPI(rule_lookup=rule_lookup, apply_rule_to_mask=apply_rule_to_mask)
+
+
 def convert_collision_mask_handler(obj: bpy.types.Object, value: int) -> None:
     if value in GIANTS_DEFAULT_MASK_VALUES:
         return
-    if (collisions := get_from_addon_module("i3dio.ui.collision_data", "COLLISIONS")) is None:
-        logger.warning("COLLISIONS data not found in i3dio addon. Skipping collision mask conversion.")
+    api = get_i3dio_collision_api()
+    if api is None:
         return
-    rule_lookup = {rule.mask_old: rule for rule in collisions["rules"]}
-    rule = rule_lookup.get(value)
+
+    rule = api.rule_lookup.get(value)
     if rule is None:
         logger.warning(f"{obj.name}: No rule found for collision mask {value!r}.")
         return
-    is_trigger = obj.i3d_attributes.trigger
-    if (apply_rule_to_mask := get_from_addon_module("i3dio.ui.collision_data", "apply_rule_to_mask")) is None:
-        logger.warning("apply_rule_to_mask not found in i3dio addon. Skipping collision mask conversion.")
-        return
-    result = apply_rule_to_mask(rule, is_trigger)
+
+    result = api.apply_rule_to_mask(rule, obj.i3d_attributes.trigger)
     obj.i3d_attributes.collision_filter_group = result["group_hex"]
     obj.i3d_attributes.collision_filter_mask = result["mask_hex"]
     logger.info(

@@ -22,7 +22,7 @@ import bpy
 from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 from bpy_extras.node_utils import connect_sockets
 
-from ..helper_functions import check_i3d_exporter_type, get_i3dio_preferences
+from ..helper_functions import check_i3d_exporter_type, get_addon_preferences
 
 giants_enabled, i3dio_enabled = check_i3d_exporter_type()
 
@@ -60,7 +60,7 @@ class I3DEA_OT_mirror_material(bpy.types.Operator):
         return mat
 
     def execute(self, context: bpy.types.Context):
-        if i3dio_enabled and get_i3dio_preferences().fs_data_path == "":
+        if i3dio_enabled and get_addon_preferences("i3dio").fs_data_path == "":
             self.report({"ERROR"}, "FS Data Folder is not set!")
             return {"CANCELLED"}
 
