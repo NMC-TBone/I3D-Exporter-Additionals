@@ -45,14 +45,11 @@ def migrate_rigid_body_type(obj: bpy.types.Object) -> None:
     """Special handling for rigid body types, giants uses separate bool props, i3dio uses enum."""
     if obj.type != "MESH":
         return
-    rigid_types = [
-        ("i3D_static", "static"),
-        ("i3D_dynamic", "dynamic"),
-        ("i3D_kinematic", "kinematic"),
-        ("i3D_compoundChild", "compoundChild"),
-    ]
-    selected = [v for k, v in rigid_types if obj.get(k)]
-    obj.i3d_attributes.rigid_body_type = selected[0] if selected else "none"
+    suffixes = ("static", "dynamic", "kinematic", "compoundChild")
+    prefixes = ("i3D_", "I3D_")
+
+    selected = next((s for p in prefixes for s in suffixes if obj.get(f"{p}{s}")), "none")
+    obj.i3d_attributes.rigid_body_type = selected
 
 
 def migrate_user_attributes(obj: bpy.types.Object) -> None:
@@ -125,7 +122,7 @@ def migrate_merge_groups() -> dict[int, int]:
     objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     for obj in objects:
         group_id = obj.get("i3D_mergeGroup") or obj.get("I3D_mergeGroup")
-        if group_id is not None:
+        if group_id is not None and group_id >= 1:  # In Giants Exporter merge groups start at 1, 0 = no group
             referenced_groups.add(group_id)
             group_map.setdefault(group_id, []).append(obj)
             if obj.get("i3D_mergeGroupRoot") or obj.get("I3D_mergeGroupRoot"):
