@@ -3,6 +3,14 @@ import bpy
 from .logging_config import logger
 from .mappings import OBJECT_PROP_MAPPINGS
 
+USER_ATTRIBUTE_DATA_FIELDS = {
+    "boolean": "data_boolean",
+    "string": "data_string",
+    "scriptCallback": "data_scriptCallback",
+    "float": "data_float",
+    "integer": "data_integer",
+}
+
 
 def migrate_objects() -> None:
     # Handle merge groups first to ensure info is not lost during cleanup later.
@@ -18,7 +26,6 @@ def migrate_objects() -> None:
             obj.i3d_attributes.exclude_from_export = True
             obj.name = obj.name[:-7]  # Remove the "_ignore" suffix
             logger.info(f"{obj.name}: Marked as excluded from export due to '_ignore' suffix.")
-        clean_giants_keys(obj)
 
 
 def migrate_giants_object_properties(obj: bpy.types.Object) -> bool:
@@ -57,52 +64,62 @@ def migrate_user_attributes(obj: bpy.types.Object) -> None:
     Converts Giants-style userAttribute_* custom props to i3dio User Attribute items.
     Example: userAttribute_boolean_myAttr=True → attribute_list: type=boolean, name='myFAttr', data_boolean=True
     """
-    attr_types = {"boolean", "string", "scriptCallback", "float", "integer"}
     for key in list(obj.keys()):
-        if not key.startswith("userAttribute_"):
+        user_attribute = _read_giants_user_attribute(obj, key)
+        if user_attribute is None:
             continue
-
-        try:
-            _, attr_type, attr_name = key.split("_", 2)
-        except ValueError:
-            continue  # Skip invalid keys
-
-        if attr_type not in attr_types:
-            continue  # Skip unsupported types
+        attr_type, attr_name, data_field, value = user_attribute
 
         attrs = obj.i3d_user_attributes
         new_attr = attrs.attribute_list.add()
         new_attr.name = attr_name
-        enum_map = {
-            "boolean": "data_boolean",
-            "string": "data_string",
-            "scriptCallback": "data_scriptCallback",
-            "float": "data_float",
-            "integer": "data_integer",
-        }
-        new_attr.type = enum_map[attr_type]
+        new_attr.type = data_field
+        setattr(new_attr, data_field, value)
 
-        value = obj[key]
-        try:
-            match attr_type:
-                case "boolean":
-                    new_attr.data_boolean = bool(value)
-                case "integer":
-                    new_attr.data_integer = int(value)
-                case "float":
-                    new_attr.data_float = float(value)
-                case "string":
-                    new_attr.data_string = str(value)
-                case "scriptCallback":
-                    new_attr.data_scriptCallback = str(value)
-        except (ValueError, TypeError):
-            continue  # Skip invalid values
         logger.info(f"{obj.name}: Migrated user attribute {attr_name} ({attr_type}) with value {value!r}")
-        del obj[key]
+
+
+def _read_giants_user_attribute(obj: bpy.types.Object, key: str) -> tuple[str, str, str, object] | None:
+    if not key.startswith("userAttribute_"):
+        return None
+
+    try:
+        _, attr_type, attr_name = key.split("_", 2)
+    except ValueError:
+        return None
+
+    data_field = USER_ATTRIBUTE_DATA_FIELDS.get(attr_type)
+    if data_field is None:
+        return None
+
+    value = obj[key]
+    try:
+        match attr_type:
+            case "boolean":
+                value = bool(value)
+            case "integer":
+                value = int(value)
+            case "float":
+                value = float(value)
+            case "string" | "scriptCallback":
+                value = str(value)
+    except (ValueError, TypeError):
+        return None
+
+    return attr_type, attr_name, data_field, value
+
+
+def clean_giants_object_properties() -> None:
+    """Remove Giants object properties after all object data has been migrated."""
+    for obj in bpy.data.objects:
+        for key in list(obj.keys()):
+            if _read_giants_user_attribute(obj, key) is not None:
+                del obj[key]
+        clean_giants_keys(obj)
 
 
 def clean_giants_keys(obj: bpy.types.Object) -> None:
-    """Remove all keys that are not in OBJECT_PROP_MAPPINGS."""
+    """Remove Giants object keys using the i3D_/I3D_ prefixes."""
     del_count = 0
     for key in list(obj.keys()):
         if key.startswith("i3D_") or key.startswith("I3D_"):

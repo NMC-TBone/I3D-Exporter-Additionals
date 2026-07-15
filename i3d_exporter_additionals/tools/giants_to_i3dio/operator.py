@@ -10,6 +10,12 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
     bl_description = "Convert all Giants exporter properties and materials to the i3dio community exporter format"
     bl_options = {"INTERNAL", "UNDO"}
 
+    preserve_old_properties: bpy.props.BoolProperty(
+        name="Keep Giants Exporter Properties",
+        description="Keep Giants exporter custom properties after copying them to the Community Exporter",
+        default=False,
+    )
+
     @classmethod
     def poll(cls, _context):
         _, i3dio_enabled = check_i3d_exporter_type()
@@ -28,9 +34,11 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         col.label(text="• You can undo this operation (Ctrl+Z).")
         col.label(text="However, for full safety, make a backup before migrating!", icon="INFO")
         col.label(text="• Especially if you intend to keep using the Giants exporter or might want to revert.")
+        col.separator()
+        col.prop(self, "preserve_old_properties")
 
     def execute(self, _context):
-        migrate_all()
+        migrate_all(preserve_old_properties=self.preserve_old_properties)
         self.report({"INFO"}, "Migration complete! Check console/log for details.")
         return {"FINISHED"}
 
