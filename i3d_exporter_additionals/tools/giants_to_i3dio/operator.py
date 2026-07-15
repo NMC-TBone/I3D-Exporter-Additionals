@@ -1,6 +1,6 @@
 import bpy
 
-from ...helper_functions import check_i3d_exporter_type
+from ...helper_functions import check_i3d_exporter_type, get_enabled_addons_by_prefix
 from .dispatcher import migrate_all
 
 
@@ -52,12 +52,8 @@ class I3DEA_OT_disable_giants_exporter(bpy.types.Operator):
     def execute(self, context):
         import addon_utils
 
-        giants_modules = ["io_export_i3d", "io_export_i3d_10_0_0"]
-        for module in giants_modules:
-            if addon_utils.check(module)[1]:
-                addon_utils.disable(module, default_set=True)
-                self.report({"INFO"}, f"{module} disabled.")
-            else:
-                self.report({"WARNING"}, f"{module} is not enabled.")
+        for addon in get_enabled_addons_by_prefix("io_export_i3d"):
+            addon_utils.disable(addon.module, default_set=True)
+            self.report({"INFO"}, f"{addon.module} disabled.")
         self.report({"INFO"}, "Giants I3D Exporter disabled.")
         return {"FINISHED"}

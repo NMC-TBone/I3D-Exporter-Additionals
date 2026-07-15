@@ -4,7 +4,6 @@ import importlib
 import sys
 from typing import TypeVar
 
-import addon_utils
 import bpy
 from mathutils import Matrix, Vector
 
@@ -66,9 +65,16 @@ def get_from_addon(
     return getattr(mod, attr_name, default)
 
 
+def get_enabled_addons_by_prefix(module_prefix: str) -> list[bpy.types.Addon]:
+    return [
+        addon
+        for addon in bpy.context.preferences.addons.values()
+        if (name := addon.module.rsplit(".", 1)[-1]) == module_prefix or name.startswith(f"{module_prefix}_")
+    ]
+
+
 def check_i3d_exporter_type() -> tuple[bool, bool]:
-    giants_enabled = addon_utils.check("io_export_i3d")[1] or addon_utils.check("io_export_i3d_10_0_0")[1]
-    return giants_enabled, get_addon_module_name("i3dio") is not None
+    return bool(get_enabled_addons_by_prefix("io_export_i3d")), get_addon_module_name("i3dio") is not None
 
 
 def check_obj_type(obj):
