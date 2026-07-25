@@ -16,6 +16,15 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         default=False,
     )
 
+    migrate_visibility: bpy.props.BoolProperty(
+        name="Preserve Giants Visibility",
+        description=(
+            "Copy the current Outliner eye state to the Community Exporter's fixed Visibility property; "
+            "dynamic compound collision roots remain visible"
+        ),
+        default=True,
+    )
+
     @classmethod
     def poll(cls, _context):
         _, i3dio_enabled = check_i3d_exporter_type()
@@ -36,9 +45,13 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         col.label(text="• Especially if you intend to keep using the Giants exporter or might want to revert.")
         col.separator()
         col.prop(self, "preserve_old_properties")
+        col.prop(self, "migrate_visibility")
 
     def execute(self, _context):
-        migrate_all(preserve_old_properties=self.preserve_old_properties)
+        migrate_all(
+            preserve_old_properties=self.preserve_old_properties,
+            migrate_visibility=self.migrate_visibility,
+        )
         self.report({"INFO"}, "Migration complete! Check console/log for details.")
         return {"FINISHED"}
 

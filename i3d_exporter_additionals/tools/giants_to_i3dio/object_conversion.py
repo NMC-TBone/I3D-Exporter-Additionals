@@ -12,7 +12,7 @@ USER_ATTRIBUTE_DATA_FIELDS = {
 }
 
 
-def migrate_objects() -> None:
+def migrate_objects(*, migrate_visibility: bool = True) -> None:
     # Handle merge groups first to ensure info is not lost during cleanup later.
     group_num_to_index = migrate_merge_groups()
     # Handle bounding volumes after merge groups to ensure correct assignment.
@@ -26,6 +26,18 @@ def migrate_objects() -> None:
             obj.i3d_attributes.exclude_from_export = True
             obj.name = obj.name[:-7]  # Remove the "_ignore" suffix
             logger.info(f"{obj.name}: Marked as excluded from export due to '_ignore' suffix.")
+        if migrate_visibility:
+            migrate_object_visibility(obj)
+
+
+def migrate_object_visibility(obj: bpy.types.Object) -> None:
+    """Preserve GIANTS eye visibility, except for dynamic compound collision roots."""
+    attributes = obj.i3d_attributes
+    is_dynamic_compound = attributes.rigid_body_type == "dynamic" and attributes.compound
+    visibility = is_dynamic_compound or not obj.hide_get()
+    attributes.visibility_tracking = False
+    attributes.visibility = visibility
+    logger.info(f"{obj.name}: Migrated visibility to {visibility}.")
 
 
 def migrate_giants_object_properties(obj: bpy.types.Object) -> bool:
