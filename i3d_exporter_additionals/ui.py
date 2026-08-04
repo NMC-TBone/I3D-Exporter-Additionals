@@ -65,6 +65,8 @@ def draw_general_tools(
         grid.operator("i3dea.mesh_name", text="Set Mesh Name")
         grid.operator("i3dea.align_hydraulic_pair")
         grid.operator("i3dea.adjust_decal_offsets", text="Adjust Decal Offsets...")
+        if i3dio_enabled:
+            grid.operator("i3dea.copy_i3d_parameters", text="Copy I3D Parameters")
         if giants_enabled:
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
             grid.operator("i3dea.verify_scene", text="Verify Scene")
@@ -114,6 +116,8 @@ def draw_material_tools(layout: bpy.types.UILayout, context: bpy.types.Context) 
         col.label(text="Material operators")
         row = col.row(align=True)
         row.operator("i3dea.mirror_material")
+        row = col.row(align=True)
+        row.operator("i3dea.enable_all_material_slotnames", icon="OUTLINER_DATA_FONT")
 
         box = panel.box()
         box.label(text="Create Material")
