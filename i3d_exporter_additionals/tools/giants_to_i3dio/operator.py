@@ -25,12 +25,22 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         default=True,
     )
 
+    convert_roughness_mask: bpy.props.BoolProperty(
+        name="Convert Roughness Mask to Specular IOR",
+        description=(
+            "For every material's Principled BSDF node, move whatever is plugged into 'Roughness' "
+            "over to 'Specular IOR Level' instead"
+        ),
+        default=True,
+    )
+
     @classmethod
     def poll(cls, _context):
         _, i3dio_enabled = check_i3d_exporter_type()
         return i3dio_enabled
 
     def invoke(self, context, event):
+        self.convert_roughness_mask = context.scene.i3dea.auto_convert_roughness_on_migration
         return context.window_manager.invoke_props_dialog(self, width=475)
 
     def draw(self, _context):
@@ -46,11 +56,13 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         col.separator()
         col.prop(self, "preserve_old_properties")
         col.prop(self, "migrate_visibility")
+        col.prop(self, "convert_roughness_mask")
 
-    def execute(self, _context):
+    def execute(self, context):
         migrate_all(
             preserve_old_properties=self.preserve_old_properties,
             migrate_visibility=self.migrate_visibility,
+            convert_roughness_mask=self.convert_roughness_mask,
         )
         self.report({"INFO"}, "Migration complete! Check console/log for details.")
         return {"FINISHED"}
