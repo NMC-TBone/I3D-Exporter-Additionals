@@ -156,8 +156,60 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         return {"FINISHED"}
 
 
+def convert_roughness_to_specular_ior() -> int:
+    """For every material's Principled BSDF node(s), moves whatever is plugged into the 'Roughness'
+    input over to the 'Specular IOR Level' input instead (e.g. to reuse a roughness/gloss mask texture
+    as the specular input). Materials with nothing linked to Roughness are left untouched.
+
+    Returns the number of materials that were changed.
+    """
+    converted_count = 0
+    for mat in bpy.data.materials:
+        if not mat.use_nodes or not mat.node_tree:
+            continue
+        links = mat.node_tree.links
+        material_changed = False
+
+        for node in mat.node_tree.nodes:
+            if node.type != "BSDF_PRINCIPLED":
+                continue
+            roughness_input = node.inputs.get("Roughness")
+            specular_ior_input = node.inputs.get("Specular IOR Level")
+            if not roughness_input or not specular_ior_input or not roughness_input.is_linked:
+                continue
+
+            # Move every link currently feeding Roughness over to Specular IOR Level instead
+            for link in list(roughness_input.links):
+                from_socket = link.from_socket
+                links.remove(link)
+                links.new(from_socket, specular_ior_input)
+            material_changed = True
+
+        if material_changed:
+            converted_count += 1
+
+    return converted_count
+
+
+class I3DEA_OT_convert_roughness_to_specular_ior(bpy.types.Operator):
+    bl_idname = "i3dea.convert_roughness_to_specular_ior"
+    bl_label = "Roughness -> Specular IOR"
+    bl_description = (
+        "For every material's Principled BSDF node, moves whatever is currently plugged into 'Roughness' "
+        "over to 'Specular IOR Level' instead (e.g. to reuse a roughness/gloss mask texture as the specular input).\n"
+        "Only materials with something linked to Roughness are affected"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context: bpy.types.Context):
+        converted_count = convert_roughness_to_specular_ior()
+        self.report({"INFO"}, f"Converted Roughness -> Specular IOR Level on {converted_count} material(s).")
+        return {"FINISHED"}
+
+
 classes = (
     I3DEA_OT_mirror_material,
     I3DEA_OT_setup_material,
+    I3DEA_OT_convert_roughness_to_specular_ior,
 )
 register, unregister = bpy.utils.register_classes_factory(classes)

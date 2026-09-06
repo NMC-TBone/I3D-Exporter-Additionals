@@ -1,9 +1,15 @@
+from ..material_tools import convert_roughness_to_specular_ior
 from .logging_config import logger
 from .material_conversion import clean_giants_material_properties, migrate_materials
 from .object_conversion import clean_giants_object_properties, migrate_objects
 
 
-def migrate_all(*, preserve_old_properties: bool = False, migrate_visibility: bool = True) -> None:
+def migrate_all(
+    *,
+    preserve_old_properties: bool = False,
+    migrate_visibility: bool = True,
+    convert_roughness_mask: bool = True,
+) -> None:
     logger.info("Starting Giants -> i3dio migration...")
     migrate_objects(migrate_visibility=migrate_visibility)
     mat_ctx = migrate_materials()
@@ -21,3 +27,7 @@ def migrate_all(*, preserve_old_properties: bool = False, migrate_visibility: bo
         logger.info("Ran UDIM to material template conversion to handle legacy vehicle shaders.")
     else:
         logger.info("No legacy vehicle shaders found, skipping UDIM to material template conversion.")
+
+    if convert_roughness_mask:
+        converted_count = convert_roughness_to_specular_ior()
+        logger.info(f"Converted Roughness -> Specular IOR Level on {converted_count} material(s).")

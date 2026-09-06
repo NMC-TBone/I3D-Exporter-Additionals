@@ -517,6 +517,15 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default="",
     )
 
+    auto_convert_roughness_on_migration: BoolProperty(
+        name="Auto-Convert Roughness to Specular IOR on Migration",
+        description=(
+            "When migrating from the Giants exporter to the Community exporter, automatically move each "
+            "material's Principled BSDF 'Roughness' input link over to 'Specular IOR Level'"
+        ),
+        default=False,
+    )
+
     # Track-Tools
     track_mode: EnumProperty(
         name="Track Mode",
