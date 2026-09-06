@@ -22,6 +22,8 @@ _needs_reload = "bpy" in locals()
 from . import properties, ui
 from .tools import (
     align_hydraulic_pair,
+    copy_i3d_parameters,
+    decal_adjust_offsets,
     generate_empty_on_curves,
     giants_to_i3dio,
     material_tools,
@@ -40,6 +42,8 @@ if _needs_reload:
         ui,
         properties,
         align_hydraulic_pair,
+        copy_i3d_parameters,
+        decal_adjust_offsets,
         orientation_tools,
         material_tools,
         mesh_tools,
@@ -56,6 +60,7 @@ if _needs_reload:
 def register() -> None:
     properties.register()
     align_hydraulic_pair.register()
+    decal_adjust_offsets.register()
     track_tools.register()
     verifier.register()
     generate_empty_on_curves.register()
@@ -63,6 +68,7 @@ def register() -> None:
     skeletons.register()
     material_tools.register()
     orientation_tools.register()
+    copy_i3d_parameters.register()
     user_attributes.register()
     giants_to_i3dio.register()
     ui.register()
@@ -72,6 +78,7 @@ def unregister() -> None:
     ui.unregister()
     giants_to_i3dio.unregister()
     user_attributes.unregister()
+    copy_i3d_parameters.unregister()
     orientation_tools.unregister()
     material_tools.unregister()
     skeletons.unregister()
@@ -79,6 +86,7 @@ def unregister() -> None:
     generate_empty_on_curves.unregister()
     verifier.unregister()
     track_tools.unregister()
+    decal_adjust_offsets.unregister()
     align_hydraulic_pair.unregister()
     properties.unregister()
 
