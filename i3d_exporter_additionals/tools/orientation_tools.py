@@ -18,6 +18,7 @@
 
 import math
 
+import bmesh
 import bpy
 import mathutils
 from bpy_extras.io_utils import axis_conversion
@@ -105,5 +106,83 @@ class I3DEA_OT_copy_transform(bpy.types.Operator):
         return {"FINISHED"}
 
 
-classes = (I3DEA_OT_copy_transform,)
+class I3DEA_OT_face_normal_to_origin(bpy.types.Operator):
+    bl_idname = "i3dea.facenormaltoorigin"
+    bl_label = "Face Normal to Origin"
+    bl_description = (
+        "Sets the object's origin rotation to match the selected face's normal.\n"
+        "Which local axis gets aligned to the normal is controlled by the 'Normal Axis' setting above"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    # Maps the 'Normal Axis' enum choice to (local axis index, sign) - 0/1/2 = X/Y/Z
+    AXIS_MAP = {
+        "POS_X": (0, 1.0),
+        "NEG_X": (0, -1.0),
+        "POS_Y": (1, 1.0),
+        "NEG_Y": (1, -1.0),
+        "POS_Z": (2, 1.0),
+        "NEG_Z": (2, -1.0),
+    }
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        return context.object is not None and context.object.type == "MESH"
+
+    def execute(self, context: bpy.types.Context):
+        obj = context.object
+        mode = obj.mode
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        bm.transform(obj.matrix_world)
+        bm.normal_update()
+        face = bm.select_history.active
+
+        if face is None or not isinstance(face, bmesh.types.BMFace):
+            bm.free()
+            bpy.ops.object.mode_set(mode=mode)
+            self.report({"ERROR"}, "No face selected. Select exactly one face in Edit Mode first.")
+            return {"CANCELLED"}
+
+        # Same base orthonormal frame the official GIANTS exporter uses (tangent, bitangent, normal),
+        # right-handed so that tangent x bitangent == normal.
+        tangent = face.calc_tangent_edge_pair().normalized()
+        bitangent = face.normal.cross(tangent).normalized()
+        normal = face.normal
+        bm.free()
+
+        axis_index, sign = self.AXIS_MAP[context.scene.i3dea.face_normal_axis]
+        idx1 = (axis_index + 1) % 3
+        idx2 = (axis_index + 2) % 3
+
+        # Assign the (signed) normal to the chosen axis, and the other two orthonormal vectors to the
+        # remaining two axes - swapping their order when the sign is negative keeps the frame right-handed
+        # (i.e. avoids an inverted/mirrored result) instead of just flipping a vector's sign.
+        columns = [mathutils.Vector((0.0, 0.0, 0.0))] * 3
+        columns[axis_index] = sign * normal
+        columns[idx1] = tangent if sign > 0 else bitangent
+        columns[idx2] = bitangent if sign > 0 else tangent
+
+        world_matrix = mathutils.Matrix(columns).transposed().to_4x4()
+        world_matrix.translation = obj.matrix_world.translation
+
+        rotation = world_matrix.to_3x3().normalized().to_4x4()
+        current_world = obj.matrix_world
+        local_correction = current_world.to_3x3().normalized().to_4x4().inverted() @ rotation
+        obj.matrix_world = (
+            mathutils.Matrix.Translation(current_world.translation)
+            @ rotation
+            @ mathutils.Matrix.Diagonal(current_world.to_scale()).to_4x4()
+        )
+        obj.data.transform(local_correction.inverted())
+
+        bpy.ops.object.mode_set(mode=mode)
+
+        self.report({"INFO"}, f"Origin rotation for '{obj.name}' set to face normal")
+        return {"FINISHED"}
+
+
+classes = (I3DEA_OT_copy_transform, I3DEA_OT_face_normal_to_origin)
 register, unregister = bpy.utils.register_classes_factory(classes)

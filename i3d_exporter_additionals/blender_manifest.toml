@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "i3d_exporter_additionals"
-version = "0.0.0"
+version = "3.9.0-dev.6"
 name = "I3D Exporter Additionals"
 tagline = "Additional tools for the I3D Exporter"
 maintainer = "[NMC]T-Bone"
