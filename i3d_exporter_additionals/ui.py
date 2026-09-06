@@ -47,6 +47,8 @@ class I3DEA_PT_MainPanel(Panel):
             draw_user_attributes(layout, context)
         draw_skeletons(layout, context)
         draw_material_tools(layout, context)
+        if i3dio_enabled:
+            draw_geometry_nodes(layout, context)
         draw_track_tools(layout, context)
         draw_motion_path(layout, context)
 
@@ -64,9 +66,10 @@ def draw_general_tools(
         grid.operator("i3dea.remove_doubles", text="Clean Meshes")
         grid.operator("i3dea.mesh_name", text="Set Mesh Name")
         grid.operator("i3dea.align_hydraulic_pair")
-        # grid.operator("i3dea.fill_volume", text="Check Fill Volume") hidden for now
+        grid.operator("i3dea.adjust_decal_offsets", text="Adjust Decal Offsets...")
+        if i3dio_enabled:
+            grid.operator("i3dea.copy_i3d_parameters", text="Copy I3D Parameters")
         if giants_enabled:
-            grid.operator("i3dea.xml_config", text="Enable export to i3dMappings")
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
             grid.operator("i3dea.verify_scene", text="Verify Scene")
             grid.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
@@ -114,24 +117,30 @@ def draw_material_tools(layout: bpy.types.UILayout, context: bpy.types.Context) 
         col = box.column(align=True)
         col.label(text="Material operators")
         row = col.row(align=True)
-        row.operator("i3dea.mirror_material", text="Add Mirror Material")
-        row.operator("i3dea.remove_unused_material_slots")
+        row.operator("i3dea.mirror_material")
 
         box = panel.box()
         box.label(text="Create Material")
         col = box.column()
         col.use_property_split = True
         col.use_property_decorate = False
-        row = col.row(align=True)
-        row.prop(i3dea, "diffuse_box")
-        if i3dea.diffuse_box:
-            row.prop(i3dea, "alpha_box")
+        col.prop(i3dea, "alpha_box")
         col.prop(i3dea, "material_name")
-        if i3dea.diffuse_box:
-            col.prop(i3dea, "diffuse_texture_path")
+        col.prop(i3dea, "diffuse_texture_path")
         col.prop(i3dea, "spec_texture_path")
         col.prop(i3dea, "normal_texture_path")
         col.operator("i3dea.setup_material", text=f"Create {i3dea.material_name}")
+
+
+def draw_geometry_nodes(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:
+    header, panel = layout.panel("I3DEA_geometry_nodes", default_closed=True)
+    header.label(text="Geometry Nodes")
+    if panel:
+        i3dea = context.scene.i3dea
+        col = panel.column(align=True)
+        col.prop(i3dea, "copy_geometry_nodes")
+        col.label(text="Also copies Geometry Nodes modifiers when using")
+        col.label(text="'Copy I3D Parameters' in General Tools.")
 
 
 def draw_track_tools(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:

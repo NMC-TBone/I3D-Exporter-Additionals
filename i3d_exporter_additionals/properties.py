@@ -489,16 +489,22 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default="frontloaderAdapter",
     )
 
+    # Geometry Nodes
+    copy_geometry_nodes: BoolProperty(
+        name="Copy Geometry Nodes",
+        description=(
+            "When enabled, using 'Copy I3D Parameters' (General Tools) will also copy every Geometry Nodes "
+            "modifier from the active object to the selected objects (node group assignment and all input "
+            "values, matched or added by modifier name)"
+        ),
+        default=False,
+    )
+
     # Properties for material_tools
     material_name: StringProperty(
         name="Material name",
         description="Write name of the material you want to create",
         default="material_mat",
-    )
-    diffuse_box: BoolProperty(
-        name="Add diffuse node",
-        description="If checked it will create a image texture linked to Base Color",
-        default=False,
     )
     alpha_box: BoolProperty(
         name="Alpha", description="If checked it will set alpha settings to diffuse node", default=False
@@ -520,38 +526,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         description="Add path to your normal map texture.",
         subtype="FILE_PATH",
         default="",
-    )
-
-    # i3dio_material handler
-    shader_path: StringProperty(
-        name="Path to shader location",
-        description="Select path to the shader you want to apply",
-        subtype="FILE_PATH",
-        default="",
-    )
-    mask_map: StringProperty(
-        name="Mask Map",
-        description="Add mask map texture",
-        subtype="FILE_PATH",
-        default="",
-    )
-    dirt_diffuse: StringProperty(
-        name="Dirt diffuse", description="Add dirt diffuse texture", subtype="FILE_PATH", default=""
-    )
-    shader_box: BoolProperty(
-        name="Set shader path",
-        description="If checked it will add the the path to the shader in material",
-        default=True,
-    )
-    mask_map_box: BoolProperty(
-        name="Set mask map path",
-        description="If checked it will add the the path to mask map in material",
-        default=True,
-    )
-    dirt_diffuse_box: BoolProperty(
-        name="Set dirt diffuse path",
-        description="If checked it add the the path to dirt diffuse in material",
-        default=True,
     )
 
     # Track-Tools
