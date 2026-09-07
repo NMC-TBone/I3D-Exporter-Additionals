@@ -156,8 +156,41 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class I3DEA_OT_enable_all_material_slot_names(bpy.types.Operator):
+    bl_idname = "i3dea.enable_all_material_slot_names"
+    bl_label = "Enable Slot Names (All Materials)"
+    bl_description = (
+        "Enables 'Material Slot Name' for all materials in the current blend file.\n"
+        "Existing custom slot names are preserved.\n"
+        "Newly enabled materials use their material name on export"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context) -> bool:
+        return check_i3d_exporter_type()[1]  # Only makes sense with the Community (i3dio) exporter
+
+    def execute(self, context):
+        newly_enabled = 0
+        already_enabled = 0
+
+        for mat in bpy.data.materials:
+            if mat.i3d_attributes.use_material_slot_name:
+                already_enabled += 1
+                continue
+            mat.i3d_attributes.use_material_slot_name = True
+            newly_enabled += 1
+
+        self.report(
+            {"INFO"},
+            f"Enabled Material Slot Name on {newly_enabled} material(s) ({already_enabled} already had it enabled).",
+        )
+        return {"FINISHED"}
+
+
 classes = (
     I3DEA_OT_mirror_material,
     I3DEA_OT_setup_material,
+    I3DEA_OT_enable_all_material_slot_names,
 )
 register, unregister = bpy.utils.register_classes_factory(classes)
