@@ -156,14 +156,13 @@ class I3DEA_OT_setup_material(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class I3DEA_OT_enable_all_material_slotnames(bpy.types.Operator):
-    bl_idname = "i3dea.enable_all_material_slotnames"
-    bl_label = "Enable All Material Slot Names"
+class I3DEA_OT_enable_all_material_slot_names(bpy.types.Operator):
+    bl_idname = "i3dea.enable_all_material_slot_names"
+    bl_label = "Enable Slot Names (All Materials)"
     bl_description = (
-        "Enables 'Material Slot Name' on every material in the blend file.\n"
-        "Materials that already have it enabled keep their existing custom name.\n"
-        "Materials that get newly enabled are left blank "
-        "(the material's own name will be used on export)"
+        "Enables 'Material Slot Name' for all materials in the current blend file.\n"
+        "Existing custom slot names are preserved.\n"
+        "Newly enabled materials use their material name on export"
     )
     bl_options = {"REGISTER", "UNDO"}
 
@@ -171,7 +170,7 @@ class I3DEA_OT_enable_all_material_slotnames(bpy.types.Operator):
     def poll(cls, context) -> bool:
         return check_i3d_exporter_type()[1]  # Only makes sense with the Community (i3dio) exporter
 
-    def execute(self, context: bpy.types.Context):
+    def execute(self, context):
         newly_enabled = 0
         already_enabled = 0
 
@@ -184,8 +183,7 @@ class I3DEA_OT_enable_all_material_slotnames(bpy.types.Operator):
 
         self.report(
             {"INFO"},
-            f"Enabled Material Slot Name on {newly_enabled} material(s) "
-            f"({already_enabled} already had it enabled).",
+            f"Enabled Material Slot Name on {newly_enabled} material(s) ({already_enabled} already had it enabled).",
         )
         return {"FINISHED"}
 
@@ -193,6 +191,6 @@ class I3DEA_OT_enable_all_material_slotnames(bpy.types.Operator):
 classes = (
     I3DEA_OT_mirror_material,
     I3DEA_OT_setup_material,
-    I3DEA_OT_enable_all_material_slotnames,
+    I3DEA_OT_enable_all_material_slot_names,
 )
 register, unregister = bpy.utils.register_classes_factory(classes)
