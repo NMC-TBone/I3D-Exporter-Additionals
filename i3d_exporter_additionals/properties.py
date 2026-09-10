@@ -489,21 +489,6 @@ class I3DEA_PG_List(bpy.types.PropertyGroup):
         default="frontloaderAdapter",
     )
 
-    # Face Normal to Origin (General Tools)
-    face_normal_axis: EnumProperty(
-        name="Normal Axis",
-        description="Which local axis of the object's origin should be aligned to the selected face's normal",
-        items=[
-            ("POS_X", "X", "Align local +X axis to the face normal"),
-            ("NEG_X", "-X", "Align local -X axis to the face normal"),
-            ("POS_Y", "Y", "Align local +Y axis to the face normal"),
-            ("NEG_Y", "-Y", "Align local -Y axis to the face normal"),
-            ("POS_Z", "Z", "Align local +Z axis to the face normal"),
-            ("NEG_Z", "-Z", "Align local -Z axis to the face normal"),
-        ],
-        default="POS_Z",
-    )
-
     # Properties for material_tools
     material_name: StringProperty(
         name="Material name",

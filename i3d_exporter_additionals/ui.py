@@ -57,7 +57,6 @@ def draw_general_tools(
     header, panel = layout.panel("I3DEA_general_tools", default_closed=False)
     header.label(text="General Tools")
     if panel:
-        i3dea = context.scene.i3dea
         grid = panel.grid_flow(columns=2, even_columns=True, even_rows=True, align=True, row_major=True)
         grid.operator("i3dea.copy_transform", text="Copy Location").state = 1
         grid.operator("i3dea.copy_transform", text="Copy Rotation").state = 2
@@ -70,12 +69,7 @@ def draw_general_tools(
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
             grid.operator("i3dea.verify_scene", text="Verify Scene")
             grid.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
-
-        box = panel.box()
-        box.label(text="Face Normal to Origin")
-        row = box.row(align=True)
-        row.prop(i3dea, "face_normal_axis", expand=True)
-        box.operator("i3dea.facenormaltoorigin", text="Set Origin to Face Normal", icon="ORIENTATION_NORMAL")
+        grid.operator("i3dea.align_origin_to_face_normal", text="Set Origin to Face Normal", icon="ORIENTATION_NORMAL")
 
 
 def draw_user_attributes(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:

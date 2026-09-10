@@ -106,83 +106,107 @@ class I3DEA_OT_copy_transform(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class I3DEA_OT_face_normal_to_origin(bpy.types.Operator):
-    bl_idname = "i3dea.facenormaltoorigin"
-    bl_label = "Face Normal to Origin"
-    bl_description = (
-        "Sets the object's origin rotation to match the selected face's normal.\n"
-        "Which local axis gets aligned to the normal is controlled by the 'Normal Axis' setting above"
-    )
+class I3DEA_OT_align_origin_to_face_normal(bpy.types.Operator):
+    bl_idname = "i3dea.align_origin_to_face_normal"
+    bl_label = "Align Origin to Face Normal"
+    bl_description = "Align the object's local axis to the active face normal without changing the mesh orientation"
     bl_options = {"REGISTER", "UNDO"}
 
-    # Maps the 'Normal Axis' enum choice to (local axis index, sign) - 0/1/2 = X/Y/Z
-    AXIS_MAP = {
-        "POS_X": (0, 1.0),
-        "NEG_X": (0, -1.0),
-        "POS_Y": (1, 1.0),
-        "NEG_Y": (1, -1.0),
-        "POS_Z": (2, 1.0),
-        "NEG_Z": (2, -1.0),
-    }
+    axis: bpy.props.EnumProperty(
+        name="Axis",
+        description="Local axis to align to the active face normal",
+        items=[
+            ("X", "X", "Align the local X axis to the active face normal"),
+            ("Y", "Y", "Align the local Y axis to the active face normal"),
+            ("Z", "Z", "Align the local Z axis to the active face normal"),
+        ],
+        default="Z",
+    )
+
+    flip: bpy.props.BoolProperty(
+        name="Flip",
+        description="Align the selected axis opposite to the active face normal",
+        default=False,
+    )
 
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
-        return context.object is not None and context.object.type == "MESH"
+        cls.poll_message_set("Active object must be a mesh in Edit Mode")
+        obj = context.active_object
+        return obj is not None and obj.type == "MESH" and obj.mode == "EDIT"
 
     def execute(self, context: bpy.types.Context):
-        obj = context.object
-        mode = obj.mode
-        bpy.ops.object.mode_set(mode="OBJECT")
+        obj = context.active_object
 
-        bm = bmesh.new()
-        bm.from_mesh(obj.data)
-        bm.transform(obj.matrix_world)
-        bm.normal_update()
-        face = bm.select_history.active
+        bm = bmesh.from_edit_mesh(obj.data)
+        face = bm.faces.active
 
-        if face is None or not isinstance(face, bmesh.types.BMFace):
-            bm.free()
-            bpy.ops.object.mode_set(mode=mode)
-            self.report({"ERROR"}, "No face selected. Select exactly one face in Edit Mode first.")
+        if face is None or not face.select:
+            self.report({"ERROR"}, "Select an active face")
             return {"CANCELLED"}
 
-        # Same base orthonormal frame the official GIANTS exporter uses (tangent, bitangent, normal),
-        # right-handed so that tangent x bitangent == normal.
-        tangent = face.calc_tangent_edge_pair().normalized()
-        bitangent = face.normal.cross(tangent).normalized()
-        normal = face.normal
-        bm.free()
+        tangent_local = face.calc_tangent_edge_pair().normalized()
+        bitangent_local = face.normal.cross(tangent_local).normalized()
 
-        axis_index, sign = self.AXIS_MAP[context.scene.i3dea.face_normal_axis]
-        idx1 = (axis_index + 1) % 3
-        idx2 = (axis_index + 2) % 3
+        # Transform the face basis into world space.
+        world_matrix = obj.matrix_world.to_3x3()
 
-        # Assign the (signed) normal to the chosen axis, and the other two orthonormal vectors to the
-        # remaining two axes - swapping their order when the sign is negative keeps the frame right-handed
-        # (i.e. avoids an inverted/mirrored result) instead of just flipping a vector's sign.
-        columns = [mathutils.Vector((0.0, 0.0, 0.0))] * 3
-        columns[axis_index] = sign * normal
-        columns[idx1] = tangent if sign > 0 else bitangent
-        columns[idx2] = bitangent if sign > 0 else tangent
+        tangent = (world_matrix @ tangent_local).normalized()
+        bitangent = world_matrix @ bitangent_local
 
-        world_matrix = mathutils.Matrix(columns).transposed().to_4x4()
-        world_matrix.translation = obj.matrix_world.translation
+        # Keep the basis orthogonal even with non-uniform object scale.
+        bitangent -= tangent * bitangent.dot(tangent)
+        bitangent.normalize()
 
-        rotation = world_matrix.to_3x3().normalized().to_4x4()
-        current_world = obj.matrix_world
-        local_correction = current_world.to_3x3().normalized().to_4x4().inverted() @ rotation
-        obj.matrix_world = (
-            mathutils.Matrix.Translation(current_world.translation)
-            @ rotation
-            @ mathutils.Matrix.Diagonal(current_world.to_scale()).to_4x4()
-        )
-        obj.data.transform(local_correction.inverted())
+        normal = tangent.cross(bitangent).normalized()
 
-        bpy.ops.object.mode_set(mode=mode)
+        axis_index = {"X": 0, "Y": 1, "Z": 2}[self.axis]
+        secondary_index = (axis_index + 1) % 3
+        tertiary_index = (axis_index + 2) % 3
 
-        self.report({"INFO"}, f"Origin rotation for '{obj.name}' set to face normal")
+        if self.flip:
+            normal = -normal
+            tangent, bitangent = bitangent, tangent
+
+        columns = [mathutils.Vector()] * 3
+        columns[axis_index] = normal
+        columns[secondary_index] = tangent
+        columns[tertiary_index] = bitangent
+
+        target_rotation = mathutils.Matrix(columns).transposed()
+
+        current_world = obj.matrix_world.copy()
+        current_rotation = current_world.to_quaternion().to_matrix()
+        current_linear = current_world.to_3x3()
+
+        # Preserve scale/shear while replacing only the object's orientation.
+        remaining_transform = current_rotation.inverted() @ current_linear
+        new_linear = target_rotation @ remaining_transform
+
+        new_world = new_linear.to_4x4()
+        new_world.translation = current_world.translation
+
+        # Counter-transform the mesh so it remains unchanged in world space.
+        mesh_correction = new_world.inverted() @ current_world
+
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+        try:
+            # Avoid modifying other objects that share this mesh datablock.
+            if obj.data.users > 1:
+                obj.data = obj.data.copy()
+
+            obj.data.transform(mesh_correction, shape_keys=True)
+            obj.matrix_world = new_world
+            obj.data.update()
+
+        finally:
+            if bpy.ops.object.mode_set.poll():
+                bpy.ops.object.mode_set(mode="EDIT")
+
+        self.report({"INFO"}, f"Aligned origin of '{obj.name}' to active face normal")
         return {"FINISHED"}
 
 
-classes = (I3DEA_OT_copy_transform, I3DEA_OT_face_normal_to_origin)
+classes = (I3DEA_OT_copy_transform, I3DEA_OT_align_origin_to_face_normal)
 register, unregister = bpy.utils.register_classes_factory(classes)
