@@ -129,13 +129,28 @@ class I3DEA_OT_align_origin_to_face_normal(bpy.types.Operator):
         default=False,
     )
 
+    # Hidden reference values captured on the initial invocation.
+    # Redo executions use these instead of the already modified object state.
+    reference_matrix: bpy.props.FloatVectorProperty(size=16, options={"HIDDEN"})
+    reference_tangent: bpy.props.FloatVectorProperty(size=3, options={"HIDDEN"})
+    reference_bitangent: bpy.props.FloatVectorProperty(size=3, options={"HIDDEN"})
+    reference_normal: bpy.props.FloatVectorProperty(size=3, options={"HIDDEN"})
+    reference_captured: bpy.props.BoolProperty(default=False, options={"HIDDEN"})
+
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
-        cls.poll_message_set("Active object must be a mesh in Edit Mode")
         obj = context.active_object
         return obj is not None and obj.type == "MESH" and obj.mode == "EDIT"
 
-    def execute(self, context: bpy.types.Context):
+    @staticmethod
+    def _flatten_matrix(matrix: mathutils.Matrix) -> tuple[float, ...]:
+        return tuple(value for row in matrix for value in row)
+
+    def _get_reference_matrix(self) -> mathutils.Matrix:
+        values = self.reference_matrix
+        return mathutils.Matrix((values[0:4], values[4:8], values[8:12], values[12:16]))
+
+    def _capture_reference(self, context: bpy.types.Context) -> bool:
         obj = context.active_object
 
         bm = bmesh.from_edit_mesh(obj.data)
@@ -143,24 +158,57 @@ class I3DEA_OT_align_origin_to_face_normal(bpy.types.Operator):
 
         if face is None or not face.select:
             self.report({"ERROR"}, "Select an active face")
-            return {"CANCELLED"}
+            return False
+
+        reference_world = obj.matrix_world.copy()
 
         tangent_local = face.calc_tangent_edge_pair().normalized()
         bitangent_local = face.normal.cross(tangent_local).normalized()
 
         # Transform the face basis into world space.
-        world_matrix = obj.matrix_world.to_3x3()
+        linear = reference_world.to_3x3()
 
-        tangent = (world_matrix @ tangent_local).normalized()
-        bitangent = world_matrix @ bitangent_local
+        tangent = (linear @ tangent_local).normalized()
+        bitangent = linear @ bitangent_local
 
-        # Keep the basis orthogonal even with non-uniform object scale.
+        # Remove any component along the tangent. This keeps the resulting
+        # basis orthogonal when the object has non-uniform scale.
         bitangent -= tangent * bitangent.dot(tangent)
         bitangent.normalize()
 
         normal = tangent.cross(bitangent).normalized()
 
+        self.reference_matrix = self._flatten_matrix(reference_world)
+        self.reference_tangent = tangent
+        self.reference_bitangent = bitangent
+        self.reference_normal = normal
+        self.reference_captured = True
+
+        return True
+
+    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+        if not self._capture_reference(context):
+            return {"CANCELLED"}
+
+        return self.execute(context)
+
+    def execute(self, context: bpy.types.Context):
+        obj = context.active_object
+
+        # Mainly allows the operator to still work when called with
+        # EXEC_DEFAULT rather than through invoke().
+        if not self.reference_captured:
+            if not self._capture_reference(context):
+                return {"CANCELLED"}
+
+        reference_world = self._get_reference_matrix()
+
+        tangent = mathutils.Vector(self.reference_tangent)
+        bitangent = mathutils.Vector(self.reference_bitangent)
+        normal = mathutils.Vector(self.reference_normal)
+
         axis_index = {"X": 0, "Y": 1, "Z": 2}[self.axis]
+
         secondary_index = (axis_index + 1) % 3
         tertiary_index = (axis_index + 2) % 3
 
@@ -168,31 +216,36 @@ class I3DEA_OT_align_origin_to_face_normal(bpy.types.Operator):
             normal = -normal
             tangent, bitangent = bitangent, tangent
 
-        columns = [mathutils.Vector()] * 3
+        columns = [mathutils.Vector((0.0, 0.0, 0.0)) for _ in range(3)]
         columns[axis_index] = normal
         columns[secondary_index] = tangent
         columns[tertiary_index] = bitangent
 
         target_rotation = mathutils.Matrix(columns).transposed()
 
-        current_world = obj.matrix_world.copy()
-        current_rotation = current_world.to_quaternion().to_matrix()
-        current_linear = current_world.to_3x3()
+        # Separate the original object's orientation from its remaining
+        # linear transform so scale/shear can be preserved.
+        reference_linear = reference_world.to_3x3()
+        reference_rotation = reference_world.to_quaternion().to_matrix()
 
-        # Preserve scale/shear while replacing only the object's orientation.
-        remaining_transform = current_rotation.inverted() @ current_linear
+        remaining_transform = reference_rotation.inverted() @ reference_linear
         new_linear = target_rotation @ remaining_transform
 
         new_world = new_linear.to_4x4()
-        new_world.translation = current_world.translation
+        new_world.translation = reference_world.translation
 
-        # Counter-transform the mesh so it remains unchanged in world space.
-        mesh_correction = new_world.inverted() @ current_world
+        # Counter-transform the mesh so:
+        #
+        # new_world @ corrected_mesh == reference_world @ original_mesh
+        #
+        # In other words, the object's local axes change while the visible
+        # geometry remains in exactly the same world-space position.
+        mesh_correction = new_world.inverted() @ reference_world
 
         bpy.ops.object.mode_set(mode="OBJECT")
 
         try:
-            # Avoid modifying other objects that share this mesh datablock.
+            # Prevent modifying other objects that share the same mesh data.
             if obj.data.users > 1:
                 obj.data = obj.data.copy()
 
@@ -205,6 +258,7 @@ class I3DEA_OT_align_origin_to_face_normal(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode="EDIT")
 
         self.report({"INFO"}, f"Aligned origin of '{obj.name}' to active face normal")
+
         return {"FINISHED"}
 
 
