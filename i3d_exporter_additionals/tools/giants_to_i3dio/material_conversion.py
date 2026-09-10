@@ -39,14 +39,12 @@ def migrate_giants_material_properties(mat: bpy.types.Material) -> bool:
     # shadingRate: string -> enum
     if "shadingRate" in mat:
         mat.i3d_attributes.shading_rate = mat["shadingRate"]
-        del mat["shadingRate"]
         changed = True
 
     # materialSlotName: string, must also set use_material_slot_name if present
     if "materialSlotName" in mat and mat["materialSlotName"]:
         mat.i3d_attributes.material_slot_name = mat["materialSlotName"]
         mat.i3d_attributes.use_material_slot_name = True
-        del mat["materialSlotName"]
         changed = True
 
     # surface_render_method: BLENDED -> True, else False
@@ -124,7 +122,6 @@ def convert_giants_legacy_vehicle_shader_to_i3dio(mat: bpy.types.Material, shade
         shader_textures.append({"name": tname, "source": texture_value})
     i3da["shader_textures"] = shader_textures
 
-    _remove_giants_legacy_mat_keys(mat)
     logger.info(
         f"[Adapter] {mat.name}: Wrote {len(shader_parameters)} shader params, "
         f"{len(shader_textures)} textures for legacy operator."
@@ -138,10 +135,11 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
 
     i3da.shader_name = ""  # Just a safety to make it update
     i3da.shader_name = shader_name  # The property will not set the shader name if it doesn't exist.
-
-    if mat.get("customShaderVariation", "") not in i3da.shader_variations:
-        return False
-    i3da.shader_variation_name = mat.get("customShaderVariation", "")
+    variation = mat.get("customShaderVariation", "")
+    if variation not in i3da.shader_variations:
+        logger.debug(f"{mat.name}: Shader variation {variation!r} not found in i3dio shader {shader_name!r}.")
+        variation = ""
+    i3da.shader_variation_name = variation
 
     # Assign all customParameter_* keys to i3dio shader material parameters
     parameter_collection = i3da.shader_material_params
@@ -178,7 +176,16 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
                 # Only update if the texture value is not the default source
                 target_tex_slot.source = texture_value
 
-    _remove_giants_legacy_mat_keys(mat)
+
+def clean_giants_material_properties() -> None:
+    """Remove Giants material properties after all material data has been migrated."""
+    for mat in bpy.data.materials:
+        if "shadingRate" in mat:
+            del mat["shadingRate"]
+        if "materialSlotName" in mat and mat["materialSlotName"]:
+            del mat["materialSlotName"]
+        if mat.get("customShader"):
+            _remove_giants_legacy_mat_keys(mat)
 
 
 def _remove_giants_legacy_mat_keys(mat: bpy.types.Material) -> None:

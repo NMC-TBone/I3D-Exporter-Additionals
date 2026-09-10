@@ -121,6 +121,8 @@ def draw_material_tools(layout: bpy.types.UILayout, context: bpy.types.Context) 
         col.label(text="Material operators")
         row = col.row(align=True)
         row.operator("i3dea.mirror_material")
+        row = col.row(align=True)
+        row.operator("i3dea.enable_all_material_slot_names", icon="MATERIAL")
 
         box = panel.box()
         box.label(text="Create Material")

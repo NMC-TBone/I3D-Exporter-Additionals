@@ -1,6 +1,6 @@
 import bpy
 
-from ...helper_functions import check_i3d_exporter_type
+from ...helper_functions import check_i3d_exporter_type, get_enabled_addons_by_prefix
 from .dispatcher import migrate_all
 
 
@@ -9,6 +9,21 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
     bl_label = "Migrate from Giants to Community Exporter"
     bl_description = "Convert all Giants exporter properties and materials to the i3dio community exporter format"
     bl_options = {"INTERNAL", "UNDO"}
+
+    preserve_old_properties: bpy.props.BoolProperty(
+        name="Keep Giants Exporter Properties",
+        description="Keep Giants exporter custom properties after copying them to the Community Exporter",
+        default=False,
+    )
+
+    migrate_visibility: bpy.props.BoolProperty(
+        name="Preserve Giants Visibility",
+        description=(
+            "Copy the current Outliner eye state to the Community Exporter's fixed Visibility property; "
+            "dynamic compound collision roots remain visible"
+        ),
+        default=True,
+    )
 
     @classmethod
     def poll(cls, _context):
@@ -28,9 +43,15 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         col.label(text="• You can undo this operation (Ctrl+Z).")
         col.label(text="However, for full safety, make a backup before migrating!", icon="INFO")
         col.label(text="• Especially if you intend to keep using the Giants exporter or might want to revert.")
+        col.separator()
+        col.prop(self, "preserve_old_properties")
+        col.prop(self, "migrate_visibility")
 
     def execute(self, _context):
-        migrate_all()
+        migrate_all(
+            preserve_old_properties=self.preserve_old_properties,
+            migrate_visibility=self.migrate_visibility,
+        )
         self.report({"INFO"}, "Migration complete! Check console/log for details.")
         return {"FINISHED"}
 
@@ -44,12 +65,8 @@ class I3DEA_OT_disable_giants_exporter(bpy.types.Operator):
     def execute(self, context):
         import addon_utils
 
-        giants_modules = ["io_export_i3d", "io_export_i3d_10_0_0"]
-        for module in giants_modules:
-            if addon_utils.check(module)[1]:
-                addon_utils.disable(module, default_set=True)
-                self.report({"INFO"}, f"{module} disabled.")
-            else:
-                self.report({"WARNING"}, f"{module} is not enabled.")
+        for addon in get_enabled_addons_by_prefix("io_export_i3d"):
+            addon_utils.disable(addon.module, default_set=True)
+            self.report({"INFO"}, f"{addon.module} disabled.")
         self.report({"INFO"}, "Giants I3D Exporter disabled.")
         return {"FINISHED"}

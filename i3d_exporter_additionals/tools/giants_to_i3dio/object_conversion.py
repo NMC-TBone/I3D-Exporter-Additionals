@@ -3,8 +3,16 @@ import bpy
 from .logging_config import logger
 from .mappings import OBJECT_PROP_MAPPINGS
 
+USER_ATTRIBUTE_DATA_FIELDS = {
+    "boolean": "data_boolean",
+    "string": "data_string",
+    "scriptCallback": "data_scriptCallback",
+    "float": "data_float",
+    "integer": "data_integer",
+}
 
-def migrate_objects() -> None:
+
+def migrate_objects(*, migrate_visibility: bool = True) -> None:
     # Handle merge groups first to ensure info is not lost during cleanup later.
     group_num_to_index = migrate_merge_groups()
     # Handle bounding volumes after merge groups to ensure correct assignment.
@@ -18,7 +26,18 @@ def migrate_objects() -> None:
             obj.i3d_attributes.exclude_from_export = True
             obj.name = obj.name[:-7]  # Remove the "_ignore" suffix
             logger.info(f"{obj.name}: Marked as excluded from export due to '_ignore' suffix.")
-        clean_giants_keys(obj)
+        if migrate_visibility:
+            migrate_object_visibility(obj)
+
+
+def migrate_object_visibility(obj: bpy.types.Object) -> None:
+    """Preserve GIANTS eye visibility, except for dynamic compound collision roots."""
+    attributes = obj.i3d_attributes
+    is_dynamic_compound = attributes.rigid_body_type == "dynamic" and attributes.compound
+    visibility = is_dynamic_compound or not obj.hide_get()
+    attributes.visibility_tracking = False
+    attributes.visibility = visibility
+    logger.info(f"{obj.name}: Migrated visibility to {visibility}.")
 
 
 def migrate_giants_object_properties(obj: bpy.types.Object) -> bool:
@@ -45,14 +64,11 @@ def migrate_rigid_body_type(obj: bpy.types.Object) -> None:
     """Special handling for rigid body types, giants uses separate bool props, i3dio uses enum."""
     if obj.type != "MESH":
         return
-    rigid_types = [
-        ("i3D_static", "static"),
-        ("i3D_dynamic", "dynamic"),
-        ("i3D_kinematic", "kinematic"),
-        ("i3D_compoundChild", "compoundChild"),
-    ]
-    selected = [v for k, v in rigid_types if obj.get(k)]
-    obj.i3d_attributes.rigid_body_type = selected[0] if selected else "none"
+    suffixes = ("static", "dynamic", "kinematic", "compoundChild")
+    prefixes = ("i3D_", "I3D_")
+
+    selected = next((s for p in prefixes for s in suffixes if obj.get(f"{p}{s}")), "none")
+    obj.i3d_attributes.rigid_body_type = selected
 
 
 def migrate_user_attributes(obj: bpy.types.Object) -> None:
@@ -60,52 +76,62 @@ def migrate_user_attributes(obj: bpy.types.Object) -> None:
     Converts Giants-style userAttribute_* custom props to i3dio User Attribute items.
     Example: userAttribute_boolean_myAttr=True → attribute_list: type=boolean, name='myFAttr', data_boolean=True
     """
-    attr_types = {"boolean", "string", "scriptCallback", "float", "integer"}
     for key in list(obj.keys()):
-        if not key.startswith("userAttribute_"):
+        user_attribute = _read_giants_user_attribute(obj, key)
+        if user_attribute is None:
             continue
-
-        try:
-            _, attr_type, attr_name = key.split("_", 2)
-        except ValueError:
-            continue  # Skip invalid keys
-
-        if attr_type not in attr_types:
-            continue  # Skip unsupported types
+        attr_type, attr_name, data_field, value = user_attribute
 
         attrs = obj.i3d_user_attributes
         new_attr = attrs.attribute_list.add()
         new_attr.name = attr_name
-        enum_map = {
-            "boolean": "data_boolean",
-            "string": "data_string",
-            "scriptCallback": "data_scriptCallback",
-            "float": "data_float",
-            "integer": "data_integer",
-        }
-        new_attr.type = enum_map[attr_type]
+        new_attr.type = data_field
+        setattr(new_attr, data_field, value)
 
-        value = obj[key]
-        try:
-            match attr_type:
-                case "boolean":
-                    new_attr.data_boolean = bool(value)
-                case "integer":
-                    new_attr.data_integer = int(value)
-                case "float":
-                    new_attr.data_float = float(value)
-                case "string":
-                    new_attr.data_string = str(value)
-                case "scriptCallback":
-                    new_attr.data_scriptCallback = str(value)
-        except (ValueError, TypeError):
-            continue  # Skip invalid values
         logger.info(f"{obj.name}: Migrated user attribute {attr_name} ({attr_type}) with value {value!r}")
-        del obj[key]
+
+
+def _read_giants_user_attribute(obj: bpy.types.Object, key: str) -> tuple[str, str, str, object] | None:
+    if not key.startswith("userAttribute_"):
+        return None
+
+    try:
+        _, attr_type, attr_name = key.split("_", 2)
+    except ValueError:
+        return None
+
+    data_field = USER_ATTRIBUTE_DATA_FIELDS.get(attr_type)
+    if data_field is None:
+        return None
+
+    value = obj[key]
+    try:
+        match attr_type:
+            case "boolean":
+                value = bool(value)
+            case "integer":
+                value = int(value)
+            case "float":
+                value = float(value)
+            case "string" | "scriptCallback":
+                value = str(value)
+    except (ValueError, TypeError):
+        return None
+
+    return attr_type, attr_name, data_field, value
+
+
+def clean_giants_object_properties() -> None:
+    """Remove Giants object properties after all object data has been migrated."""
+    for obj in bpy.data.objects:
+        for key in list(obj.keys()):
+            if _read_giants_user_attribute(obj, key) is not None:
+                del obj[key]
+        clean_giants_keys(obj)
 
 
 def clean_giants_keys(obj: bpy.types.Object) -> None:
-    """Remove all keys that are not in OBJECT_PROP_MAPPINGS."""
+    """Remove Giants object keys using the i3D_/I3D_ prefixes."""
     del_count = 0
     for key in list(obj.keys()):
         if key.startswith("i3D_") or key.startswith("I3D_"):
@@ -125,7 +151,7 @@ def migrate_merge_groups() -> dict[int, int]:
     objects = [obj for obj in bpy.data.objects if obj.type == "MESH"]
     for obj in objects:
         group_id = obj.get("i3D_mergeGroup") or obj.get("I3D_mergeGroup")
-        if group_id is not None:
+        if group_id is not None and group_id >= 1:  # In Giants Exporter merge groups start at 1, 0 = no group
             referenced_groups.add(group_id)
             group_map.setdefault(group_id, []).append(obj)
             if obj.get("i3D_mergeGroupRoot") or obj.get("I3D_mergeGroupRoot"):
