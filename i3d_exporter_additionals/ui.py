@@ -69,6 +69,7 @@ def draw_general_tools(
             grid.operator("i3dea.ignore", text="Add Suffix _ignore")
             grid.operator("i3dea.verify_scene", text="Verify Scene")
             grid.operator("i3dea.convert_skinnedmesh", text="Convert SkinnedMesh")
+        grid.operator("i3dea.align_origin_to_face_normal", text="Set Origin to Face Normal", icon="ORIENTATION_NORMAL")
 
 
 def draw_user_attributes(layout: bpy.types.UILayout, context: bpy.types.Context) -> None:
