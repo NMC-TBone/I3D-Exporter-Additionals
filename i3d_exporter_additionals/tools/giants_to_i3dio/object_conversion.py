@@ -22,12 +22,24 @@ def migrate_objects(*, migrate_visibility: bool = True) -> None:
         migrate_rigid_body_type(obj)
         migrate_giants_object_properties(obj)
         migrate_user_attributes(obj)
+        migrate_vertex_color_export(obj)
         if obj.name.lower().endswith("_ignore"):
             obj.i3d_attributes.exclude_from_export = True
             obj.name = obj.name[:-7]  # Remove the "_ignore" suffix
             logger.info(f"{obj.name}: Marked as excluded from export due to '_ignore' suffix.")
         if migrate_visibility:
             migrate_object_visibility(obj)
+
+
+def migrate_vertex_color_export(obj: bpy.types.Object) -> None:
+    """Preserve existing color layers, including effects whose shaders are assigned at runtime."""
+    if obj.type != "MESH" or not obj.data.color_attributes:
+        return
+    if obj.data.i3d_attributes.color_export == "IF_PRESENT":
+        return
+
+    obj.data.i3d_attributes.color_export = "IF_PRESENT"
+    logger.info(f"{obj.name}: Set Vertex Color Export to 'If Layer Exists' to preserve existing colors.")
 
 
 def migrate_object_visibility(obj: bpy.types.Object) -> None:
@@ -72,8 +84,7 @@ def migrate_rigid_body_type(obj: bpy.types.Object) -> None:
 
 
 def migrate_user_attributes(obj: bpy.types.Object) -> None:
-    """
-    Converts Giants-style userAttribute_* custom props to i3dio User Attribute items.
+    """Converts Giants-style userAttribute_* custom props to i3dio User Attribute items.
     Example: userAttribute_boolean_myAttr=True → attribute_list: type=boolean, name='myFAttr', data_boolean=True
     """
     for key in list(obj.keys()):

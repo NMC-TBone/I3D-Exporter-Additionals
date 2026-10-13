@@ -6,6 +6,11 @@
 Some additional tools that work along with [Giants i3d Exporter](https://gdn.giants-software.com/download.php?downloadId=92) and [StjerneIdioten I3D-Blender-Addon](https://github.com/StjerneIdioten/I3D-Blender-Addon) for Blender.
 
 ## Included tools
+### Exporter Migration
+Migrate GIANTS exporter properties and materials to the Community exporter. Migration automatically sets meshes with existing color attribute layers to **If Layer Exists**. This preserves colors on effect meshes, such as pipe effects, even when their export material has no shader that requires vertex colors.
+
+Meshes without color layers keep their current setting. When exporting, use **Use Mesh Settings** for the global Vertex Color option so the migrated mesh settings take effect.
+
 ### Mesh Tools
 Clean meshes: Removes custom split normals, set shade smooth and auto smooth, merge vertices, remove triangulation on mesh.
 
