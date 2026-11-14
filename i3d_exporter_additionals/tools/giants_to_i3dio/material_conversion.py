@@ -26,6 +26,8 @@ class MaterialMigrationContext:
 def migrate_materials() -> MaterialMigrationContext:
     ctx = MaterialMigrationContext()
     for mat in bpy.data.materials:
+        if mat.get("_i3d_material_kind") == "debug":
+            continue  # Importer-only preview variant; never migrate it.
         if migrate_material_shader(mat, ctx):
             ctx.migrated_count += 1
         if migrate_giants_material_properties(mat):
@@ -176,10 +178,14 @@ def migrate_giants_standard_shader(mat: bpy.types.Material, shader_name: str) ->
                 # Only update if the texture value is not the default source
                 target_tex_slot.source = texture_value
 
+    return True
+
 
 def clean_giants_material_properties() -> None:
     """Remove Giants material properties after all material data has been migrated."""
     for mat in bpy.data.materials:
+        if mat.get("_i3d_material_kind") == "debug":
+            continue  # Keep importer preview materials untouched.
         if "shadingRate" in mat:
             del mat["shadingRate"]
         if "materialSlotName" in mat and mat["materialSlotName"]:

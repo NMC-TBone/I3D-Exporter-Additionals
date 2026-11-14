@@ -2,6 +2,7 @@ import bpy
 
 from ...helper_functions import check_i3d_exporter_type, get_enabled_addons_by_prefix
 from .dispatcher import migrate_all
+from .importer_compat import prepare_importer_materials
 
 
 class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
@@ -48,6 +49,12 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         col.prop(self, "migrate_visibility")
 
     def execute(self, _context):
+        try:
+            prepare_importer_materials()
+        except (AttributeError, RuntimeError, TypeError) as exc:
+            self.report({"ERROR"}, f"i3D Importer preparation failed: {exc}")
+            return {"CANCELLED"}
+
         migrate_all(
             preserve_old_properties=self.preserve_old_properties,
             migrate_visibility=self.migrate_visibility,
