@@ -48,17 +48,22 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
         col.prop(self, "preserve_old_properties")
         col.prop(self, "migrate_visibility")
 
-    def execute(self, _context):
+    def execute(self, context):
         try:
             prepare_importer_materials()
         except (AttributeError, RuntimeError, TypeError) as exc:
             self.report({"ERROR"}, f"i3D Importer preparation failed: {exc}")
             return {"CANCELLED"}
 
-        migrate_all(
-            preserve_old_properties=self.preserve_old_properties,
-            migrate_visibility=self.migrate_visibility,
-        )
+        migrate_all(preserve_old_properties=self.preserve_old_properties, migrate_visibility=self.migrate_visibility)
+
+        # Ensure migrated material properties reach evaluated datablocks
+        for mat in bpy.data.materials:
+            if mat.get("_i3d_material_kind") == "debug":
+                continue  # Skip debug materials
+            if mat.i3d_attributes.shader_name:
+                mat.update_tag()
+        context.view_layer.update()
         self.report({"INFO"}, "Migration complete! Check console/log for details.")
         return {"FINISHED"}
 
