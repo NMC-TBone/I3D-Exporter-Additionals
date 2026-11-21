@@ -128,6 +128,8 @@ BASE_OBJECT_PROP_MAPPINGS = {
         lambda obj: getattr(obj.i3d_attributes, "rigid_body_type", "none") == "static",
     ),
     "i3D_mergeChildren": (None, bool, migrate_merge_children, "obj", "MESH", None),
+    # Use the same precedence as the Empty compatibility check when both keys exist.
+    "I3D_mergeChildren": (None, bool, migrate_merge_children, "obj", "MESH", lambda obj: "i3D_mergeChildren" not in obj),
     # Mesh properties
     "i3D_castsShadows": ("casts_shadows", bool, None, "data", "MESH", None),
     "i3D_receiveShadows": ("receive_shadows", bool, None, "data", "MESH", None),

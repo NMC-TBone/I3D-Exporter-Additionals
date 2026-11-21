@@ -1,10 +1,17 @@
 from .logging_config import logger
 from .material_conversion import clean_giants_material_properties, migrate_materials
+from .merge_children_compat import MergeChildrenRoots, convert_merge_children_empty_roots
 from .object_conversion import clean_giants_object_properties, migrate_objects
 
 
-def migrate_all(*, preserve_old_properties: bool = False, migrate_visibility: bool = True) -> None:
+def migrate_all(
+    *,
+    preserve_old_properties: bool = False,
+    migrate_visibility: bool = True,
+    merge_children_roots: MergeChildrenRoots | None = None,
+) -> None:
     logger.info("Starting Giants -> i3dio migration...")
+    convert_merge_children_empty_roots(merge_children_roots)
     migrate_objects(migrate_visibility=migrate_visibility)
     mat_ctx = migrate_materials()
 

@@ -91,7 +91,7 @@ def migrate_merge_children(obj: bpy.types.Object, value: bool) -> None:
         "I3D_mergeChildrenFreezeRotation",
         "I3D_mergeChildrenFreezeScale",
     }
-    if any(hasattr(obj, prop) and getattr(obj, prop) for prop in freeze_props):
+    if any(obj.get(prop, getattr(obj, prop, False)) for prop in freeze_props):
         obj.i3d_merge_children.apply_transforms = True
 
 

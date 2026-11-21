@@ -3,6 +3,7 @@ import bpy
 from ...helper_functions import check_i3d_exporter_type, get_enabled_addons_by_prefix
 from .dispatcher import migrate_all
 from .importer_compat import prepare_importer_materials
+from .merge_children_compat import plan_merge_children_empty_roots
 
 
 class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
@@ -50,12 +51,22 @@ class I3DEA_OT_migrate_giants_to_i3dio(bpy.types.Operator):
 
     def execute(self, context):
         try:
+            merge_children_roots = plan_merge_children_empty_roots()
+        except ValueError as exc:
+            self.report({"ERROR"}, f"Migration cancelled: {exc}")
+            return {"CANCELLED"}
+
+        try:
             prepare_importer_materials()
         except (AttributeError, RuntimeError, TypeError) as exc:
             self.report({"ERROR"}, f"i3D Importer preparation failed: {exc}")
             return {"CANCELLED"}
 
-        migrate_all(preserve_old_properties=self.preserve_old_properties, migrate_visibility=self.migrate_visibility)
+        migrate_all(
+            preserve_old_properties=self.preserve_old_properties,
+            migrate_visibility=self.migrate_visibility,
+            merge_children_roots=merge_children_roots,
+        )
 
         # Ensure migrated material properties reach evaluated datablocks
         for mat in bpy.data.materials:

@@ -2,6 +2,7 @@ import bpy
 
 from .logging_config import logger
 from .mappings import OBJECT_PROP_MAPPINGS
+from .merge_children_compat import is_merge_children_empty
 
 USER_ATTRIBUTE_DATA_FIELDS = {
     "boolean": "data_boolean",
@@ -143,6 +144,8 @@ def clean_giants_object_properties() -> None:
 
 def clean_giants_keys(obj: bpy.types.Object) -> None:
     """Remove Giants object keys using the i3D_/I3D_ prefixes."""
+    if is_merge_children_empty(obj):
+        return  # Keep the source properties of roots that could not be converted.
     del_count = 0
     for key in list(obj.keys()):
         if key.startswith("i3D_") or key.startswith("I3D_"):
